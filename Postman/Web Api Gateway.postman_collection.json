@@ -1,0 +1,316 @@
+{
+	"info": {
+		"_postman_id": "b9c35fb5-268c-4814-8296-336d60e6606e",
+		"name": "Web Api Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14931851"
+	},
+	"item": [
+		{
+			"name": "Pom Data Upload",
+			"protocolProfileBehavior": {
+				"strictSSL": false
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer ",
+						"type": "text"
+					},
+					{
+						"key": "FileName",
+						"value": "Pom Upload.csv",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionType",
+						"value": "Producer",
+						"type": "text"
+					},
+					{
+						"key": "",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": "/C:/Users/georgea/Documents/bomtest.csv"
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7265/api/v1/file-upload",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7265",
+					"path": [
+						"api",
+						"v1",
+						"file-upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reg Data Upload",
+			"protocolProfileBehavior": {
+				"strictSSL": false
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer ",
+						"type": "text"
+					},
+					{
+						"key": "FileName",
+						"value": "Registration.csv",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionSubType",
+						"value": "CompanyDetails",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionType",
+						"value": "Registration",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionId",
+						"value": "e565bec4-e7a9-4c92-83c3-3e5df22d54dd",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "UserType",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": "/C:/Users/georgea/OneDrive - Kainos Software/DEFRA EPR/Registration Files/CompanyDetails - Requires Partners.csv"
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7265/api/v1/file-upload",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7265",
+					"path": [
+						"api",
+						"v1",
+						"file-upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reg Partnerships Upload",
+			"protocolProfileBehavior": {
+				"strictSSL": false
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "",
+						"type": "text"
+					},
+					{
+						"key": "FileName",
+						"value": "Partnerships.csv",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionSubType",
+						"value": "Partnerships",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionId",
+						"value": "e71e8c94-09bd-4a68-bbbd-7338d15fe767",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionType",
+						"value": "Registration",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": "/C:/Users/georgea/Documents/test.csv"
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7265/api/v1/file-upload",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7265",
+					"path": [
+						"api",
+						"v1",
+						"file-upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reg Brands Upload",
+			"protocolProfileBehavior": {
+				"strictSSL": false
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "",
+						"type": "text"
+					},
+					{
+						"key": "FileName",
+						"value": "Brands.csv",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionSubType",
+						"value": "Brands",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionId",
+						"value": "e71e8c94-09bd-4a68-bbbd-7338d15fe767",
+						"type": "text"
+					},
+					{
+						"key": "SubmissionType",
+						"value": "Registration",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": "/C:/Users/georgea/Documents/test.csv"
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7265/api/v1/file-upload",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7265",
+					"path": [
+						"api",
+						"v1",
+						"file-upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Status",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://localhost:7265/api/v1/submissions/55c00b60-2f7c-493b-92fe-cfecaa541f52",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7265",
+					"path": [
+						"api",
+						"v1",
+						"submissions",
+						"55c00b60-2f7c-493b-92fe-cfecaa541f52"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Auth",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"jane.doe@here.com\",\r\n  \"password\": \"password1\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7265/authenticate",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7265",
+					"path": [
+						"authenticate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5291/admin/health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5291",
+					"path": [
+						"admin",
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>WebApiGateway.UnitTests</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AutoFixture" Version="4.18.0" />
+      <PackageReference Include="AutoFixture.AutoMoq" Version="4.18.0" />
+      <PackageReference Include="FluentAssertions" Version="6.11.0" />
+      <PackageReference Include="ILogger.Moq" Version="1.1.10" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+      <PackageReference Include="Moq" Version="4.18.4" />
+      <PackageReference Include="MSTest.TestAdapter" Version="3.0.2" />
+      <PackageReference Include="MSTest.TestFramework" Version="3.0.2" />
+      <PackageReference Update="StyleCop.Analyzers" Version="1.2.0-beta.435">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="coverlet.msbuild" Version="6.0.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\WebApiGateway.Api\WebApiGateway.Api.csproj" />
+      <ProjectReference Include="..\WebApiGateway.Core\WebApiGateway.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Support\" />
+    </ItemGroup>
+
+</Project>

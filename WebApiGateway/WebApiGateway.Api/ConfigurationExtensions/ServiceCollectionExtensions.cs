@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileUploadService, FileUploadService>();
         services.AddScoped<IAntivirusService, AntivirusService>();
         services.AddScoped<ISubmissionService, SubmissionService>();
+        services.AddScoped<IDecisionService, DecisionService>();
         services.AddScoped<AccountServiceAuthorisationHandler>();
         services.AddScoped<AntivirusApiAuthorizationHandler>();
 
@@ -28,6 +29,7 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<AccountApiOptions>(configuration.GetSection(AccountApiOptions.Section));
         services.Configure<SubmissionStatusApiOptions>(configuration.GetSection(SubmissionStatusApiOptions.Section));
+        services.Configure<DecisionApiOptions>(configuration.GetSection(DecisionApiOptions.Section));
         services.Configure<AntivirusApiOptions>(configuration.GetSection(AntivirusApiOptions.Section));
         services.Configure<StorageAccountOptions>(configuration.GetSection(StorageAccountOptions.Section));
 

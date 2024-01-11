@@ -1,12 +1,12 @@
-﻿using Newtonsoft.Json;
-using WebApiGateway.Api.Clients.Interfaces;
-using WebApiGateway.Api.Extensions;
-using WebApiGateway.Core.Constants;
-using WebApiGateway.Core.Models.Events;
-using WebApiGateway.Core.Models.ProducerValidation;
-using WebApiGateway.Core.Models.Submission;
+﻿namespace WebApiGateway.Api.Clients;
 
-namespace WebApiGateway.Api.Clients;
+using Core.Models.Events;
+using Core.Models.ProducerValidation;
+using Core.Models.Submission;
+using Extensions;
+using Interfaces;
+using Newtonsoft.Json;
+using WebApiGateway.Core.Constants;
 
 public class SubmissionStatusClient : ISubmissionStatusClient
 {

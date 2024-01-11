@@ -50,6 +50,13 @@ public static class HttpClientServiceCollectionExtensions
             .AddHttpMessageHandler<AccountServiceAuthorisationHandler>()
             .AddPolicyHandler(GetRetryPolicy());
 
+        services.AddHttpClient<IDecisionClient, DecisionClient>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<DecisionApiOptions>>().Value;
+            client.BaseAddress = new Uri($"{options.BaseUrl}/v1/");
+        })
+        .AddPolicyHandler(GetRetryPolicy());
+
         return services;
     }
 

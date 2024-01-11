@@ -39,6 +39,6 @@ public class HttpContentHeaderExtensionsTests
         var result = httpResponseMessage.Content.Headers.GetContentType();
 
         // Assert
-        result.Should().Be(default);
+        result.Should().Be(string.Empty);
     }
 }

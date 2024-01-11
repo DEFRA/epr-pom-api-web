@@ -5,6 +5,12 @@ using WebApiGateway.Core.Models.Submission;
 
 namespace WebApiGateway.Api.Controllers;
 
+using Core.Models.Submission;
+using Extensions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Services.Interfaces;
+
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/submissions")]

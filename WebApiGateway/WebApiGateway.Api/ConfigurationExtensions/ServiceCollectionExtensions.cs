@@ -1,12 +1,12 @@
-﻿namespace WebApiGateway.Api.ConfigurationExtensions;
+﻿using System.Diagnostics.CodeAnalysis;
+using WebApiGateway.Api.Clients;
+using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Api.Handlers;
+using WebApiGateway.Api.Services;
+using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Options;
 
-using System.Diagnostics.CodeAnalysis;
-using Clients;
-using Clients.Interfaces;
-using Core.Options;
-using Handlers;
-using Services;
-using Services.Interfaces;
+namespace WebApiGateway.Api.ConfigurationExtensions;
 
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISubmissionService, SubmissionService>();
         services.AddScoped<AccountServiceAuthorisationHandler>();
         services.AddScoped<AntivirusApiAuthorizationHandler>();
+        services.AddScoped<IDecisionService, DecisionService>();
 
         return services;
     }
@@ -30,6 +31,7 @@ public static class ServiceCollectionExtensions
         services.Configure<SubmissionStatusApiOptions>(configuration.GetSection(SubmissionStatusApiOptions.Section));
         services.Configure<AntivirusApiOptions>(configuration.GetSection(AntivirusApiOptions.Section));
         services.Configure<StorageAccountOptions>(configuration.GetSection(StorageAccountOptions.Section));
+        services.Configure<DecisionApiOptions>(configuration.GetSection(DecisionApiOptions.Section));
 
         return services;
     }

@@ -1,13 +1,13 @@
-﻿namespace WebApiGateway.Api.ConfigurationExtensions;
-
-using System.Diagnostics.CodeAnalysis;
-using Clients;
-using Clients.Interfaces;
-using Core.Options;
-using Handlers;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
+using WebApiGateway.Api.Clients;
+using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Api.Handlers;
+using WebApiGateway.Core.Options;
+
+namespace WebApiGateway.Api.ConfigurationExtensions;
 
 [ExcludeFromCodeCoverage]
 public static class HttpClientServiceCollectionExtensions
@@ -48,6 +48,13 @@ public static class HttpClientServiceCollectionExtensions
                 client.Timeout = TimeSpan.FromSeconds(options.Timeout);
             })
             .AddHttpMessageHandler<AccountServiceAuthorisationHandler>()
+            .AddPolicyHandler(GetRetryPolicy());
+
+        services.AddHttpClient<IDecisionClient, DecisionClient>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<DecisionApiOptions>>().Value;
+                client.BaseAddress = new Uri($"{options.BaseUrl}/v1/");
+            })
             .AddPolicyHandler(GetRetryPolicy());
 
         return services;

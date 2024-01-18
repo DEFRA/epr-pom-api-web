@@ -1,8 +1,8 @@
-﻿namespace WebApiGateway.Api.Clients;
+﻿using Newtonsoft.Json;
+using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Core.Models.UserAccount;
 
-using Core.Models.UserAccount;
-using Interfaces;
-using Newtonsoft.Json;
+namespace WebApiGateway.Api.Clients;
 
 public class AccountServiceClient : IAccountServiceClient
 {

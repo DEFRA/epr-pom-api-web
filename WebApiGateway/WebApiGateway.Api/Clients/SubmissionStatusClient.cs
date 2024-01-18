@@ -5,6 +5,7 @@ using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.Submission;
+using WebApiGateway.Core.Models.UserAccount;
 
 namespace WebApiGateway.Api.Clients;
 
@@ -158,11 +159,23 @@ public class SubmissionStatusClient : ISubmissionStatusClient
 
     private async Task ConfigureHttpClientAsync()
     {
-        var userId = _httpContextAccessor.HttpContext.User.UserId();
-        var userAccount = await _accountServiceClient.GetUserAccount(userId);
-        var organisation = userAccount.User.Organisations.First();
+        Guid userId = Guid.NewGuid();
+        UserAccount userAccount;
+        OrganisationDetail organisation;
 
-        _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
-        _httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
+        try
+        {
+            userId = _httpContextAccessor.HttpContext.User.UserId();
+            userAccount = await _accountServiceClient.GetUserAccount(userId);
+            organisation = userAccount.User.Organisations.First();
+
+            _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
+            _httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
+        }
+        catch (HttpRequestException exception)
+        {
+            _logger.LogError(exception, $"Error getting user accounts with id {userId}");
+            throw;
+        }
     }
 }

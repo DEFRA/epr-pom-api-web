@@ -32,4 +32,6 @@ public abstract class AbstractSubmission
     public Guid? ComplianceSchemeId { get; set; }
 
     public bool HasValidFile { get; set; }
+
+    public bool HasWarnings { get; set; }
 }

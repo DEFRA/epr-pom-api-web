@@ -10,6 +10,7 @@ using Moq;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Services;
 using WebApiGateway.Core.Models.ProducerValidation;
+using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.UnitTests.Performance;
@@ -50,8 +51,8 @@ public class SubmissionServicePerformanceTests
         var stopwatch = new Stopwatch();
         var submissionId = Guid.NewGuid();
 
-        var validationErrorRows = GenerateRandomIssueList().ToList();
-        var validationWarningRows = GenerateRandomIssueList().ToList();
+        var validationErrorRows = GenerateRandomProducerValidationIssueList().ToList();
+        var validationWarningRows = GenerateRandomProducerValidationIssueList().ToList();
 
         _submissionStatusClientMock.Setup(x => x.GetProducerValidationErrorRowsAsync(submissionId)).ReturnsAsync(validationErrorRows);
         _submissionStatusClientMock.Setup(x => x.GetProducerValidationWarningRowsAsync(submissionId)).ReturnsAsync(validationWarningRows);
@@ -68,12 +69,44 @@ public class SubmissionServicePerformanceTests
         elapsedTime.Should().BeLessThan(200, $"Expected elapsed time should take 200ms but instead took {elapsedTime}ms");
     }
 
-    private static IEnumerable<ProducerValidationIssueRow> GenerateRandomIssueList()
+    [TestMethod]
+    public async Task GetRegistrationValidationErrorsAsync_WhenWorkingWith2000Issues_BenchmarksElapsedTimeTo200Milliseconds()
+    {
+        // Arrange
+        var stopwatch = new Stopwatch();
+        var submissionId = Guid.NewGuid();
+
+        var registrationValidationErrorRows = GenerateRandomRegistrationValidationIssueList().ToList();
+
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationValidationErrorsAsync(submissionId)).ReturnsAsync(registrationValidationErrorRows);
+
+        // Act
+        stopwatch.Start();
+        await _systemUnderTest.GetRegistrationValidationErrorsAsync(submissionId);
+        stopwatch.Stop();
+
+        // Assert
+        var elapsedTime = stopwatch.ElapsedMilliseconds;
+
+        Console.WriteLine($"Fetching {registrationValidationErrorRows.Count + registrationValidationErrorRows.Count} validation issues rows took {elapsedTime} milliseconds");
+        elapsedTime.Should().BeLessThan(200, $"Expected elapsed time should take 200ms but instead took {elapsedTime}ms");
+    }
+
+    private static IEnumerable<ProducerValidationIssueRow> GenerateRandomProducerValidationIssueList()
     {
         var random = new Random();
         return _fixture
             .Build<ProducerValidationIssueRow>()
             .With(x => x.RowNumber, random.Next(1, 20))
+            .CreateMany(1000)
+            .ToList();
+    }
+
+    private static IEnumerable<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
+    {
+        var random = new Random();
+        return _fixture
+            .Build<RegistrationValidationError>()
             .CreateMany(1000)
             .ToList();
     }

@@ -12,6 +12,7 @@ using Moq;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Core.Models.ProducerValidation;
+using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.UserAccount;
 using WebApiGateway.UnitTests.Support.Extensions;
 
@@ -96,6 +97,29 @@ public class SubmissionStatusPerformanceTests
         var elapsedTime = stopwatch.ElapsedMilliseconds;
 
         Console.WriteLine($"Fetching {validationErrorRows.Count} validation error rows took {elapsedTime} milliseconds");
+        elapsedTime.Should().BeLessThan(100, $"Expected elapsed time should take 100ms but instead took {elapsedTime}ms");
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationValidationErrorAsync_WhenCalledWith1000Errors_ReturnsErrorsBackInLessThan100ms()
+    {
+        // Arrange
+        var stopwatch = new Stopwatch();
+        var submissionId = Guid.NewGuid();
+        var registrationValidationErrorRows = _fixture.Build<RegistrationValidationError>()
+            .CreateMany(1000)
+            .ToList();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, registrationValidationErrorRows.ToJsonContent());
+
+        // Act
+        stopwatch.Start();
+        await _systemUnderTest.GetRegistrationValidationErrorsAsync(submissionId);
+        stopwatch.Stop();
+
+        // Assert
+        var elapsedTime = stopwatch.ElapsedMilliseconds;
+
+        Console.WriteLine($"Fetching {registrationValidationErrorRows.Count} validation error rows took {elapsedTime} milliseconds");
         elapsedTime.Should().BeLessThan(100, $"Expected elapsed time should take 100ms but instead took {elapsedTime}ms");
     }
 }

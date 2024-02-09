@@ -10,6 +10,7 @@ using Moq;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Models.ProducerValidation;
+using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
 using WebApiGateway.UnitTests.Support.Extensions;
 
@@ -106,5 +107,21 @@ public class SubmissionControllerTests
         // Assert
         result.Should().BeOfType<NoContentResult>();
         _submissionServiceMock.Verify(x => x.SubmitAsync(submissionId, submissionPayload), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationValidationErrors_ReturnsOkObjectResult()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var validationIssueRows = _fixture.Create<List<RegistrationValidationError>>();
+        _submissionServiceMock.Setup(x => x.GetRegistrationValidationErrorsAsync(submissionId)).ReturnsAsync(validationIssueRows);
+
+        // Act
+        var result = await _systemUnderTest.GetRegistrationValidationErrors(submissionId) as OkObjectResult;
+
+        // Assert
+        result.Value.Should().Be(validationIssueRows);
+        _submissionServiceMock.Verify(x => x.GetRegistrationValidationErrorsAsync(submissionId), Times.Once);
     }
 }

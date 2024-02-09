@@ -4,6 +4,7 @@ using WebApiGateway.Api.Extensions;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
+using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
 using WebApiGateway.Core.Models.UserAccount;
 
@@ -86,6 +87,27 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         catch (HttpRequestException exception)
         {
             _logger.LogError(exception, "Error getting submissions");
+            throw;
+        }
+    }
+
+    public async Task<List<RegistrationValidationError>> GetRegistrationValidationErrorsAsync(Guid submissionId)
+    {
+        try
+        {
+            await ConfigureHttpClientAsync();
+
+            var response = await _httpClient.GetAsync($"submissions/{submissionId}/organisation-details-errors");
+
+            response.EnsureSuccessStatusCode();
+
+            var errors = await response.Content.ReadFromJsonAsync<List<RegistrationValidationError>>();
+
+            return errors;
+        }
+        catch (HttpRequestException exception)
+        {
+            _logger.LogError(exception, "Error getting registration validation errors");
             throw;
         }
     }

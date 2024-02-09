@@ -8,6 +8,7 @@ using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Helpers;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
+using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
 using WebApiGateway.Core.Options;
 
@@ -88,6 +89,11 @@ public class SubmissionService : ISubmissionService
     public async Task<List<AbstractSubmission>> GetSubmissionsAsync(string queryString)
     {
         return await _submissionStatusClient.GetSubmissionsAsync(queryString);
+    }
+
+    public async Task<List<RegistrationValidationError>> GetRegistrationValidationErrorsAsync(Guid submissionId)
+    {
+        return await _submissionStatusClient.GetRegistrationValidationErrorsAsync(submissionId);
     }
 
     public async Task<List<ProducerValidationIssueRow>> GetProducerValidationIssuesAsync(Guid submissionId)

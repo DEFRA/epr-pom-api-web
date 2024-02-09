@@ -13,6 +13,7 @@ using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
+using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
 using WebApiGateway.Core.Models.UserAccount;
 using WebApiGateway.UnitTests.Support.Extensions;
@@ -336,5 +337,48 @@ public class SubmissionStatusClientTests
         };
 
         _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationValidationErrorsAsync_ReturnsSubmissions_WhenHttpClientResponseIsOk()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var registrationValidationErrorRows = _fixture.Build<RegistrationValidationError>()
+            .CreateMany()
+            .ToList();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, registrationValidationErrorRows.ToJsonContent());
+
+        // Act
+        var result = await _systemUnderTest.GetRegistrationValidationErrorsAsync(submissionId);
+
+        // Assert
+        result.Should().BeEquivalentTo(registrationValidationErrorRows);
+
+        var expectedMethod = HttpMethod.Get;
+        var expectedRequestUri = new Uri($"https://example.com/submissions/{submissionId}/organisation-details-errors");
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
+            { "UserId", _userAccount.User.Id.ToString() }
+        };
+
+        _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationValidationErrorsRowsAsync_LogsAndThrowsException_WhenHttpClientResponseIsInternalServerError()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+
+        // Act / Assert
+        await _systemUnderTest
+            .Invoking(x => x.GetRegistrationValidationErrorsAsync(submissionId))
+            .Should()
+            .ThrowAsync<HttpRequestException>();
+
+        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting registration validation errors"));
     }
 }

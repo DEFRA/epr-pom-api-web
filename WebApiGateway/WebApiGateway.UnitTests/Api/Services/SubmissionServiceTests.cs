@@ -14,6 +14,7 @@ using WebApiGateway.Api.Services;
 using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
+using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
 using WebApiGateway.Core.Options;
 
@@ -184,8 +185,8 @@ public class SubmissionServiceTests
         // Arrange
         var submissionId = Guid.NewGuid();
 
-        var validationErrorRows = GenerateRandomIssueList().ToList();
-        var validationWarningRows = GenerateRandomIssueList().ToList();
+        var validationErrorRows = GenerateRandomProducerValidationIssueList().ToList();
+        var validationWarningRows = GenerateRandomProducerValidationIssueList().ToList();
 
         _submissionStatusClientMock.Setup(x => x.GetProducerValidationErrorRowsAsync(submissionId)).ReturnsAsync(validationErrorRows);
         _submissionStatusClientMock.Setup(x => x.GetProducerValidationWarningRowsAsync(submissionId)).ReturnsAsync(validationWarningRows);
@@ -218,12 +219,39 @@ public class SubmissionServiceTests
         _submissionStatusClientMock.Verify(x => x.SubmitAsync(submissionId, submissionPayload), Times.Once);
     }
 
-    private static IEnumerable<ProducerValidationIssueRow> GenerateRandomIssueList()
+    [TestMethod]
+    public async Task GetRegistrationValidationErrorsAsync_ReturnsRegistrationValidationErrorsRows()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var registrationValidationErrorsRows = GenerateRandomRegistrationValidationIssueList().ToList();
+
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationValidationErrorsAsync(submissionId)).ReturnsAsync(registrationValidationErrorsRows);
+
+        // Act
+        var result = await _systemUnderTest.GetRegistrationValidationErrorsAsync(submissionId);
+
+        // Assert
+        result.Should().BeEquivalentTo(registrationValidationErrorsRows);
+
+        _submissionStatusClientMock.Verify(x => x.GetRegistrationValidationErrorsAsync(submissionId), Times.Once);
+    }
+
+    private static IEnumerable<ProducerValidationIssueRow> GenerateRandomProducerValidationIssueList()
     {
         var random = new Random();
         return _fixture
             .Build<ProducerValidationIssueRow>()
             .With(x => x.RowNumber, random.Next(1, 20))
+            .CreateMany(10)
+            .ToList();
+    }
+
+    private static IEnumerable<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
+    {
+        var random = new Random();
+        return _fixture
+            .Build<RegistrationValidationError>()
             .CreateMany(10)
             .ToList();
     }

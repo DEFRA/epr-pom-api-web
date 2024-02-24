@@ -9,9 +9,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
+using WebApiGateway.Core.Models.SubmissionHistory;
+using WebApiGateway.Core.Models.Submissions;
 using WebApiGateway.UnitTests.Support.Extensions;
 
 namespace WebApiGateway.UnitTests.Api.Controllers;
@@ -107,6 +110,65 @@ public class SubmissionControllerTests
         // Assert
         result.Should().BeOfType<NoContentResult>();
         _submissionServiceMock.Verify(x => x.SubmitAsync(submissionId, submissionPayload), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionHistory_ReturnsOkObjectResult()
+    {
+        // Arrange
+        const string QueryString = "?key=value";
+        var submissionId = Guid.NewGuid();
+        _systemUnderTest.HttpContext.Request.QueryString = new QueryString(QueryString);
+        var submissions = _fixture.Create<List<SubmissionHistoryResponse>>();
+
+        _submissionServiceMock.Setup(x => x.GetSubmissionPeriodHistory(submissionId, QueryString)).ReturnsAsync(submissions);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionHistory(submissionId) as OkObjectResult;
+
+        // Assert
+        result.Value.Should().BeEquivalentTo(submissions);
+        _submissionServiceMock.Verify(x => x.GetSubmissionPeriodHistory(submissionId, QueryString), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionByFilter_ReturnsOkObjectResult()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var organisationId = Guid.NewGuid();
+        var complianceSchemaId = Guid.NewGuid();
+        var year = 2024;
+        var submissionType = SubmissionType.Producer;
+
+        var submissions = _fixture.Create<List<SubmissionGetResponse>>();
+
+        _submissionServiceMock.Setup(x =>
+            x.GetSubmissionsByFilter(
+            organisationId,
+            complianceSchemaId,
+            year,
+            submissionType))
+            .ReturnsAsync(submissions);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionByFilter(organisationId, new SubmissionGetRequest
+        {
+            ComplianceSchemeId = complianceSchemaId,
+            Type = submissionType,
+            Year = year
+        }) as OkObjectResult;
+
+        // Assert
+        result.Value.Should().BeEquivalentTo(submissions);
+
+        _submissionServiceMock.Verify(
+            x => x.GetSubmissionsByFilter(
+            organisationId,
+            complianceSchemaId,
+            year,
+            submissionType),
+            Times.Once);
     }
 
     [TestMethod]

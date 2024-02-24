@@ -2,6 +2,8 @@
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
+using WebApiGateway.Core.Models.SubmissionHistory;
+using WebApiGateway.Core.Models.Submissions;
 
 namespace WebApiGateway.Api.Services.Interfaces;
 
@@ -20,4 +22,8 @@ public interface ISubmissionService
     Task<List<RegistrationValidationError>> GetRegistrationValidationErrorsAsync(Guid submissionId);
 
     Task SubmitAsync(Guid submissionId, SubmissionPayload submissionPayload);
+
+    Task<List<SubmissionHistoryResponse>> GetSubmissionPeriodHistory(Guid submissionId, string queryString);
+
+    Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
 }

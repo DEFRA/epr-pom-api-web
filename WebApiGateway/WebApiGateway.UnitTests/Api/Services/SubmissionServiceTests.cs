@@ -16,6 +16,8 @@ using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
+using WebApiGateway.Core.Models.SubmissionHistory;
+using WebApiGateway.Core.Models.Submissions;
 using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.UnitTests.Api.Services;
@@ -217,6 +219,229 @@ public class SubmissionServiceTests
 
         // Assert
         _submissionStatusClientMock.Verify(x => x.SubmitAsync(submissionId, submissionPayload), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionPeriodHistory_WhenCalledWithoutDecisions_WillLeaveStatusEmpty()
+    {
+        // Arrange
+        const string queryString = "?key=value";
+        var submissionId = Guid.NewGuid();
+        var submissionHistoryEventsResponse = new SubmissionHistoryEventsResponse
+        {
+            SubmittedEvents = _fixture.Build<SubmittedEventResponse>()
+            .CreateMany(2)
+            .ToList(),
+            RegulatorDecisionEvents = new List<RegulatorDecisionEventResponse>(),
+            AntivirusCheckEvents = new List<AntivirusCheckEventResponse>()
+        };
+
+        _submissionStatusClientMock.Setup(x => x.GetSubmissionPeriodHistory(submissionId, queryString)).ReturnsAsync(submissionHistoryEventsResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionPeriodHistory(submissionId, queryString);
+
+        // Assert
+        result.Should().NotBeNull().And.HaveCount(2);
+
+        for (int i = 0; i < result.Count; i++)
+        {
+            var submittedEvent = submissionHistoryEventsResponse.SubmittedEvents[i];
+
+            result[i].SubmissionId.Should().Be(submittedEvent.SubmissionId);
+            result[i].FileId.Should().Be(submittedEvent.FileId);
+            result[i].FileName.Should().Be(submittedEvent.FileName);
+            result[i].UserName.Should().Be(submittedEvent.SubmittedBy);
+            result[i].SubmissionDate.Should().Be(submittedEvent.Created);
+            result[i].Status.Should().Be("Submitted");
+            result[i].DateofLatestStatusChange.Should().Be(submittedEvent.Created);
+        }
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionPeriodHistory_WithDecisions_PopulatesStatus()
+    {
+        // Arrange
+        const string queryString = "?key=value";
+        var submissionId = Guid.NewGuid();
+        var submittedEvents = _fixture.Build<SubmittedEventResponse>()
+            .CreateMany(2)
+            .ToList();
+
+        var submissionHistoryEventsResponse = new SubmissionHistoryEventsResponse
+        {
+            SubmittedEvents = submittedEvents,
+            RegulatorDecisionEvents = new List<RegulatorDecisionEventResponse>
+        {
+            new RegulatorDecisionEventResponse
+            {
+                SubmissionId = submittedEvents[0].SubmissionId,
+                FileId = submittedEvents[0].FileId,
+                Created = submittedEvents[0].Created.AddHours(2),
+                Decision = "Accepted"
+            },
+            new RegulatorDecisionEventResponse
+            {
+                SubmissionId = submittedEvents[1].SubmissionId,
+                FileId = submittedEvents[1].FileId,
+                Created = submittedEvents[1].Created.AddDays(3),
+                Decision = "Rejected"
+            }
+        },
+            AntivirusCheckEvents = new List<AntivirusCheckEventResponse>()
+        };
+
+        _submissionStatusClientMock
+            .Setup(x => x.GetSubmissionPeriodHistory(submissionId, queryString))
+            .ReturnsAsync(submissionHistoryEventsResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionPeriodHistory(submissionId, queryString);
+
+        // Assert
+        result.Should().NotBeNull().And.HaveCount(2);
+
+        for (int i = 0; i < result.Count; i++)
+        {
+            var submittedEvent = submissionHistoryEventsResponse.SubmittedEvents[i];
+            var regulatorDecisionEvent = submissionHistoryEventsResponse.RegulatorDecisionEvents[i];
+
+            result[i].SubmissionId.Should().Be(submittedEvent.SubmissionId);
+            result[i].FileId.Should().Be(submittedEvent.FileId);
+            result[i].FileName.Should().Be(submittedEvent.FileName);
+            result[i].UserName.Should().Be(submittedEvent.SubmittedBy);
+            result[i].SubmissionDate.Should().Be(submittedEvent.Created);
+            result[i].Status.Should().Be(regulatorDecisionEvent.Decision);
+            result[i].DateofLatestStatusChange.Should().Be(regulatorDecisionEvent.Created);
+        }
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionPeriodHistory_WithMultipleDecisions_PopulatesStatusWithLatest()
+    {
+        // Arrange
+        const string queryString = "?key=value";
+        var submissionId = Guid.NewGuid();
+        var submittedEvents = _fixture.Build<SubmittedEventResponse>()
+            .CreateMany(1)
+            .ToList();
+
+        var submissionHistoryEventsResponse = new SubmissionHistoryEventsResponse
+        {
+            SubmittedEvents = submittedEvents,
+            RegulatorDecisionEvents = new List<RegulatorDecisionEventResponse>
+        {
+            new RegulatorDecisionEventResponse
+            {
+                SubmissionId = submittedEvents[0].SubmissionId,
+                FileId = submittedEvents[0].FileId,
+                Created = submittedEvents[0].Created.AddHours(2),
+                Decision = "Rejected"
+            },
+            new RegulatorDecisionEventResponse
+            {
+                SubmissionId = submittedEvents[0].SubmissionId,
+                FileId = submittedEvents[0].FileId,
+                Created = submittedEvents[0].Created.AddDays(3),
+                Decision = "Accepted"
+            }
+        },
+            AntivirusCheckEvents = new List<AntivirusCheckEventResponse>()
+        };
+
+        _submissionStatusClientMock
+            .Setup(x => x.GetSubmissionPeriodHistory(submissionId, queryString))
+            .ReturnsAsync(submissionHistoryEventsResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionPeriodHistory(submissionId, queryString);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Count.Should().Be(1);
+        result[0].SubmissionId.Should().Be(submissionHistoryEventsResponse.SubmittedEvents[0].SubmissionId);
+        result[0].FileId.Should().Be(submissionHistoryEventsResponse.SubmittedEvents[0].FileId);
+        result[0].FileName.Should().Be(submissionHistoryEventsResponse.SubmittedEvents[0].FileName);
+        result[0].UserName.Should().Be(submissionHistoryEventsResponse.SubmittedEvents[0].SubmittedBy);
+        result[0].SubmissionDate.Should().Be(submissionHistoryEventsResponse.SubmittedEvents[0].Created);
+        result[0].Status.Should().Be("Accepted");
+        result[0].DateofLatestStatusChange.Should().Be(submissionHistoryEventsResponse.RegulatorDecisionEvents[1].Created);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionsByFilter_WithComplianceSchemaId_ReturnMultipleRecords()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var organisationId = Guid.NewGuid();
+        var complianceSchemaId = Guid.NewGuid();
+        var year = 2024;
+        var submissionType = SubmissionType.Producer;
+
+        var submissionsResponse = _fixture.Build<SubmissionGetResponse>()
+            .CreateMany(3)
+            .ToList();
+
+        _submissionStatusClientMock
+            .Setup(x => x.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType))
+            .ReturnsAsync(submissionsResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Count.Should().Be(3);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionsByFilter_WithOutComplianceSchemaId_ReturnMultipleRecords()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var organisationId = Guid.NewGuid();
+        var year = 2024;
+        var submissionType = SubmissionType.Producer;
+
+        var submissionsResponse = _fixture.Build<SubmissionGetResponse>()
+            .CreateMany(3)
+            .ToList();
+
+        _submissionStatusClientMock
+            .Setup(x => x.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType))
+            .ReturnsAsync(submissionsResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Count.Should().Be(3);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionsByFilter_WithoutYear_ReturnMultipleRecords()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var organisationId = Guid.NewGuid();
+        var complianceSchemaId = Guid.NewGuid();
+        var submissionType = SubmissionType.Producer;
+
+        var submissionsResponse = _fixture.Build<SubmissionGetResponse>()
+            .CreateMany(3)
+            .ToList();
+
+        _submissionStatusClientMock
+            .Setup(x => x.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType))
+            .ReturnsAsync(submissionsResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Count.Should().Be(3);
     }
 
     [TestMethod]

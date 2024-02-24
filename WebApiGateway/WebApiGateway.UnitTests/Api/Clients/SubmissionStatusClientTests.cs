@@ -11,10 +11,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
+using WebApiGateway.Core.Models.SubmissionHistory;
+using WebApiGateway.Core.Models.Submissions;
 using WebApiGateway.Core.Models.UserAccount;
 using WebApiGateway.UnitTests.Support.Extensions;
 
@@ -28,6 +31,7 @@ public class SubmissionStatusClientTests
 
     private Mock<ILogger<SubmissionStatusClient>> _loggerMock;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
+    private Mock<IAccountServiceClient> _accountServiceClientMock;
     private ISubmissionStatusClient _systemUnderTest;
 
     [TestInitialize]
@@ -49,10 +53,10 @@ public class SubmissionStatusClientTests
             new(ClaimConstants.ObjectId, _userAccount.User.Id.ToString())
         });
 
-        var accountServiceClientMock = new Mock<IAccountServiceClient>();
-        accountServiceClientMock.Setup(x => x.GetUserAccount(_userAccount.User.Id)).ReturnsAsync(_userAccount);
+        _accountServiceClientMock = new Mock<IAccountServiceClient>();
+        _accountServiceClientMock.Setup(x => x.GetUserAccount(_userAccount.User.Id)).ReturnsAsync(_userAccount);
         httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipalMock.Object);
-        _systemUnderTest = new SubmissionStatusClient(httpClient, accountServiceClientMock.Object, httpContextAccessorMock.Object, _loggerMock.Object);
+        _systemUnderTest = new SubmissionStatusClient(httpClient, _accountServiceClientMock.Object, httpContextAccessorMock.Object, _loggerMock.Object);
     }
 
     [TestMethod]
@@ -364,6 +368,210 @@ public class SubmissionStatusClientTests
         };
 
         _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionPeriodHistory_WhenSubmittedByIsPresent_ReturnsExpectedValue()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        const string QueryString = "?key=value";
+        var submissionHistoryEventsResponse = new SubmissionHistoryEventsResponse
+        {
+            SubmittedEvents = _fixture.Build<SubmittedEventResponse>()
+            .With(x => x.SubmittedBy, "First Last")
+            .CreateMany()
+            .ToList(),
+            RegulatorDecisionEvents = _fixture.Build<RegulatorDecisionEventResponse>()
+            .CreateMany()
+            .ToList(),
+            AntivirusCheckEvents = _fixture.Build<AntivirusCheckEventResponse>()
+            .CreateMany()
+            .ToList()
+        };
+
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissionHistoryEventsResponse.ToJsonContent());
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionPeriodHistory(submissionId, QueryString);
+
+        // Assert
+        result.Should().BeEquivalentTo(submissionHistoryEventsResponse);
+
+        var expectedMethod = HttpMethod.Get;
+        var expectedRequestUri = new Uri($"https://example.com/submissions/events/events-by-type/{submissionId}{QueryString}");
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
+            { "UserId", _userAccount.User.Id.ToString() }
+        };
+
+        _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionPeriodHistory_WhenSubmittedByIsNullOrMissing_CallsGetUserAccount()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var userOne = _fixture.Create<UserAccount>();
+        var userTwo = _fixture.Create<UserAccount>();
+        const string QueryString = "?key=value";
+        var submissionHistoryEventsResponse = new SubmissionHistoryEventsResponse
+        {
+            SubmittedEvents = _fixture.Build<SubmittedEventResponse>()
+            .Without(x => x.SubmittedBy)
+            .CreateMany(2)
+            .ToList(),
+            RegulatorDecisionEvents = _fixture.Build<RegulatorDecisionEventResponse>()
+            .CreateMany(2)
+            .ToList(),
+            AntivirusCheckEvents = _fixture.Build<AntivirusCheckEventResponse>()
+            .CreateMany(2)
+            .ToList()
+        };
+
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissionHistoryEventsResponse.ToJsonContent());
+
+        var userIdOne = submissionHistoryEventsResponse.SubmittedEvents.First().UserId;
+        var userIdTwo = submissionHistoryEventsResponse.SubmittedEvents[1].UserId;
+
+        _accountServiceClientMock.Setup(x => x.GetUserAccount(userIdOne)).ReturnsAsync(userOne);
+        _accountServiceClientMock.Setup(x => x.GetUserAccount(userIdTwo)).ReturnsAsync(userTwo);
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionPeriodHistory(submissionId, QueryString);
+
+        // Assert
+        result.SubmittedEvents[0].SubmittedBy.Should().BeEquivalentTo(userOne.User.FirstName + " " + userOne.User.LastName);
+        result.SubmittedEvents[1].SubmittedBy.Should().BeEquivalentTo(userTwo.User.FirstName + " " + userTwo.User.LastName);
+
+        _accountServiceClientMock.Verify(x => x.GetUserAccount(userIdOne), Times.Once);
+        _accountServiceClientMock.Verify(x => x.GetUserAccount(userIdTwo), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionByFilter_WithComplianceSchemaId_ReturnsExpectedValue()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var organisationId = Guid.NewGuid();
+        var complianceSchemaId = Guid.NewGuid();
+        var year = 2024;
+        var submissionType = SubmissionType.Producer;
+
+        var submissions = new List<SubmissionGetResponse>
+        {
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 1",
+                Year = 2024
+            },
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 2",
+                Year = 2024
+            },
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 3",
+                Year = 2024
+            },
+        };
+
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType);
+
+        // Assert
+        result.Should().BeEquivalentTo(submissions);
+        result.Should().HaveCount(3);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionByFilter_WithOutComplianceSchemaId_ReturnsExpectedValue()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var organisationId = Guid.NewGuid();
+        var year = 2024;
+        var submissionType = SubmissionType.Producer;
+
+        var submissions = new List<SubmissionGetResponse>
+        {
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 1",
+                Year = 2024
+            },
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 2",
+                Year = 2024
+            },
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 3",
+                Year = 2024
+            },
+        };
+
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType);
+
+        // Assert
+        result.Should().BeEquivalentTo(submissions);
+        result.Should().HaveCount(3);
+    }
+
+    [TestMethod]
+    public async Task GetSubmissionByFilter_WithoutYear_ReturnsExpectedValue()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var organisationId = Guid.NewGuid();
+        var complianceSchemaId = Guid.NewGuid();
+        var submissionType = SubmissionType.Producer;
+
+        var submissions = new List<SubmissionGetResponse>
+        {
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 1",
+                Year = 2024
+            },
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 2",
+                Year = 2024
+            },
+            new SubmissionGetResponse
+            {
+                SubmissionId = submissionId,
+                SubmissionPeriod = "Test 3",
+                Year = 2024
+            },
+        };
+
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType);
+
+        // Assert
+        result.Should().BeEquivalentTo(submissions);
+        result.Should().HaveCount(3);
     }
 
     [TestMethod]

@@ -1,14 +1,19 @@
-﻿using Newtonsoft.Json;
-using WebApiGateway.Api.Clients.Interfaces;
-using WebApiGateway.Api.Extensions;
-using WebApiGateway.Core.Constants;
-using WebApiGateway.Core.Models.Events;
-using WebApiGateway.Core.Models.ProducerValidation;
-using WebApiGateway.Core.Models.RegistrationValidation;
-using WebApiGateway.Core.Models.Submission;
-using WebApiGateway.Core.Models.UserAccount;
+﻿namespace WebApiGateway.Api.Clients;
 
-namespace WebApiGateway.Api.Clients;
+using Core.Models.Events;
+using Core.Models.ProducerValidation;
+using Core.Models.Submission;
+using Extensions;
+using Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using WebApiGateway.Core.Constants;
+using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Models.RegistrationValidation;
+using WebApiGateway.Core.Models.SubmissionHistory;
+using WebApiGateway.Core.Models.Submissions;
+using WebApiGateway.Core.Models.UserAccount;
 
 public class SubmissionStatusClient : ISubmissionStatusClient
 {
@@ -177,6 +182,55 @@ public class SubmissionStatusClient : ISubmissionStatusClient
             _logger.LogError(exception, "Error submitting submission with id {submissionId} and file id {fileId}", submissionId, submissionPayload.FileId);
             throw;
         }
+    }
+
+    public async Task<SubmissionHistoryEventsResponse> GetSubmissionPeriodHistory(Guid submissionId, string queryString)
+    {
+        await ConfigureHttpClientAsync();
+
+        var response = await _httpClient.GetAsync($"submissions/events/events-by-type/{submissionId}{queryString}");
+
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        var results = JsonConvert.DeserializeObject<SubmissionHistoryEventsResponse>(content);
+
+        results.SubmittedEvents.ForEach(async m =>
+        {
+            if (m.SubmittedBy.IsNullOrEmpty())
+            {
+                var userDetails = await _accountServiceClient.GetUserAccount(m.UserId);
+                m.SubmittedBy = userDetails.User.FirstName + " " + userDetails.User.LastName;
+            }
+        });
+
+        return results;
+    }
+
+    public async Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType)
+    {
+        await ConfigureHttpClientAsync();
+
+        string endpoint = $"submissions/submissions?Type={submissionType}&OrganisationId={organisationId}";
+
+        if (complianceSchemeId is not null && complianceSchemeId != Guid.Empty)
+        {
+            endpoint += $"&ComplianceSchemeId={complianceSchemeId}";
+        }
+
+        if (year is not null)
+        {
+            endpoint += $"&Year={year}";
+        }
+
+        var response = await _httpClient.GetAsync(endpoint);
+
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<List<SubmissionGetResponse>>(content);
     }
 
     private async Task ConfigureHttpClientAsync()

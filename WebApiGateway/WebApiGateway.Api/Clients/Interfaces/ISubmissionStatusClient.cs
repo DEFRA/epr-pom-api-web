@@ -1,7 +1,10 @@
-﻿using WebApiGateway.Core.Models.Events;
+﻿using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
+using WebApiGateway.Core.Models.SubmissionHistory;
+using WebApiGateway.Core.Models.Submissions;
 
 namespace WebApiGateway.Api.Clients.Interfaces;
 
@@ -22,4 +25,8 @@ public interface ISubmissionStatusClient
     Task<List<ProducerValidationIssueRow>> GetProducerValidationWarningRowsAsync(Guid submissionId);
 
     Task SubmitAsync(Guid submissionId, SubmissionPayload submissionPayload);
+
+    Task<SubmissionHistoryEventsResponse> GetSubmissionPeriodHistory(Guid submissionId, string queryString);
+
+    Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
 }

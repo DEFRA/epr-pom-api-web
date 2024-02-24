@@ -5,11 +5,12 @@ using Microsoft.Extensions.Options;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Enumeration;
-using WebApiGateway.Core.Helpers;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
+using WebApiGateway.Core.Models.SubmissionHistory;
+using WebApiGateway.Core.Models.Submissions;
 using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.Api.Services;
@@ -91,6 +92,18 @@ public class SubmissionService : ISubmissionService
         return await _submissionStatusClient.GetSubmissionsAsync(queryString);
     }
 
+    public async Task<List<SubmissionHistoryResponse>> GetSubmissionPeriodHistory(Guid submissionId, string queryString)
+    {
+        var submissionHistory = await _submissionStatusClient.GetSubmissionPeriodHistory(submissionId, queryString);
+
+        return FormatSubmissionHistoryData(submissionHistory);
+    }
+
+    public async Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType)
+    {
+        return await _submissionStatusClient.GetSubmissionsByFilter(organisationId, complianceSchemeId, year, submissionType);
+    }
+
     public async Task<List<RegistrationValidationError>> GetRegistrationValidationErrorsAsync(Guid submissionId)
     {
         return await _submissionStatusClient.GetRegistrationValidationErrorsAsync(submissionId);
@@ -113,5 +126,40 @@ public class SubmissionService : ISubmissionService
     public async Task SubmitAsync(Guid submissionId, SubmissionPayload submissionPayload)
     {
         await _submissionStatusClient.SubmitAsync(submissionId, submissionPayload);
+    }
+
+    private List<SubmissionHistoryResponse> FormatSubmissionHistoryData(SubmissionHistoryEventsResponse submissionHistoryEventsResponse)
+    {
+        var response = submissionHistoryEventsResponse.SubmittedEvents.Select(x =>
+            new SubmissionHistoryResponse
+            {
+                SubmissionId = x.SubmissionId,
+                FileName = x.FileName,
+                UserName = x.SubmittedBy,
+                SubmissionDate = x.Created,
+                FileId = x.FileId
+            }).ToList();
+
+        var regulatorDecisions = submissionHistoryEventsResponse.RegulatorDecisionEvents;
+
+        response.ForEach(m =>
+        {
+            var latestRelevantDecision = regulatorDecisions
+                .Where(x => x.SubmissionId == m.SubmissionId && x.FileId == m.FileId)
+                .MaxBy(x => x.Created);
+
+            if (latestRelevantDecision != null)
+            {
+                m.Status = latestRelevantDecision.Decision;
+                m.DateofLatestStatusChange = latestRelevantDecision.Created;
+            }
+            else
+            {
+                m.Status = "Submitted";
+                m.DateofLatestStatusChange = m.SubmissionDate;
+            }
+        });
+
+        return response;
     }
 }

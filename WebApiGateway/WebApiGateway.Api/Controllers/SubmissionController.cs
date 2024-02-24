@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using WebApiGateway.Api.Extensions;
-using WebApiGateway.Api.Services.Interfaces;
-using WebApiGateway.Core.Models.Submission;
+﻿namespace WebApiGateway.Api.Controllers;
 
-namespace WebApiGateway.Api.Controllers;
+using Core.Models.Submission;
+using Extensions;
+using Microsoft.AspNetCore.Mvc;
+using Services.Interfaces;
+using WebApiGateway.Core.Models.Submissions;
 
 [ApiController]
 [ApiVersion("1.0")]
@@ -39,6 +40,27 @@ public class SubmissionController : ControllerBase
     public async Task<IActionResult> GetSubmissions()
     {
         var submissions = await _submissionService.GetSubmissionsAsync(Request.QueryString.Value);
+        return new OkObjectResult(submissions);
+    }
+
+    [HttpGet("submission-history/{submissionId:guid}", Name = nameof(GetSubmissionHistory))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSubmissionHistory([FromRoute] Guid submissionId)
+    {
+        var submissions = await _submissionService.GetSubmissionPeriodHistory(submissionId, Request.QueryString.Value);
+        return new OkObjectResult(submissions);
+    }
+
+    [HttpGet("submission-Ids/{organisationId:guid}", Name = nameof(GetSubmissionByFilter))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSubmissionByFilter([FromRoute] Guid organisationId, [FromQuery] SubmissionGetRequest request)
+    {
+        var submissions = await _submissionService.GetSubmissionsByFilter(
+            organisationId,
+            request.ComplianceSchemeId,
+            request.Year,
+            request.Type);
+
         return new OkObjectResult(submissions);
     }
 

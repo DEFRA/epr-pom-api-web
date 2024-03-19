@@ -1,12 +1,12 @@
 ﻿namespace WebApiGateway.Api.Clients;
 
+using System;
 using Core.Models.Events;
 using Core.Models.ProducerValidation;
 using Core.Models.Submission;
 using Extensions;
 using Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
@@ -196,14 +196,19 @@ public class SubmissionStatusClient : ISubmissionStatusClient
 
         var results = JsonConvert.DeserializeObject<SubmissionHistoryEventsResponse>(content);
 
-        results.SubmittedEvents.ForEach(async m =>
+        foreach (var submitted in results.SubmittedEvents)
         {
-            if (m.SubmittedBy.IsNullOrEmpty())
+            var userDetails = await _accountServiceClient.GetUserAccount(submitted.UserId);
+
+            if (userDetails == null)
             {
-                var userDetails = await _accountServiceClient.GetUserAccount(m.UserId);
-                m.SubmittedBy = userDetails.User.FirstName + " " + userDetails.User.LastName;
+                _logger.LogError("Error searching for user with id {userId}", submitted.UserId);
             }
-        });
+            else
+            {
+                submitted.SubmittedBy = userDetails.User.FirstName + " " + userDetails.User.LastName;
+            }
+        }
 
         return results;
     }

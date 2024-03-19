@@ -375,12 +375,14 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
+        var userOne = _fixture.Create<UserAccount>();
+        var userTwo = _fixture.Create<UserAccount>();
         const string QueryString = "?key=value";
         var submissionHistoryEventsResponse = new SubmissionHistoryEventsResponse
         {
             SubmittedEvents = _fixture.Build<SubmittedEventResponse>()
             .With(x => x.SubmittedBy, "First Last")
-            .CreateMany()
+            .CreateMany(2)
             .ToList(),
             RegulatorDecisionEvents = _fixture.Build<RegulatorDecisionEventResponse>()
             .CreateMany()
@@ -392,21 +394,34 @@ public class SubmissionStatusClientTests
 
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissionHistoryEventsResponse.ToJsonContent());
 
+        var userIdOne = submissionHistoryEventsResponse.SubmittedEvents[0].UserId;
+        var userIdTwo = submissionHistoryEventsResponse.SubmittedEvents[1].UserId;
+
+        _accountServiceClientMock.Setup(x => x.GetUserAccount(userIdOne)).ReturnsAsync(userOne);
+        _accountServiceClientMock.Setup(x => x.GetUserAccount(userIdTwo)).ReturnsAsync(userTwo);
+
         // Act
         var result = await _systemUnderTest.GetSubmissionPeriodHistory(submissionId, QueryString);
 
         // Assert
-        result.Should().BeEquivalentTo(submissionHistoryEventsResponse);
+        result.RegulatorDecisionEvents.Should().BeEquivalentTo(submissionHistoryEventsResponse.RegulatorDecisionEvents);
+        result.AntivirusCheckEvents.Should().BeEquivalentTo(submissionHistoryEventsResponse.AntivirusCheckEvents);
+
+        result.SubmittedEvents[0].SubmittedBy.Should().BeEquivalentTo(userOne.User.FirstName + " " + userOne.User.LastName);
+        result.SubmittedEvents[1].SubmittedBy.Should().BeEquivalentTo(userTwo.User.FirstName + " " + userTwo.User.LastName);
 
         var expectedMethod = HttpMethod.Get;
         var expectedRequestUri = new Uri($"https://example.com/submissions/events/events-by-type/{submissionId}{QueryString}");
         var expectedHeaders = new Dictionary<string, string>
-        {
-            { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
-            { "UserId", _userAccount.User.Id.ToString() }
-        };
+    {
+        { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
+        { "UserId", _userAccount.User.Id.ToString() }
+    };
 
         _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, expectedHeaders, Times.Once());
+
+        _accountServiceClientMock.Verify(x => x.GetUserAccount(userIdOne), Times.Once);
+        _accountServiceClientMock.Verify(x => x.GetUserAccount(userIdTwo), Times.Once);
     }
 
     [TestMethod]

@@ -13,7 +13,7 @@ public class DecisionService : IDecisionService
         _decisionClient = decisionClient;
     }
 
-    public async Task<PomDecision> GetDecisionAsync(string queryString)
+    public async Task<RegulatorDecision> GetDecisionAsync(string queryString)
     {
         return await _decisionClient.GetDecisionAsync(queryString);
     }

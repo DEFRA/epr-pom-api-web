@@ -3,7 +3,7 @@
 namespace WebApiGateway.Core.Models.Decision;
 
 [ExcludeFromCodeCoverage]
-public class PomDecision
+public class RegulatorDecision
 {
     public Guid Id { get; set; }
 

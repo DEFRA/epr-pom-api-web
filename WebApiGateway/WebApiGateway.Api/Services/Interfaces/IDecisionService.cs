@@ -4,5 +4,5 @@ namespace WebApiGateway.Api.Services.Interfaces;
 
 public interface IDecisionService
 {
-    Task<PomDecision> GetDecisionAsync(string queryString);
+    Task<RegulatorDecision> GetDecisionAsync(string queryString);
 }

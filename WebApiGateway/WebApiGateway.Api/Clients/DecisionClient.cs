@@ -24,7 +24,7 @@ public class DecisionClient : IDecisionClient
         _logger = logger;
     }
 
-    public async Task<PomDecision> GetDecisionAsync(string queryString)
+    public async Task<RegulatorDecision> GetDecisionAsync(string queryString)
     {
         try
         {
@@ -36,13 +36,13 @@ public class DecisionClient : IDecisionClient
 
             var content = await response.Content.ReadAsStringAsync();
 
-            var decisions = JsonConvert.DeserializeObject<List<PomDecision>>(content).Where(s => s.Created != null);
+            var decisions = JsonConvert.DeserializeObject<List<RegulatorDecision>>(content).Where(s => s.Created != null);
 
             var lastDecision = decisions.OrderBy(o => o.Created).LastOrDefault();
 
             if (lastDecision == null)
             {
-                return new PomDecision();
+                return new RegulatorDecision();
             }
 
             return lastDecision;

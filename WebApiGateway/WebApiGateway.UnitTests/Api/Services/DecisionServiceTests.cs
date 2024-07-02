@@ -39,7 +39,7 @@ public class DecisionServiceTests
         // Arrange
         const string QueryString = "?key=value";
         var expectedGuid = Guid.NewGuid();
-        var decision = new PomDecision { SubmissionId = expectedGuid };
+        var decision = new RegulatorDecision { SubmissionId = expectedGuid };
         _decisionStatusClientMock.Setup(x => x.GetDecisionAsync(QueryString)).ReturnsAsync(decision);
 
         // Act
@@ -47,7 +47,7 @@ public class DecisionServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().BeOfType<PomDecision>();
+        result.Should().BeOfType<RegulatorDecision>();
         result.SubmissionId.Should().Be(expectedGuid);
     }
 }

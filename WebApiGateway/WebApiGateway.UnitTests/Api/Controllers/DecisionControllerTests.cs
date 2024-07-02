@@ -34,7 +34,7 @@ public class DecisionControllerTests
         // Arrange
         const string QueryString = "?key=value";
         _systemUnderTest.HttpContext.Request.QueryString = new QueryString(QueryString);
-        var decision = new PomDecision();
+        var decision = new RegulatorDecision();
 
         _decisionServiceMock.Setup(x => x.GetDecisionAsync(QueryString)).ReturnsAsync(decision);
 

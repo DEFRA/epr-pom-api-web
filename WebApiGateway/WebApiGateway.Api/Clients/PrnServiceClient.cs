@@ -57,7 +57,7 @@ namespace WebApiGateway.Api.Clients
         {
             try
             {
-                var response = await _httpClient.PostAsync($"{id}", null);
+                var response = await _httpClient.PatchAsync($"{id}", null);
 
                 response.EnsureSuccessStatusCode();
             }

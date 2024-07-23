@@ -29,11 +29,11 @@ namespace WebApiGateway.Api.Controllers
             return new OkObjectResult(await _prnService.GetPrnById(id));
         }
 
-        [HttpPost("{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> UpdatePrnStatusToAccepted(int id)
         {
             await _prnService.UpdatePrnStatusToAccepted(id);
-            return Ok();
+            return NoContent();
         }
     }
 }

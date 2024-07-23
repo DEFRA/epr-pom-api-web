@@ -4,9 +4,9 @@ namespace WebApiGateway.Api.Clients.Interfaces
 {
     public interface IPrnServiceClient
     {
-        Task<List<Prn>> GetAllPrnsForOrganisation(Guid organisationId);
+        Task<List<PrnModel>> GetAllPrnsForOrganisation(Guid organisationId);
 
-        Task<Prn> GetPrnById(int id);
+        Task<PrnModel> GetPrnById(int id);
 
         Task UpdatePrnStatusToAccepted(int id);
     }

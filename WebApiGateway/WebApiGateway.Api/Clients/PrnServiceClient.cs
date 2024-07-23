@@ -15,7 +15,7 @@ namespace WebApiGateway.Api.Clients
             _logger = logger;
         }
 
-        public async Task<List<Prn>> GetAllPrnsForOrganisation(Guid organisationId)
+        public async Task<List<PrnModel>> GetAllPrnsForOrganisation(Guid organisationId)
         {
             try
             {
@@ -25,7 +25,7 @@ namespace WebApiGateway.Api.Clients
 
                 var content = await response.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<List<Prn>>(content);
+                return JsonConvert.DeserializeObject<List<PrnModel>>(content);
             }
             catch (HttpRequestException exception)
             {
@@ -34,7 +34,7 @@ namespace WebApiGateway.Api.Clients
             }
         }
 
-        public async Task<Prn> GetPrnById(int id)
+        public async Task<PrnModel> GetPrnById(int id)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace WebApiGateway.Api.Clients
 
                 var content = await response.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<Prn>(content);
+                return JsonConvert.DeserializeObject<PrnModel>(content);
             }
             catch (HttpRequestException exception)
             {

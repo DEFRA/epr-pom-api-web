@@ -15,12 +15,12 @@ namespace WebApiGateway.Api.Services
             _logger = logger;
         }
 
-        public async Task<List<Prn>> GetAllPrnsForOrganisation(Guid organisationId)
+        public async Task<List<PrnModel>> GetAllPrnsForOrganisation(Guid organisationId)
         {
             return await _prnServiceClient.GetAllPrnsForOrganisation(organisationId);
         }
 
-        public async Task<Prn> GetPrnById(int id)
+        public async Task<PrnModel> GetPrnById(int id)
         {
             return await _prnServiceClient.GetPrnById(id);
         }

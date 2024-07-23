@@ -5,7 +5,7 @@ namespace WebApiGateway.Api.Controllers
 {
     [ApiController]
     [ApiVersion("1.0")]
-    [Route("api/v{version:apiVersion}/prns")]
+    [Route("api/v{version:apiVersion}")]
     public class PrnController : Controller
     {
         private readonly IPrnService _prnService;
@@ -17,20 +17,20 @@ namespace WebApiGateway.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet("organisation/{organisationId}")]
+        [HttpGet("prn/organisation/{organisationId}")]
         public async Task<IActionResult> GetAllPrnsForOrganisation(Guid organisationId)
         {
             return new OkObjectResult(await _prnService.GetAllPrnsForOrganisation(organisationId));
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAllPrnsById(int id)
+        [HttpGet("prn/{id}")]
+        public async Task<IActionResult> GetPrnById(Guid id)
         {
             return new OkObjectResult(await _prnService.GetPrnById(id));
         }
 
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdatePrnStatusToAccepted(int id)
+        [HttpPatch("prn/status/{id}")]
+        public async Task<IActionResult> UpdatePrnStatusToAccepted(Guid id)
         {
             await _prnService.UpdatePrnStatusToAccepted(id);
             return NoContent();

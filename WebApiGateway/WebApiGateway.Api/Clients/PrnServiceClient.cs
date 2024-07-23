@@ -19,7 +19,7 @@ namespace WebApiGateway.Api.Clients
         {
             try
             {
-                var response = await _httpClient.GetAsync($"organisation?orgId={organisationId}");
+                var response = await _httpClient.GetAsync($"prn/organisation?orgId={organisationId}");
 
                 response.EnsureSuccessStatusCode();
 
@@ -34,11 +34,11 @@ namespace WebApiGateway.Api.Clients
             }
         }
 
-        public async Task<PrnModel> GetPrnById(int id)
+        public async Task<PrnModel> GetPrnById(Guid id)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{id}");
+                var response = await _httpClient.GetAsync($"prn/{id}");
 
                 response.EnsureSuccessStatusCode();
 
@@ -53,11 +53,11 @@ namespace WebApiGateway.Api.Clients
             }
         }
 
-        public async Task UpdatePrnStatusToAccepted(int id)
+        public async Task UpdatePrnStatusToAccepted(Guid id)
         {
             try
             {
-                var response = await _httpClient.PatchAsync($"{id}", null);
+                var response = await _httpClient.PatchAsync($"prn/status/{id}", null);
 
                 response.EnsureSuccessStatusCode();
             }

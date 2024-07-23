@@ -6,8 +6,8 @@ namespace WebApiGateway.Api.Services.Interfaces
     {
         Task<List<PrnModel>> GetAllPrnsForOrganisation(Guid organisationId);
 
-        Task<PrnModel> GetPrnById(int id);
+        Task<PrnModel> GetPrnById(Guid id);
 
-        Task UpdatePrnStatusToAccepted(int id);
+        Task UpdatePrnStatusToAccepted(Guid id);
     }
 }

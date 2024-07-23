@@ -20,12 +20,12 @@ namespace WebApiGateway.Api.Services
             return await _prnServiceClient.GetAllPrnsForOrganisation(organisationId);
         }
 
-        public async Task<PrnModel> GetPrnById(int id)
+        public async Task<PrnModel> GetPrnById(Guid id)
         {
             return await _prnServiceClient.GetPrnById(id);
         }
 
-        public async Task UpdatePrnStatusToAccepted(int id)
+        public async Task UpdatePrnStatusToAccepted(Guid id)
         {
             await _prnServiceClient.UpdatePrnStatusToAccepted(id);
         }

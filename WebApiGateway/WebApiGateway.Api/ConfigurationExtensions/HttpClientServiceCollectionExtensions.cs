@@ -57,6 +57,14 @@ public static class HttpClientServiceCollectionExtensions
             })
             .AddPolicyHandler(GetRetryPolicy());
 
+        services.AddHttpClient<IPrnServiceClient, PrnServiceClient>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<PrnServiceApiOptions>>().Value;
+                client.BaseAddress = new Uri($"{options.BaseUrl}/");
+            })
+            .AddHttpMessageHandler<PrnServiceAuthorisationHandler>()
+            .AddPolicyHandler(GetRetryPolicy());
+
         return services;
     }
 

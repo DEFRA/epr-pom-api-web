@@ -1,13 +1,17 @@
 ﻿using System.Net;
+using System.Security.Claims;
+using AutoFixture;
 using AutoFixture.MSTest;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Core.Models.Prns;
+using WebApiGateway.Core.Models.UserAccount;
 using WebApiGateway.UnitTests.Support.Extensions;
 
 namespace WebApiGateway.UnitTests.Api.Clients
@@ -15,6 +19,8 @@ namespace WebApiGateway.UnitTests.Api.Clients
     [TestClass]
     public class PrnServiceClientTests
     {
+        private static readonly IFixture _fixture = new Fixture();
+        private readonly UserAccount _userAccount = _fixture.Create<UserAccount>();
         private Mock<ILogger<PrnServiceClient>> _loggerMock;
         private Mock<HttpMessageHandler> _httpMessageHandlerMock;
         private IPrnServiceClient _systemUnderTest;
@@ -31,7 +37,16 @@ namespace WebApiGateway.UnitTests.Api.Clients
             };
 
             var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _systemUnderTest = new PrnServiceClient(httpClient, _loggerMock.Object);
+            var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+
+            claimsPrincipalMock.Setup(x => x.Claims).Returns(new List<Claim>
+            {
+                new(ClaimConstants.ObjectId, _userAccount.User.Id.ToString())
+            });
+
+            var accountServiceClientMock = new Mock<IAccountServiceClient>();
+            accountServiceClientMock.Setup(x => x.GetUserAccount(_userAccount.User.Id)).ReturnsAsync(_userAccount);
+            _systemUnderTest = new PrnServiceClient(httpClient, _loggerMock.Object, httpContextAccessorMock.Object, accountServiceClientMock.Object);
         }
 
         [TestMethod]

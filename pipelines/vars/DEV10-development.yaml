@@ -3,4 +3,4 @@ variables:
   docker.imageName: 'webapigateway'
   acr.azureContainerRegistryName: 'devrwdinfac1401'
   acr.repositoryName: 'apiwebrepository'
-  serviceName: 'devrwdwebwaa417'
+  serviceName: 'devrwdwebwaa409'

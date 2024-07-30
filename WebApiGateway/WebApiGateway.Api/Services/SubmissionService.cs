@@ -128,7 +128,7 @@ public class SubmissionService : ISubmissionService
         await _submissionStatusClient.SubmitAsync(submissionId, submissionPayload);
     }
 
-    private List<SubmissionHistoryResponse> FormatSubmissionHistoryData(SubmissionHistoryEventsResponse submissionHistoryEventsResponse)
+    private static List<SubmissionHistoryResponse> FormatSubmissionHistoryData(SubmissionHistoryEventsResponse submissionHistoryEventsResponse)
     {
         var response = submissionHistoryEventsResponse.SubmittedEvents.Select(x =>
             new SubmissionHistoryResponse

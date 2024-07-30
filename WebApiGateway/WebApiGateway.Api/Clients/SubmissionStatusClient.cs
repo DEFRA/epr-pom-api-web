@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Helpers;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.SubmissionHistory;
 using WebApiGateway.Core.Models.Submissions;
@@ -81,7 +82,9 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.GetAsync($"submissions{queryString}");
+            UriBuilder uriBuilder = UriBuilderHelper.UriBuilder(queryString);
+
+            var response = await _httpClient.GetAsync(uriBuilder.ToString());
 
             response.EnsureSuccessStatusCode();
 
@@ -188,7 +191,9 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         await ConfigureHttpClientAsync();
 
-        var response = await _httpClient.GetAsync($"submissions/events/events-by-type/{submissionId}{queryString}");
+        UriBuilder uriBuilder = UriBuilderHelper.UriBuilder(submissionId, queryString);
+
+        var response = await _httpClient.GetAsync(uriBuilder.ToString());
 
         response.EnsureSuccessStatusCode();
 
@@ -248,14 +253,17 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             userId = _httpContextAccessor.HttpContext.User.UserId();
             userAccount = await _accountServiceClient.GetUserAccount(userId);
-            organisation = userAccount.User.Organisations.First();
 
-            _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
+            var organisations = userAccount.User.Organisations;
+            if (organisations != null && organisations.Count > 0)
+            {
+                _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisations[0].Id.ToString());
+            }
             _httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, $"Error getting user accounts with id {userId}");
+            _logger.LogError(exception, "Error getting user accounts with id {UserId}", userId);
             throw;
         }
     }

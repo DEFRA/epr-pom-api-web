@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using System.Web;
+using Newtonsoft.Json;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Extensions;
-using WebApiGateway.Core.Helpers;
 using WebApiGateway.Core.Models.Decision;
 
 namespace WebApiGateway.Api.Clients;
@@ -31,9 +31,14 @@ public class DecisionClient : IDecisionClient
         {
             await ConfigureHttpClientAsync();
 
-            UriBuilder uriBuilder = UriBuilderHelper.UriBuilder(queryString);
+            var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
+            {
+                Path = $"decisions"
+            };
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            uriBuilder.Query = queryString.ToString();
 
-            var response = await _httpClient.GetAsync(uriBuilder.ToString());
+            var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);
 
             response.EnsureSuccessStatusCode();
 

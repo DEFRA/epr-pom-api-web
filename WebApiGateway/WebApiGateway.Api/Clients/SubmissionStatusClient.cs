@@ -1,6 +1,8 @@
 ﻿namespace WebApiGateway.Api.Clients;
 
 using System;
+using System.Net.Http;
+using System.Web;
 using Core.Models.Events;
 using Core.Models.ProducerValidation;
 using Core.Models.Submission;
@@ -10,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
-using WebApiGateway.Core.Helpers;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.SubmissionHistory;
 using WebApiGateway.Core.Models.Submissions;
@@ -82,9 +83,14 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            UriBuilder uriBuilder = UriBuilderHelper.UriBuilder(queryString);
+            var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
+            {
+                Path = $"submissions"
+            };
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            uriBuilder.Query = queryString.ToString();
 
-            var response = await _httpClient.GetAsync(uriBuilder.ToString());
+            var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);
 
             response.EnsureSuccessStatusCode();
 
@@ -191,9 +197,13 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         await ConfigureHttpClientAsync();
 
-        UriBuilder uriBuilder = UriBuilderHelper.UriBuilder(submissionId, queryString);
+        var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
+        {
+            Path = $"submissions/events/events-by-type/{submissionId}",
+            Query = queryString
+        };
 
-        var response = await _httpClient.GetAsync(uriBuilder.ToString());
+        var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query.ToString());
 
         response.EnsureSuccessStatusCode();
 

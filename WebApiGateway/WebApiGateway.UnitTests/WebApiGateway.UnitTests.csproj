@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <RootNamespace>WebApiGateway.UnitTests</RootNamespace>
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

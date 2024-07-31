@@ -35,7 +35,7 @@ public class DecisionClient : IDecisionClient
             {
                 Path = $"decisions"
             };
-            uriBuilder.Query = queryString.ToString();
+            uriBuilder.Query = queryString;
 
             var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);
 

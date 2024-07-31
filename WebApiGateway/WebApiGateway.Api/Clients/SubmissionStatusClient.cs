@@ -87,7 +87,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
             {
                 Path = $"submissions"
             };
-            uriBuilder.Query = queryString.ToString();
+            uriBuilder.Query = queryString;
 
             var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);
 
@@ -202,7 +202,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
             Query = queryString
         };
 
-        var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query.ToString());
+        var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);
 
         response.EnsureSuccessStatusCode();
 

@@ -87,7 +87,6 @@ public class SubmissionStatusClient : ISubmissionStatusClient
             {
                 Path = $"submissions"
             };
-            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             uriBuilder.Query = queryString.ToString();
 
             var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);

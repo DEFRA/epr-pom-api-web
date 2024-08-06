@@ -256,7 +256,6 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         Guid userId = Guid.NewGuid();
         UserAccount userAccount;
-        OrganisationDetail organisation;
 
         try
         {

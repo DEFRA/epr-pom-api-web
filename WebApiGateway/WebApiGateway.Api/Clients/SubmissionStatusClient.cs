@@ -83,13 +83,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
-            {
-                Path = $"submissions"
-            };
-            uriBuilder.Query = queryString;
-
-            var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);
+            var response = await _httpClient.GetAsync($"submissions{queryString}");
 
             response.EnsureSuccessStatusCode();
 
@@ -196,13 +190,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         await ConfigureHttpClientAsync();
 
-        var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
-        {
-            Path = $"submissions/events/events-by-type/{submissionId}",
-            Query = queryString
-        };
-
-        var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);
+        var response = await _httpClient.GetAsync($"submissions/events/events-by-type/{submissionId}{queryString}");
 
         response.EnsureSuccessStatusCode();
 

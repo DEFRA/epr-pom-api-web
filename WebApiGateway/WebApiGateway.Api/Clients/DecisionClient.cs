@@ -31,13 +31,7 @@ public class DecisionClient : IDecisionClient
         {
             await ConfigureHttpClientAsync();
 
-            var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
-            {
-                Path = $"decisions"
-            };
-            uriBuilder.Query = queryString;
-
-            var response = await _httpClient.GetAsync(uriBuilder.Path + uriBuilder.Query);
+            var response = await _httpClient.GetAsync($"decisions{queryString}");
 
             response.EnsureSuccessStatusCode();
 

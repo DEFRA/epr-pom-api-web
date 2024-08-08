@@ -244,17 +244,14 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         Guid userId = Guid.NewGuid();
         UserAccount userAccount;
+        OrganisationDetail organisation;
 
         try
         {
             userId = _httpContextAccessor.HttpContext.User.UserId();
             userAccount = await _accountServiceClient.GetUserAccount(userId);
-
-            var organisations = userAccount.User.Organisations;
-            if (organisations != null && organisations.Count > 0)
-            {
-                _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisations[0].Id.ToString());
-            }
+            organisation = userAccount.User.Organisations[0];
+            _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
             _httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
         }
         catch (HttpRequestException exception)

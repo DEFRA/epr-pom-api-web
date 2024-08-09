@@ -196,7 +196,13 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         await ConfigureHttpClientAsync();
 
-        var response = await _httpClient.GetAsync($"submissions/events/events-by-type/{submissionId}{queryString}");
+        var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
+        {
+            Path = $"submissions/events/events-by-type/{submissionId}",
+            Query = queryString
+        };
+
+        var response = await _httpClient.GetAsync(uriBuilder.Uri.LocalPath + uriBuilder.Query);
 
         response.EnsureSuccessStatusCode();
 

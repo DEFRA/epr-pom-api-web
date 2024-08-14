@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Web;
+using Newtonsoft.Json;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Extensions;
 using WebApiGateway.Core.Models.Decision;
@@ -30,7 +31,13 @@ public class DecisionClient : IDecisionClient
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.GetAsync($"decisions{queryString}");
+            var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
+            {
+                Path = $"decisions"
+            };
+            uriBuilder.Query = queryString;
+
+            var response = await _httpClient.GetAsync(uriBuilder.Uri.LocalPath + uriBuilder.Query);
 
             response.EnsureSuccessStatusCode();
 
@@ -58,8 +65,7 @@ public class DecisionClient : IDecisionClient
     {
         var userId = _httpContextAccessor.HttpContext.User.UserId();
         var userAccount = await _accountServiceClient.GetUserAccount(userId);
-        var organisation = userAccount.User.Organisations.First();
-
+        var organisation = userAccount.User.Organisations[0];
         _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
         _httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
     }

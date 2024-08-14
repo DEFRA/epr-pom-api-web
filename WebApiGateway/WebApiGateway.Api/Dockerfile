@@ -1,15 +1,15 @@
 FROM defradigital/dotnetcore-development:dotnet6.0 AS build-env
-
+USER root
 # Expose the app on a defined port, configurable via a build argument
 ARG PORT=3000
 ENV ASPNETCORE_URLS=http://*:${PORT}
 EXPOSE ${PORT}
 
 # Copy files
-COPY --chown=dotnet WebApiGateway.Api/. ./WebApiGateway.Api/.
-COPY --chown=dotnet WebApiGateway.Core/. ./WebApiGateway.Core/.
-COPY --chown=dotnet NuGet.Config ./
-COPY --chown=dotnet Directory.Build.props ./
+COPY WebApiGateway.Api/. ./WebApiGateway.Api/.
+COPY WebApiGateway.Core/. ./WebApiGateway.Core/.
+COPY NuGet.Config ./
+COPY Directory.Build.props ./
 
 # Use build argument to insert PAT into Nuget file
 ARG PAT=localhost

@@ -28,7 +28,7 @@ FROM defradigital/dotnetcore:dotnet6.0
 # Switch to non-root user
 USER dotnet
 
-COPY --from=build-env --chown=dotnet /home/dotnet/WebApiGateway.Api/out .
+COPY --from=build-env /home/dotnet/WebApiGateway.Api/out .
 
 # Expose the app on a defined port, configurable via a build argument
 ARG PORT=3000

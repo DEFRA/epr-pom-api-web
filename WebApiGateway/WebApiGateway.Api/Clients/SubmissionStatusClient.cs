@@ -85,11 +85,10 @@ public class SubmissionStatusClient : ISubmissionStatusClient
 
             var uriBuilder = new UriBuilder(_httpClient.BaseAddress)
             {
-                Path = $"submissions"
+                Path = $"submissions",
+                Query = queryString
             };
-            uriBuilder.Query = queryString;
-
-            var response = await _httpClient.GetAsync(uriBuilder.Uri.LocalPath + uriBuilder.Query);
+            var response = await _httpClient.GetAsync(uriBuilder.Uri.GetComponents(UriComponents.Path, UriFormat.UriEscaped) + uriBuilder.Query);
 
             response.EnsureSuccessStatusCode();
 

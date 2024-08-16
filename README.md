@@ -10,7 +10,7 @@ Web API Gateway is the frontend's access gateway to submission upload status and
 
 In order to run the service you will need the following dependencies
 
-- .NET 6
+- .NET 8
 
 #### epr-packaging-common
 ##### Developers working for a DEFRA supplier

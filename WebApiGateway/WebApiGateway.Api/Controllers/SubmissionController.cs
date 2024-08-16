@@ -1,5 +1,6 @@
 ﻿namespace WebApiGateway.Api.Controllers;
 
+using Asp.Versioning;
 using Core.Models.Submission;
 using Extensions;
 using Microsoft.AspNetCore.Mvc;

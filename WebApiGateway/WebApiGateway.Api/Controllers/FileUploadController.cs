@@ -1,6 +1,7 @@
 ﻿namespace WebApiGateway.Api.Controllers;
 
 using System.ComponentModel.DataAnnotations;
+using Asp.Versioning;
 using Core.Constants;
 using Core.Enumeration;
 using Microsoft.AspNetCore.Mvc;
@@ -23,11 +24,11 @@ public class FileUploadController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> FileUpload(
-        [FromHeader] [Required] string fileName,
-        [FromHeader] [Required] SubmissionType submissionType,
+        [FromHeader][Required] string fileName,
+        [FromHeader][Required] SubmissionType submissionType,
         [FromHeader] SubmissionSubType? submissionSubType,
         [FromHeader] Guid? registrationSetId,
-        [FromHeader] [Required] string submissionPeriod,
+        [FromHeader][Required] string submissionPeriod,
         [FromHeader] Guid? submissionId,
         [FromHeader] Guid? complianceSchemeId)
     {

@@ -1,7 +1,6 @@
 ﻿namespace WebApiGateway.Api.Extensions;
 
 using System.Net.Http.Headers;
-using Microsoft.IdentityModel.Tokens;
 
 public static class HttpContentHeaderExtensions
 {
@@ -14,7 +13,7 @@ public static class HttpContentHeaderExtensions
         {
             var firstString = matchingHeaders.FirstOrDefault();
 
-            if (firstString != null && !firstString.IsNullOrEmpty())
+            if (!string.IsNullOrWhiteSpace(firstString))
             {
                 returnString = firstString.Split(";")[0];
             }

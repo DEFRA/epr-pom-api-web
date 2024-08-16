@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="EPR.Common.Functions" Version="1.0.19" />
+        <PackageReference Include="EPR.Common.Functions" Version="1.0.21" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 

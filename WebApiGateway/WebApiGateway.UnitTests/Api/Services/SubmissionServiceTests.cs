@@ -27,6 +27,7 @@ public class SubmissionServiceTests
 {
     private const string _registrationContainerName = "registration-container-name";
     private const string _pomContainerName = "pom-container-name";
+    private const string _subsidiaryContainerName = "subsidiary-container-name";
 
     private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
 
@@ -44,7 +45,8 @@ public class SubmissionServiceTests
             new StorageAccountOptions
             {
                 RegistrationContainer = _registrationContainerName,
-                PomContainer = _pomContainerName
+                PomContainer = _pomContainerName,
+                SubsidiaryContainer = _subsidiaryContainerName,
             });
         _loggingServiceMock = new Mock<ILoggingService>();
         _loggerMock = new Mock<ILogger<SubmissionService>>();
@@ -73,16 +75,18 @@ public class SubmissionServiceTests
     }
 
     [TestMethod]
-    public async Task CreateAntivirusCheckEventAsync_ReturnsFileId_WhenAntivirusCheckEventAndMonitoringEventAreCreatedSuccessfully()
+    [DataRow(FileType.Pom, _pomContainerName)]
+    [DataRow(FileType.Brands, _registrationContainerName)]
+    [DataRow(FileType.Subsidiaries, _subsidiaryContainerName)]
+    public async Task CreateAntivirusCheckEventAsync_ReturnsFileId_WhenAntivirusCheckEventAndMonitoringEventAreCreatedSuccessfully(FileType fileType, string containerName)
     {
         // Arrange
         const string Filename = "filename.csv";
-        const FileType FileType = FileType.Pom;
         var submissionId = Guid.NewGuid();
         var registrationSetId = Guid.NewGuid();
 
         // Act
-        var result = await _systemUnderTest.CreateAntivirusCheckEventAsync(Filename, FileType, submissionId, registrationSetId);
+        var result = await _systemUnderTest.CreateAntivirusCheckEventAsync(Filename, fileType, submissionId, registrationSetId);
 
         // Assert
         result.As<Guid>().Should().NotBeEmpty();
@@ -91,8 +95,8 @@ public class SubmissionServiceTests
             x => x.CreateEventAsync(
                 It.Is<AntivirusCheckEvent>(m =>
                     m.FileName == Filename
-                    && m.FileType == FileType
-                    && m.BlobContainerName == _pomContainerName
+                    && m.FileType == fileType
+                    && m.BlobContainerName == containerName
                     && m.FileId != Guid.Empty
                     && m.RegistrationSetId == registrationSetId),
                 submissionId),

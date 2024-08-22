@@ -452,3 +452,5 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+/WebApiGateway/WebApiGateway.Functions/local.settings.json
+/WebApiGateway/WebApiGateway.Api/local.settings.json

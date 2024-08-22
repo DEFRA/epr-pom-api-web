@@ -34,6 +34,7 @@ public class AbstractSubmissionConverter : CustomCreationConverter<AbstractSubmi
         {
             SubmissionType.Producer => new PomSubmission(),
             SubmissionType.Registration => new RegistrationSubmission(),
+            SubmissionType.Subsidiary => new SubsidiarySubmission(),
             _ => throw new InvalidEnumArgumentException("Submission type is not mapped.")
         };
     }

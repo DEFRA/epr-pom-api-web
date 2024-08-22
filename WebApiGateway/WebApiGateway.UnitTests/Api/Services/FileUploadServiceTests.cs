@@ -150,4 +150,17 @@ public class FileUploadServiceTests
         _submissionServiceMock.Verify(x => x.CreateAntivirusCheckEventAsync(Filename, expectedFileType, originalSubmissionId, registrationSetId), Times.Once);
         _antivirusServiceMock.Verify(x => x.SendFileAsync(SubmissionType, _fileId, Filename, fileStream), Times.Once);
     }
+
+    [TestMethod]
+    public async Task UploadFileSubsidiaryAsync_CallsSendFile_WhenUploadingSubsidiaryFile()
+    {
+        // Arrange
+        var fileStream = new MemoryStream();
+
+        // Act
+        await _systemUnderTest.UploadFileSubsidiaryAsync(fileStream, SubmissionType.Subsidiary, Filename);
+
+        // Assert
+        _antivirusServiceMock.Verify(x => x.SendFileAsync(SubmissionType.Subsidiary, It.IsAny<Guid>(), Filename, fileStream), Times.Once);
+    }
 }

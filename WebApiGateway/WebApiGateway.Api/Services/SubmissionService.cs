@@ -52,12 +52,19 @@ public class SubmissionService : ISubmissionService
 
     public async Task<Guid> CreateAntivirusCheckEventAsync(string fileName, FileType fileType, Guid submissionId, Guid? registrationSetId)
     {
+        var blobContainer = fileType switch
+        {
+            FileType.Pom => _options.PomContainer,
+            FileType.Subsidiaries => _options.SubsidiaryContainer,
+            _ => _options.RegistrationContainer
+        };
+
         var @event = new AntivirusCheckEvent
         {
             FileName = fileName,
             FileType = fileType,
             FileId = Guid.NewGuid(),
-            BlobContainerName = fileType == FileType.Pom ? _options.PomContainer : _options.RegistrationContainer,
+            BlobContainerName = blobContainer,
             RegistrationSetId = registrationSetId
         };
 

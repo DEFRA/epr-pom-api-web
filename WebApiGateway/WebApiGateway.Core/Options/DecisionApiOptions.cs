@@ -1,6 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace WebApiGateway.Core.Options;
 
-namespace WebApiGateway.Core.Options;
+using System.Diagnostics.CodeAnalysis;
 
 [ExcludeFromCodeCoverage]
 public class DecisionApiOptions

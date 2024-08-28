@@ -58,8 +58,7 @@ public class DecisionClient : IDecisionClient
     {
         var userId = _httpContextAccessor.HttpContext.User.UserId();
         var userAccount = await _accountServiceClient.GetUserAccount(userId);
-        var organisation = userAccount.User.Organisations.First();
-
+        var organisation = userAccount.User.Organisations[0];
         _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
         _httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
     }

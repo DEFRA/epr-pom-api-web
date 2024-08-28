@@ -32,7 +32,7 @@ public class SubmissionStatusClientTests
     private Mock<ILogger<SubmissionStatusClient>> _loggerMock;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
     private Mock<IAccountServiceClient> _accountServiceClientMock;
-    private ISubmissionStatusClient _systemUnderTest;
+    private SubmissionStatusClient _systemUnderTest;
 
     [TestInitialize]
     public void TestInitialize()

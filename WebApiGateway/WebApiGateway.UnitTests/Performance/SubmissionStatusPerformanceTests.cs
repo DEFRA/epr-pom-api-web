@@ -26,7 +26,7 @@ public class SubmissionStatusPerformanceTests
 
     private Mock<ILogger<SubmissionStatusClient>> _loggerMock;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
-    private ISubmissionStatusClient _systemUnderTest;
+    private SubmissionStatusClient _systemUnderTest;
 
     public SubmissionStatusPerformanceTests()
     {

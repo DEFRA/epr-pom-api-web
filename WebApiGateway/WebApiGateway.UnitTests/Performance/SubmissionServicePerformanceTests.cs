@@ -92,7 +92,7 @@ public class SubmissionServicePerformanceTests
         elapsedTime.Should().BeLessThan(200, $"Expected elapsed time should take 200ms but instead took {elapsedTime}ms");
     }
 
-    private static IEnumerable<ProducerValidationIssueRow> GenerateRandomProducerValidationIssueList()
+    private static List<ProducerValidationIssueRow> GenerateRandomProducerValidationIssueList()
     {
         var random = new Random();
         return _fixture
@@ -102,7 +102,7 @@ public class SubmissionServicePerformanceTests
             .ToList();
     }
 
-    private static IEnumerable<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
+    private static List<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
     {
         var random = new Random();
         return _fixture

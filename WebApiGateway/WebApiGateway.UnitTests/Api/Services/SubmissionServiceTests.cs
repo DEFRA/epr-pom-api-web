@@ -466,7 +466,7 @@ public class SubmissionServiceTests
         _submissionStatusClientMock.Verify(x => x.GetRegistrationValidationErrorsAsync(submissionId), Times.Once);
     }
 
-    private static IEnumerable<ProducerValidationIssueRow> GenerateRandomProducerValidationIssueList()
+    private static List<ProducerValidationIssueRow> GenerateRandomProducerValidationIssueList()
     {
         var random = new Random();
         return _fixture
@@ -476,7 +476,7 @@ public class SubmissionServiceTests
             .ToList();
     }
 
-    private static IEnumerable<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
+    private static List<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
     {
         var random = new Random();
         return _fixture

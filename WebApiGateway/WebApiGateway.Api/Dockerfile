@@ -1,4 +1,5 @@
 FROM defradigital/dotnetcore-development:dotnet8.0 AS build-env
+USER root
 
 # Expose the app on a defined port, configurable via a build argument
 ARG PORT=3000
@@ -6,10 +7,10 @@ ENV ASPNETCORE_URLS=http://*:${PORT}
 EXPOSE ${PORT}
 
 # Copy files
-COPY --chown=dotnet WebApiGateway.Api/. ./WebApiGateway.Api/.
-COPY --chown=dotnet WebApiGateway.Core/. ./WebApiGateway.Core/.
-COPY --chown=dotnet NuGet.Config ./
-COPY --chown=dotnet Directory.Build.props ./
+COPY WebApiGateway.Api/. ./WebApiGateway.Api/.
+COPY WebApiGateway.Core/. ./WebApiGateway.Core/.
+COPY NuGet.Config ./
+COPY Directory.Build.props ./
 
 # Use build argument to insert PAT into Nuget file
 ARG PAT=localhost
@@ -28,7 +29,7 @@ FROM defradigital/dotnetcore:dotnet8.0
 # Switch to non-root user
 USER dotnet
 
-COPY --from=build-env --chown=dotnet /home/dotnet/WebApiGateway.Api/out .
+COPY --from=build-env /home/dotnet/WebApiGateway.Api/out .
 
 # Expose the app on a defined port, configurable via a build argument
 ARG PORT=3000

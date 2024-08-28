@@ -24,7 +24,7 @@ public class DecisionClientTests
 
     private Mock<ILogger<DecisionClient>> _loggerMock;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
-    private IDecisionClient _systemUnderTest;
+    private DecisionClient _systemUnderTest;
 
     [TestInitialize]
     public void TestInitialize()

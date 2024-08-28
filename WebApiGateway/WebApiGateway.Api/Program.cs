@@ -2,6 +2,7 @@
 using EPR.Common.Logging.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using WebApiGateway.Api.ConfigurationExtensions;
@@ -37,12 +38,8 @@ builder.Services
         });
 
 // Authorization
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("FallbackPolicy", policy => policy.RequireAuthenticatedUser());
 
 builder.Services.AddApiVersioning();
 builder.Services.AddControllers().AddNewtonsoftJson();

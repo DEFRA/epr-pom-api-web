@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
+using Polly.Retry;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Handlers;
@@ -60,7 +61,7 @@ public static class HttpClientServiceCollectionExtensions
         return services;
     }
 
-    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
+    private static AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
         .HandleTransientHttpError()
         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt)));
 }

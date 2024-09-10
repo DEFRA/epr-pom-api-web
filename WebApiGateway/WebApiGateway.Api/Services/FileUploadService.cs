@@ -46,13 +46,14 @@ public class FileUploadService : IFileUploadService
     public async Task<Guid> UploadFileSubsidiaryAsync(
         Stream fileStream,
         SubmissionType submissionType,
-        string fileName)
+        string fileName,
+        Guid? complianceSchemeId)
     {
         var fileType = submissionType is SubmissionType.Subsidiary
             ? FileType.Subsidiaries
             : (FileType)Enum.Parse(typeof(FileType), submissionType.ToString());
 
-        var submissionId = await _submissionService.CreateSubmissionAsync(submissionType, "NA Subsidiary File Upload", null);
+        var submissionId = await _submissionService.CreateSubmissionAsync(submissionType, "NA Subsidiary File Upload", complianceSchemeId);
         var truncatedFileName = FileHelpers.GetTruncatedFileName(fileName, FileConstants.FileNameTruncationLength);
         var fileId = await _submissionService.CreateAntivirusCheckEventAsync(truncatedFileName, fileType, submissionId, null);
         await _antivirusService.SendFileAsync(submissionType, fileId, truncatedFileName, fileStream);

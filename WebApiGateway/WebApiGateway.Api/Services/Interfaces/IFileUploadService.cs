@@ -17,5 +17,6 @@ public interface IFileUploadService
     Task<Guid> UploadFileSubsidiaryAsync(
         Stream fileStream,
         SubmissionType submissionType,
-        string fileName);
+        string fileName,
+        Guid? complianceSchemeId);
 }

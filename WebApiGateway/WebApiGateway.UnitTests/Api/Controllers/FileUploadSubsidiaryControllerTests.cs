@@ -31,7 +31,7 @@ public class FileUploadSubsidiaryControllerTests
     public async Task FileUpload_ReturnsBadRequestResult_WhenFilenameHeaderIsMissing()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUploadSubsidiary(string.Empty, SubmissionType.Subsidiary) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUploadSubsidiary(string.Empty, SubmissionType.Subsidiary, null) as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -47,7 +47,8 @@ public class FileUploadSubsidiaryControllerTests
             x => x.UploadFileSubsidiaryAsync(
                 It.IsAny<Stream>(),
                 It.IsAny<SubmissionType>(),
-                It.IsAny<string>()),
+                It.IsAny<string>(),
+                null),
             Times.Never);
     }
 
@@ -55,7 +56,7 @@ public class FileUploadSubsidiaryControllerTests
     public async Task FileUpload_ReturnsBadRequestResult_WhenSubmissionTypeIsWrong()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Producer) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Producer, null) as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -71,7 +72,8 @@ public class FileUploadSubsidiaryControllerTests
             x => x.UploadFileSubsidiaryAsync(
                 It.IsAny<Stream>(),
                 It.IsAny<SubmissionType>(),
-                It.IsAny<string>()),
+                It.IsAny<string>(),
+                null),
             Times.Never);
     }
 
@@ -85,11 +87,12 @@ public class FileUploadSubsidiaryControllerTests
         _fileUploadServiceMock.Setup(x => x.UploadFileSubsidiaryAsync(
             It.IsAny<Stream>(),
             It.IsAny<SubmissionType>(),
-            It.IsAny<string>()))
+            It.IsAny<string>(),
+            null))
             .ReturnsAsync(_submissionId);
 
         // Act
-        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Subsidiary) as CreatedAtRouteResult;
+        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Subsidiary, null) as CreatedAtRouteResult;
 
         // Assert
         result.RouteName.Should()
@@ -106,7 +109,46 @@ public class FileUploadSubsidiaryControllerTests
             x => x.UploadFileSubsidiaryAsync(
                 filestream,
                 SubmissionType.Subsidiary,
-                Filename),
+                Filename,
+                null),
+            Times.Once);
+    }
+
+    [TestMethod]
+    public async Task FileUploadSubsidiary_ReturnsOkResult_WhenAllComplianceSchemeIdIsValid()
+    {
+        // Arrange
+        var filestream = new MemoryStream();
+        _systemUnderTest.HttpContext.Request.Body = filestream;
+        var complianceSchemeId = Guid.NewGuid();
+
+        _fileUploadServiceMock.Setup(x => x.UploadFileSubsidiaryAsync(
+            It.IsAny<Stream>(),
+            It.IsAny<SubmissionType>(),
+            It.IsAny<string>(),
+            complianceSchemeId))
+            .ReturnsAsync(_submissionId);
+
+        // Act
+        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Subsidiary, complianceSchemeId) as CreatedAtRouteResult;
+
+        // Assert
+        result.RouteName.Should()
+            .Be(nameof(SubmissionController.GetSubmission));
+        result.RouteValues.Should()
+            .HaveCount(1)
+            .And
+            .ContainKey("submissionId")
+            .WhoseValue
+            .Should()
+            .Be(_submissionId);
+
+        _fileUploadServiceMock.Verify(
+            x => x.UploadFileSubsidiaryAsync(
+                filestream,
+                SubmissionType.Subsidiary,
+                Filename,
+                complianceSchemeId),
             Times.Once);
     }
 }

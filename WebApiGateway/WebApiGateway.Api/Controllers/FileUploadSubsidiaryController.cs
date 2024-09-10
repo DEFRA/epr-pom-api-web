@@ -25,7 +25,8 @@ public class FileUploadSubsidiaryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> FileUploadSubsidiary(
         [FromHeader][Required] string fileName,
-        [FromHeader][Required] SubmissionType submissionType)
+        [FromHeader][Required] SubmissionType submissionType,
+        [FromHeader] Guid? complianceSchemeId)
     {
         ValidateUploadSubmission(fileName, submissionType);
 
@@ -37,7 +38,8 @@ public class FileUploadSubsidiaryController : ControllerBase
         var id = await _fileUploadService.UploadFileSubsidiaryAsync(
             Request.Body,
             submissionType,
-            fileName);
+            fileName,
+            complianceSchemeId);
 
         return new CreatedAtRouteResult(nameof(SubmissionController.GetSubmission), new { submissionId = id }, null);
     }

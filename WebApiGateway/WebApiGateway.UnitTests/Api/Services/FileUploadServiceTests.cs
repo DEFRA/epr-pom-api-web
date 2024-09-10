@@ -158,7 +158,7 @@ public class FileUploadServiceTests
         var fileStream = new MemoryStream();
 
         // Act
-        await _systemUnderTest.UploadFileSubsidiaryAsync(fileStream, SubmissionType.Subsidiary, Filename);
+        await _systemUnderTest.UploadFileSubsidiaryAsync(fileStream, SubmissionType.Subsidiary, Filename, null);
 
         // Assert
         _antivirusServiceMock.Verify(x => x.SendFileAsync(SubmissionType.Subsidiary, It.IsAny<Guid>(), Filename, fileStream), Times.Once);

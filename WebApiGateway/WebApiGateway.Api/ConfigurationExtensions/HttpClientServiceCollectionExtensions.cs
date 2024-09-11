@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
@@ -57,6 +58,13 @@ public static class HttpClientServiceCollectionExtensions
                 client.BaseAddress = new Uri($"{options.BaseUrl}/v1/");
             })
             .AddPolicyHandler(GetRetryPolicy());
+
+        var blobStorageOptions = services.BuildServiceProvider().GetRequiredService<IOptions<BlobStorageOptions>>().Value;
+
+        services.AddAzureClients(cb =>
+        {
+            cb.AddBlobServiceClient(blobStorageOptions.ConnectionString);
+        });
 
         return services;
     }

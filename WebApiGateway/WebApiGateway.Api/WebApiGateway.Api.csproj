@@ -9,6 +9,7 @@
     <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <PackageReference Include="Azure.Core" Version="1.41.0" />
     <PackageReference Include="Azure.Identity" Version="1.12.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.21.2" />
     <PackageReference Include="EPR.Common.Functions" Version="1.0.22" />
     <PackageReference Include="EPR.Common.Logging" Version="1.0.7" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />

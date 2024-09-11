@@ -13,10 +13,27 @@ using Services.Interfaces;
 public class FileUploadSubsidiaryController : ControllerBase
 {
     private readonly IFileUploadService _fileUploadService;
+    private readonly ISubsidiariesService _subsidiariesService;
 
-    public FileUploadSubsidiaryController(IFileUploadService fileUploadService)
+    public FileUploadSubsidiaryController(IFileUploadService fileUploadService, ISubsidiariesService subsidiariesService)
     {
         _fileUploadService = fileUploadService;
+        _subsidiariesService = subsidiariesService;
+    }
+
+    [HttpGet("template")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetFileUploadTemplateAsync()
+    {
+        var file = await _subsidiariesService.GetFileUploadTemplateAsync();
+
+        if (file == null)
+        {
+            return NotFound();
+        }
+
+        return File(file.Content, file.ContentType, file.Name);
     }
 
     [HttpPost]

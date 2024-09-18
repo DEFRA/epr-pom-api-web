@@ -66,6 +66,14 @@ public static class HttpClientServiceCollectionExtensions
             cb.AddBlobServiceClient(blobStorageOptions.ConnectionString);
         });
 
+        services.AddHttpClient<IPrnServiceClient, PrnServiceClient>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<PrnServiceApiOptions>>().Value;
+                client.BaseAddress = new Uri($"{options.BaseUrl}/");
+            })
+            .AddHttpMessageHandler<PrnServiceAuthorisationHandler>()
+            .AddPolicyHandler(GetRetryPolicy());
+
         return services;
     }
 

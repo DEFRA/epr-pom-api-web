@@ -3,6 +3,7 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <PackageId>WebApiGateway.Api</PackageId>
     <Nullable>enable</Nullable>
+	<UserSecretsId>349df779-a128-44dd-ae38-b29fed6fd92d</UserSecretsId>	  
   </PropertyGroup>
   
   <ItemGroup>

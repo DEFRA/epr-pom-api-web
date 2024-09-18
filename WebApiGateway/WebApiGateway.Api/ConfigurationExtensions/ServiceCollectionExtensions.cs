@@ -22,6 +22,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AntivirusApiAuthorizationHandler>();
         services.AddScoped<IDecisionService, DecisionService>();
         services.AddScoped<ISubsidiariesService, SubsidiariesService>();
+        services.AddScoped<PrnServiceAuthorisationHandler>();
+        services.AddScoped<IPrnService, PrnService>();
 
         return services;
     }
@@ -34,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.Configure<StorageAccountOptions>(configuration.GetSection(StorageAccountOptions.Section));
         services.Configure<DecisionApiOptions>(configuration.GetSection(DecisionApiOptions.Section));
         services.Configure<BlobStorageOptions>(configuration.GetSection(BlobStorageOptions.Section));
+        services.Configure<PrnServiceApiOptions>(configuration.GetSection(PrnServiceApiOptions.Section));
 
         return services;
     }

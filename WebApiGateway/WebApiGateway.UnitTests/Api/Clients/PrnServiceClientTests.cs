@@ -144,6 +144,32 @@ namespace WebApiGateway.UnitTests.Api.Clients
         }
 
         [TestMethod]
+        public async Task GetObligationCalculationByOrganisationId_ReturnsCalculations()
+        {
+            int orgId = 0;
+            var calculations = _fixture.CreateMany<ObligationCalculation>().ToList();
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, calculations.ToJsonContent());
+
+            var result = await _systemUnderTest.GetObligationCalculationByOrganisationIdAsync(orgId);
+
+            var expectedMethod = HttpMethod.Get;
+            var expectedRequestUri = new Uri($"https://example.com/prn/v1/obligationcalculation/{orgId}");
+
+            _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, Times.Once());
+            result.Should().BeOfType<List<ObligationCalculation>>();
+            result.Should().BeEquivalentTo(calculations);
+        }
+
+        [TestMethod]
+        public async Task GetObligationCalculationsByOrganisationId_ThrowsExceptionIfStatusIsNotSUccess()
+        {
+            int orgId = 0;
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+            await _systemUnderTest.Invoking(x => x.GetObligationCalculationByOrganisationIdAsync(orgId)).Should().ThrowAsync<HttpRequestException>();
+            _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), $"An error occurred retrievig obligation calculations for organisation id {orgId}", orgId));
+        }
+
+        [TestMethod]
         public async Task ConfigureHttpClientAsync_LogsAndRethrowsExceptionIfGetUserAccountFails()
         {
             _accountServiceClientMock.Setup(x => x.GetUserAccount(It.IsAny<Guid>())).ThrowsAsync(new HttpRequestException());

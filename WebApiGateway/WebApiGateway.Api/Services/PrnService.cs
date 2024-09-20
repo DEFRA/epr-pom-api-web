@@ -30,5 +30,10 @@ namespace WebApiGateway.Api.Services
         {
             await _prnServiceClient.UpdatePrnStatus(updatePrns);
         }
+
+        public async Task<List<ObligationCalculation>> GetObligationCalculationsByOrganisationId(int organisationId)
+        {
+            return await _prnServiceClient.GetObligationCalculationByOrganisationIdAsync(organisationId);
+        }
     }
 }

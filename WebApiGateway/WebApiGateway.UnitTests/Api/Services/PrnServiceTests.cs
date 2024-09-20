@@ -53,5 +53,15 @@ namespace WebApiGateway.UnitTests.Api.Services
             await _systemUnderTest.UpdatePrnStatus(updatePrns);
             _prnServiceClient.Verify();
         }
+
+        [TestMethod]
+        public async Task GetObligationCalculationByOrganisationId_ReturnsCalculations()
+        {
+            int orgId = 0;
+            var calculations = _fixture.CreateMany<ObligationCalculation>().ToList();
+            _prnServiceClient.Setup(x => x.GetObligationCalculationByOrganisationIdAsync(orgId)).ReturnsAsync(calculations);
+            var result = await _systemUnderTest.GetObligationCalculationsByOrganisationId(orgId);
+            result.Should().BeEquivalentTo(calculations);
+        }
     }
 }

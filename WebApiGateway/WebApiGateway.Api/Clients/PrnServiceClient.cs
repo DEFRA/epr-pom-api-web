@@ -2,7 +2,6 @@
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Extensions;
 using WebApiGateway.Core.Models.Prns;
-using WebApiGateway.Core.Models.UserAccount;
 
 namespace WebApiGateway.Api.Clients
 {
@@ -78,6 +77,26 @@ namespace WebApiGateway.Api.Clients
             catch (HttpRequestException exception)
             {
                 _logger.LogError(exception, "An error occurred updating prns status");
+                throw;
+            }
+        }
+
+        public async Task<List<ObligationCalculation>> GetObligationCalculationByOrganisationIdAsync(int organisationId)
+        {
+            try
+            {
+                await ConfigureHttpClientAsync();
+                var response = await _httpClient.GetAsync($"/prn/v1/obligationcalculation/{organisationId}");
+
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<List<ObligationCalculation>>(content);
+            }
+            catch (HttpRequestException exception)
+            {
+                _logger.LogError(exception, $"An error occurred retrievig obligation calculations for organisation id {organisationId}", organisationId);
                 throw;
             }
         }

@@ -6,6 +6,8 @@ namespace WebApiGateway.Api.Clients.Interfaces
     {
         Task<List<PrnModel>> GetAllPrnsForOrganisation();
 
+        Task<List<ObligationCalculation>> GetObligationCalculationByOrganisationIdAsync(int organisationId);
+
         Task<PrnModel> GetPrnById(Guid id);
 
         Task UpdatePrnStatus(List<UpdatePrnStatus> updatePrns);

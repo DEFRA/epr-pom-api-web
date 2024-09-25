@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
 
 namespace WebApiGateway.Api.Controllers
@@ -30,8 +31,23 @@ namespace WebApiGateway.Api.Controllers
         [ProducesResponseType(typeof(PrnModel), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPrnById(Guid id)
         {
-            _logger.LogDebug("Recieved GetPrnById request for prn {id}", id);
+            _logger.LogDebug("Recieved GetPrnById request for prn {Id}", id);
             return new OkObjectResult(await _prnService.GetPrnById(id));
+        }
+
+        [HttpGet("prn/obligation/{id}")]
+        [ProducesResponseType(typeof(List<ObligationCalculation>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetObligation(int id)
+        {
+            _logger.LogDebug("Recieved Get Obligation request for organisation {Id}", id);
+            return new OkObjectResult(await _prnService.GetObligationCalculationsByOrganisationId(id));
+        }
+
+        [HttpGet("prn/search")]
+        [ProducesResponseType(typeof(PaginatedResponse<PrnModel>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> SearchPrn([FromQuery] PaginatedRequest request)
+        {
+            return new OkObjectResult(await _prnService.GetSearchPrns(request));
         }
 
         [HttpPost("prn/status")]

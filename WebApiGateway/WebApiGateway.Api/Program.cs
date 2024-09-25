@@ -1,8 +1,6 @@
 ﻿using EPR.Common.Functions.Extensions;
 using EPR.Common.Logging.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using WebApiGateway.Api.ConfigurationExtensions;
@@ -16,8 +14,8 @@ builder.Services
     .AddCommonServices()
     .AddEprAccessControl()
     .AddApplicationInsightsTelemetry()
-    .RegisterServices()
     .ConfigureOptions(configuration)
+    .RegisterServices()
     .RegisterHttpClients()
     .AddApplicationInsightsTelemetry()
     .AddLogging()

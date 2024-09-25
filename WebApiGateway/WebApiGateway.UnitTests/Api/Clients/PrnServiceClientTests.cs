@@ -7,8 +7,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.Protected;
+using Newtonsoft.Json;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
 using WebApiGateway.Core.Models.UserAccount;
 using WebApiGateway.UnitTests.Support.Extensions;
@@ -54,7 +57,6 @@ namespace WebApiGateway.UnitTests.Api.Clients
         [TestMethod]
         public async Task GetAllPrnsForOrganisation_ReturnListOfPrns()
         {
-            var orgId = Guid.NewGuid();
             var response = _fixture.CreateMany<PrnModel>().ToList();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
 
@@ -180,6 +182,128 @@ namespace WebApiGateway.UnitTests.Api.Clients
             .ThrowAsync<HttpRequestException>();
 
             _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting user accounts with id {userId}", _userAccount.User.Id));
+        }
+
+        [TestMethod]
+        public async Task GetSearchPrns_ShouldReturnPaginatedResponse_WhenRequestIsValid()
+        {
+            // Arrange
+            var request = new PaginatedRequest();
+            var expectedResponse = new PaginatedResponse<PrnModel>
+            {
+                Items = new List<PrnModel> { new() { Id = 1, PrnNumber = "PRN123" } },
+                CurrentPage = 1,
+                TotalItems = 1,
+                PageSize = 10
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedResponse);
+            var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(jsonResponse)
+            };
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(httpResponseMessage));
+
+            // Act
+            var result = await _systemUnderTest.GetSearchPrns(request);
+
+            // Assert
+            result.Should().BeEquivalentTo(expectedResponse);
+        }
+
+        [TestMethod]
+        public async Task GetSearchPrns_ShouldReturnEmptyResponse_WhenNoPrnsFound()
+        {
+            // Arrange
+            var request = new PaginatedRequest();
+            var expectedResponse = new PaginatedResponse<PrnModel>
+            {
+                Items = new List<PrnModel>(),
+                CurrentPage = 1,
+                TotalItems = 0,
+                PageSize = 10
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedResponse);
+            var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(jsonResponse)
+            };
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(httpResponseMessage));
+
+            // Act
+            var result = await _systemUnderTest.GetSearchPrns(request);
+
+            // Assert
+            result.Should().BeEquivalentTo(expectedResponse);
+        }
+
+        [TestMethod]
+        public async Task GetSearchPrns_ShouldReturnPaginatedResponse_WhenMultiplePrnsFound()
+        {
+            // Arrange
+            var request = new PaginatedRequest();
+            var expectedResponse = new PaginatedResponse<PrnModel>
+            {
+                Items = new List<PrnModel>
+                {
+                    new() { Id = 1, PrnNumber = "PRN123" },
+                    new() { Id = 2, PrnNumber = "PRN456" }
+                },
+                CurrentPage = 1,
+                TotalItems = 2,
+                PageSize = 10
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedResponse);
+            var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(jsonResponse)
+            };
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(httpResponseMessage));
+
+            // Act
+            var result = await _systemUnderTest.GetSearchPrns(request);
+
+            // Assert
+            result.Should().BeEquivalentTo(expectedResponse);
+        }
+
+        [TestMethod]
+        public async Task GetSearchPrns_ShouldLogErrorAndThrowException_WhenHttpRequestFails()
+        {
+            // Arrange
+            var request = _fixture.Create<PaginatedRequest>();
+            var exception = new HttpRequestException("Request failed");
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ThrowsAsync(exception);
+
+            // Act
+            Func<Task> act = async () => await _systemUnderTest.GetSearchPrns(request);
+
+            // Assert
+            await act.Should().ThrowAsync<HttpRequestException>().WithMessage("Request failed");
+            _loggerMock.VerifyLog(x => x.LogError(exception, "An error occurred retrieving PRN search result"), Times.Once);
         }
     }
 }

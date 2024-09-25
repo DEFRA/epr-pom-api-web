@@ -104,6 +104,7 @@ The structure of the appsettings can be found in the repository. Example configu
 | LoggingApi__BaseUrl              | Logging API base URL                                                      |
 | StorageAccount__PomContainer     | Container name on the storage account where POM files are stored. This value is used to populate the field ContainerName on CosmosDB items. |
 | StorageAccount__RegistrationContainer | Container name on the storage account where registration files are stored. This value is used to populate the field ContainerName on CosmosDB items. |
+| Redis__ConnectionString          | localhost                                                                 |
 
 ## Additional Information
 

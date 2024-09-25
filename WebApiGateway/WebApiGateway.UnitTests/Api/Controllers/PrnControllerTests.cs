@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
 
 namespace WebApiGateway.UnitTests.Api.Controllers
@@ -53,6 +54,43 @@ namespace WebApiGateway.UnitTests.Api.Controllers
             var result = await _systemUnderTest.UpdatePrnStatusToAccepted(updatePrns);
             result.Should().BeOfType<NoContentResult>();
             _prnService.Verify();
+        }
+
+        [TestMethod]
+        public async Task GetObligationById_ReturnListOfObligations()
+        {
+            int id = 1234;
+            var response = _fixture.Create<List<ObligationCalculation>>();
+            _prnService.Setup(x => x.GetObligationCalculationsByOrganisationId(id)).ReturnsAsync(response);
+            var result = await _systemUnderTest.GetObligation(id);
+            result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeEquivalentTo(response);
+        }
+
+        [TestMethod]
+        public async Task SearchPrn_ReturnsPaginatedResponse()
+        {
+            var request = _fixture.Create<PaginatedRequest>();
+            var response = _fixture.Create<PaginatedResponse<PrnModel>>();
+            _prnService.Setup(x => x.GetSearchPrns(request)).ReturnsAsync(response);
+            var result = await _systemUnderTest.SearchPrn(request);
+            result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeEquivalentTo(response);
+        }
+
+        [TestMethod]
+        public async Task GetAllPrnsForOrganisation_ReturnsEmptyList_WhenNoPrnsFound()
+        {
+            _prnService.Setup(x => x.GetAllPrnsForOrganisation()).ReturnsAsync(new List<PrnModel>());
+            var result = await _systemUnderTest.GetAllPrnsForOrganisation();
+            result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeEquivalentTo(new List<PrnModel>());
+        }
+
+        [TestMethod]
+        public async Task UpdatePrnStatusToAccepted_ReturnsBadRequest_WhenUpdateFails()
+        {
+            var updatePrns = _fixture.CreateMany<UpdatePrnStatus>().ToList();
+            _prnService.Setup(x => x.UpdatePrnStatus(updatePrns)).ThrowsAsync(new Exception("Update failed"));
+            Func<Task> act = async () => await _systemUnderTest.UpdatePrnStatusToAccepted(updatePrns);
+            await act.Should().ThrowAsync<Exception>().WithMessage("Update failed");
         }
     }
 }

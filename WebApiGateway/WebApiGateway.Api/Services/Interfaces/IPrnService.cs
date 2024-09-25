@@ -1,4 +1,5 @@
-﻿using WebApiGateway.Core.Models.Prns;
+﻿using WebApiGateway.Core.Models.Pagination;
+using WebApiGateway.Core.Models.Prns;
 
 namespace WebApiGateway.Api.Services.Interfaces
 {
@@ -9,5 +10,9 @@ namespace WebApiGateway.Api.Services.Interfaces
         Task<PrnModel> GetPrnById(Guid id);
 
         Task UpdatePrnStatus(List<UpdatePrnStatus> updatePrns);
+
+        Task<PaginatedResponse<PrnModel>> GetSearchPrns(PaginatedRequest request);
+
+        Task<List<ObligationCalculation>> GetObligationCalculationsByOrganisationId(int organisationId);
     }
 }

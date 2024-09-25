@@ -1,5 +1,6 @@
 ﻿using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
 
 namespace WebApiGateway.Api.Services
@@ -29,6 +30,11 @@ namespace WebApiGateway.Api.Services
         public async Task UpdatePrnStatus(List<UpdatePrnStatus> updatePrns)
         {
             await _prnServiceClient.UpdatePrnStatus(updatePrns);
+        }
+
+        public async Task<PaginatedResponse<PrnModel>> GetSearchPrns(PaginatedRequest request)
+        {
+            return await _prnServiceClient.GetSearchPrns(request);
         }
 
         public async Task<List<ObligationCalculation>> GetObligationCalculationsByOrganisationId(int organisationId)

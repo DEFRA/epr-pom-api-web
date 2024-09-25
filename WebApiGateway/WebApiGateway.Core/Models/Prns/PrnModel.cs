@@ -41,7 +41,7 @@ namespace WebApiGateway.Core.Models.Prns
 
         public bool DecemberWaste { get; set; }
 
-        public DateTime? CancelledDate { get; set; }
+        public DateTime? StatusUpdatedOn { get; set; }
 
         public string IssuedByOrg { get; set; }
 

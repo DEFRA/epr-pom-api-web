@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Extensions;
+using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
 
 namespace WebApiGateway.Api.Clients
 {
-    public class PrnServiceClient : IPrnServiceClient
+    public class PrnServiceClient : ServiceClientBase, IPrnServiceClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<PrnServiceClient> _logger;
@@ -41,6 +42,26 @@ namespace WebApiGateway.Api.Clients
             {
                 _httpClient.DefaultRequestHeaders.TryGetValues("X-EPR-ORGANISATION", out var orgId);
                 _logger.LogError(exception, "An error occurred retrieving prns for organisation {organisationId}", orgId?.First() ?? "NoOrgId");
+                throw;
+            }
+        }
+
+        public async Task<PaginatedResponse<PrnModel>> GetSearchPrns(PaginatedRequest request)
+        {
+            try
+            {
+                await ConfigureHttpClientAsync();
+
+                var response = await _httpClient.GetAsync($"prn/v1/search{BuildUrlWithQueryString(request)}");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<PaginatedResponse<PrnModel>>(content);
+            }
+            catch (HttpRequestException exception)
+            {
+                _httpClient.DefaultRequestHeaders.TryGetValues("X-EPR-ORGANISATION", out var orgId);
+                _logger.LogError(exception, "An error occurred retrieving PRN search result");
                 throw;
             }
         }

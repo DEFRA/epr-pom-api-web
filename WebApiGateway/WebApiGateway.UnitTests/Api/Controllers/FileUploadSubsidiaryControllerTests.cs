@@ -16,15 +16,19 @@ public class FileUploadSubsidiaryControllerTests
     private const string Filename = "filename.csv";
     private readonly Guid _submissionId = Guid.NewGuid();
     private Mock<IFileUploadService> _fileUploadServiceMock;
+    private Mock<ISubsidiaryService> _subsidiaryServiceMock;
     private Mock<ISubsidiariesService> _subsidiariesServiceMock;
     private FileUploadSubsidiaryController _systemUnderTest;
 
     [TestInitialize]
     public void TestInitialize()
     {
+        var userId = Guid.NewGuid();
+
         _fileUploadServiceMock = new Mock<IFileUploadService>();
+        _subsidiaryServiceMock = new Mock<ISubsidiaryService>();
         _subsidiariesServiceMock = new Mock<ISubsidiariesService>();
-        _systemUnderTest = new FileUploadSubsidiaryController(_fileUploadServiceMock.Object, _subsidiariesServiceMock.Object)
+        _systemUnderTest = new FileUploadSubsidiaryController(_fileUploadServiceMock.Object, _subsidiaryServiceMock.Object, _subsidiariesServiceMock.Object)
         {
             ControllerContext = { HttpContext = new DefaultHttpContext() }
         };
@@ -36,7 +40,7 @@ public class FileUploadSubsidiaryControllerTests
         // Arrange
         var expectedResponse = new GetFileUploadTemplateResponse
         {
-            Name = "temaplte.ods",
+            Name = "template.ods",
             ContentType = "application/vnd.oasis.opendocument.spreadsheet",
             Content = new MemoryStream()
         };

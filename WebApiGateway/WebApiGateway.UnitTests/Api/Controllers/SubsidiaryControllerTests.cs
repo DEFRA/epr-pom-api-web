@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -46,9 +47,9 @@ public class SubsidiaryControllerTests
         var result = await _controller.GetNotificationErrors(userId, organisationId) as OkObjectResult;
 
         // Assert
-        Assert.IsNotNull(result);
-        Assert.AreEqual(StatusCodes.Status200OK, result.StatusCode);
-        Assert.AreEqual(expectedErrors, result.Value);
+        result.Should().NotBeNull();
+        result.StatusCode.Should().Be(StatusCodes.Status200OK);
+        result.Value.Should().Be(expectedErrors);
     }
 
     [TestMethod]
@@ -65,8 +66,8 @@ public class SubsidiaryControllerTests
         var result = await _controller.GetNotificationErrors(userId, organisationId) as BadRequestResult;
 
         // Assert
-        Assert.IsNotNull(result);
-        Assert.AreEqual(StatusCodes.Status400BadRequest, result.StatusCode);
+        result.Should().NotBeNull();
+        result.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         _loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -99,8 +100,8 @@ public class SubsidiaryControllerTests
         var result = await _controller.GetNotificationErrors(userId, organisationId) as OkObjectResult;
 
         // Assert
-        Assert.IsNotNull(result);
-        Assert.AreEqual(StatusCodes.Status200OK, result.StatusCode);
-        Assert.AreEqual(expectedErrors, result.Value);
+        result.Should().NotBeNull();
+        result.StatusCode.Should().Be(StatusCodes.Status200OK);
+        result.Value.Should().Be(expectedErrors);
     }
 }

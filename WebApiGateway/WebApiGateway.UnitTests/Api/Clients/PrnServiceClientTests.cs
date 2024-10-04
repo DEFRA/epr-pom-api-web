@@ -63,7 +63,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var result = await _systemUnderTest.GetAllPrnsForOrganisation();
 
             var expectedMethod = HttpMethod.Get;
-            var expectedRequestUri = new Uri($"https://example.com/prn/organisation");
+            var expectedRequestUri = new Uri($"https://example.com/v1/prn/organisation");
 
             _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, Times.Once());
             result.Should().BeOfType<List<PrnModel>>();
@@ -96,7 +96,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var result = await _systemUnderTest.GetPrnById(prnId);
 
             var expectedMethod = HttpMethod.Get;
-            var expectedRequestUri = new Uri($"https://example.com/prn/{prnId}");
+            var expectedRequestUri = new Uri($"https://example.com/v1/prn/{prnId}");
 
             _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, Times.Once());
             result.Should().BeOfType<PrnModel>();
@@ -126,7 +126,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
             await _systemUnderTest.UpdatePrnStatus(updatePrns);
 
             var expectedMethod = HttpMethod.Post;
-            var expectedRequestUri = new Uri($"https://example.com/prn/status");
+            var expectedRequestUri = new Uri($"https://example.com/v1/prn/status");
 
             _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, Times.Once());
         }
@@ -155,7 +155,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var result = await _systemUnderTest.GetObligationCalculationByOrganisationIdAsync(orgId);
 
             var expectedMethod = HttpMethod.Get;
-            var expectedRequestUri = new Uri($"https://example.com/prn/v1/obligationcalculation/{orgId}");
+            var expectedRequestUri = new Uri($"https://example.com/v1/prn/obligationcalculation/{orgId}");
 
             _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, Times.Once());
             result.Should().BeOfType<List<ObligationCalculation>>();

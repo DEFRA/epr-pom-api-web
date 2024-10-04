@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using Asp.Versioning;
 using Core.Constants;
 using Core.Enumeration;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 
@@ -13,11 +14,13 @@ using Services.Interfaces;
 public class FileUploadSubsidiaryController : ControllerBase
 {
     private readonly IFileUploadService _fileUploadService;
+    private readonly ISubsidiaryService _subsidiaryService;
     private readonly ISubsidiariesService _subsidiariesService;
 
-    public FileUploadSubsidiaryController(IFileUploadService fileUploadService, ISubsidiariesService subsidiariesService)
+    public FileUploadSubsidiaryController(IFileUploadService fileUploadService, ISubsidiaryService subsidiaryService, ISubsidiariesService subsidiariesService)
     {
         _fileUploadService = fileUploadService;
+        _subsidiaryService = subsidiaryService;
         _subsidiariesService = subsidiariesService;
     }
 
@@ -51,6 +54,8 @@ public class FileUploadSubsidiaryController : ControllerBase
         {
             return ValidationProblem(statusCode: 400);
         }
+
+        await _subsidiaryService.InitializeUploadStatusAsync();
 
         var id = await _fileUploadService.UploadFileSubsidiaryAsync(
             Request.Body,

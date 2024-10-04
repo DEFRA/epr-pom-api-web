@@ -7,4 +7,6 @@ public interface ISubsidiaryService
     Task<UploadFileErrorResponse> GetNotificationErrorsAsync(string key);
 
     Task<string> GetNotificationStatusAsync(string key);
+
+    Task InitializeUploadStatusAsync();
 }

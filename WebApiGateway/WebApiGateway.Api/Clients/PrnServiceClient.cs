@@ -30,7 +30,7 @@ namespace WebApiGateway.Api.Clients
             try
             {
                 await ConfigureHttpClientAsync();
-                var response = await _httpClient.GetAsync("prn/organisation");
+                var response = await _httpClient.GetAsync("v1/prn/organisation");
 
                 response.EnsureSuccessStatusCode();
 
@@ -52,7 +52,7 @@ namespace WebApiGateway.Api.Clients
             {
                 await ConfigureHttpClientAsync();
 
-                var response = await _httpClient.GetAsync($"prn/v1/search{BuildUrlWithQueryString(request)}");
+                var response = await _httpClient.GetAsync($"v1/prn/search{BuildUrlWithQueryString(request)}");
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
 
@@ -71,7 +71,7 @@ namespace WebApiGateway.Api.Clients
             try
             {
                 await ConfigureHttpClientAsync();
-                var response = await _httpClient.GetAsync($"prn/{id}");
+                var response = await _httpClient.GetAsync($"v1/prn/{id}");
 
                 response.EnsureSuccessStatusCode();
 
@@ -91,7 +91,7 @@ namespace WebApiGateway.Api.Clients
             try
             {
                 await ConfigureHttpClientAsync();
-                var response = await _httpClient.PostAsJsonAsync($"prn/status", updatePrns);
+                var response = await _httpClient.PostAsJsonAsync($"v1/prn/status", updatePrns);
 
                 response.EnsureSuccessStatusCode();
             }
@@ -107,7 +107,7 @@ namespace WebApiGateway.Api.Clients
             try
             {
                 await ConfigureHttpClientAsync();
-                var response = await _httpClient.GetAsync($"/prn/v1/obligationcalculation/{organisationId}");
+                var response = await _httpClient.GetAsync($"v1/prn/obligationcalculation/{organisationId}");
 
                 response.EnsureSuccessStatusCode();
 

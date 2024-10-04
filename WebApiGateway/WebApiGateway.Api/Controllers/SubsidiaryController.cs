@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Constants;
 
 namespace WebApiGateway.Api.Controllers;
 
@@ -9,8 +10,6 @@ namespace WebApiGateway.Api.Controllers;
 [Route("api/v{version:apiVersion}/subsidiary")]
 public class SubsidiaryController : ControllerBase
 {
-    private const string SubsidiaryBulkUploadErrors = "Subsidiary bulk upload errors";
-    private const string SubsidiaryBulkUploadProgress = "Subsidiary bulk upload progress";
     private readonly ISubsidiaryService _subsidiaryService;
     private readonly ILogger<SubsidiaryController> _logger;
 
@@ -27,8 +26,8 @@ public class SubsidiaryController : ControllerBase
     {
         try
         {
-            var notificationErrors = await _subsidiaryService.GetNotificationErrorsAsync($"{userId}{organisationId}{SubsidiaryBulkUploadErrors}");
-            var notificationStatus = await _subsidiaryService.GetNotificationStatusAsync($"{userId}{organisationId}{SubsidiaryBulkUploadProgress}");
+            var notificationErrors = await _subsidiaryService.GetNotificationErrorsAsync($"{userId}{organisationId}{SubsidiaryBulkUploadStatusKeys.SubsidiaryBulkUploadErrors}");
+            var notificationStatus = await _subsidiaryService.GetNotificationStatusAsync($"{userId}{organisationId}{SubsidiaryBulkUploadStatusKeys.SubsidiaryBulkUploadProgress}");
 
             notificationErrors.Status = notificationStatus;
 

@@ -1,8 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace WebApiGateway.Core.Models.Prns
+﻿namespace WebApiGateway.Core.Models.Prns
 {
-    public class ObligationCalculation
+	public class ObligationCalculation
     {
         public int OrganisationId { get; set; }
 

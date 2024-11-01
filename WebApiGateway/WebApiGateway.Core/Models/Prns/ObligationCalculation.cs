@@ -1,4 +1,6 @@
-﻿namespace WebApiGateway.Core.Models.Prns
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebApiGateway.Core.Models.Prns
 {
     public class ObligationCalculation
     {
@@ -9,5 +11,9 @@
         public int MaterialObligationValue { get; set; }
 
         public int Year { get; set; }
+
+        public DateTime CalculatedOn { get; set; }
+
+        public double MaterialWeight { get; set; }
     }
 }

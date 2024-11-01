@@ -10,8 +10,6 @@
 
         public int Year { get; set; }
 
-        public DateTime CalculatedOn { get; set; }
-
         public double MaterialWeight { get; set; }
     }
 }

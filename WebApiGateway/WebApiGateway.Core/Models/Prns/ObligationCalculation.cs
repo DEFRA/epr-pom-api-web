@@ -11,5 +11,7 @@
         public int Year { get; set; }
 
         public double MaterialWeight { get; set; }
+
+        public double MaterialTarget { get; set; }
     }
 }

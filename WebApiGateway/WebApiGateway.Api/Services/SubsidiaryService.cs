@@ -1,10 +1,12 @@
 ﻿using System.Text.Json;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Extensions;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Models.Subsidiary;
+using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.Api.Services;
 
@@ -12,14 +14,13 @@ public class SubsidiaryService(
     IAccountServiceClient accountServiceClient,
     IHttpContextAccessor httpContextAccessor,
     IConnectionMultiplexer redisConnectionMultiplexer,
+    IOptions<RedisOptions> redisOptions,
     ILogger<SubsidiaryService> logger) : ISubsidiaryService
 {
-    private readonly IAccountServiceClient _accountServiceClient = accountServiceClient;
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-    private readonly ILogger<SubsidiaryService> _logger = logger;
     private readonly IDatabase _redisDatabase = redisConnectionMultiplexer.GetDatabase();
+    private readonly RedisOptions _redisOptions = redisOptions.Value;
 
-    private readonly JsonSerializerOptions _caseInsensitiveJsonSerializerOptions = new JsonSerializerOptions
+    private readonly JsonSerializerOptions _caseInsensitiveJsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
@@ -30,12 +31,12 @@ public class SubsidiaryService(
 
         if (value.IsNullOrEmpty)
         {
-            _logger.LogInformation("Redis empty errors response key: {Key}", key);
+            logger.LogInformation("Redis empty errors response key: {Key}", key);
 
             return new UploadFileErrorResponse();
         }
 
-        _logger.LogInformation("Redis errors response key: {Key} errors: {Value}", key, value);
+        logger.LogInformation("Redis errors response key: {Key} errors: {Value}", key, value);
 
         return JsonSerializer.Deserialize<UploadFileErrorResponse>(value, _caseInsensitiveJsonSerializerOptions);
     }
@@ -46,12 +47,12 @@ public class SubsidiaryService(
 
         if (value.IsNullOrEmpty)
         {
-            _logger.LogInformation("Redis empty status response key: {Key}", key);
+            logger.LogInformation("Redis empty status response key: {Key}", key);
 
             return string.Empty;
         }
 
-        _logger.LogInformation("Redis status response key: {Key} value: {Value}", key, value);
+        logger.LogInformation("Redis status response key: {Key} value: {Value}", key, value);
 
         return value;
     }
@@ -61,29 +62,35 @@ public class SubsidiaryService(
         var status = "Uploading";
 
         var user = await GetUserAndOrganisationAsync();
-        var key = $"{user.UserId}{user.OrganisationId}{SubsidiaryBulkUploadStatusKeys.SubsidiaryBulkUploadProgress}";
+        var progressKey = $"{user.UserId}{user.OrganisationId}{SubsidiaryBulkUploadStatusKeys.SubsidiaryBulkUploadProgress}";
+        var rowsAddedKey = $"{user.UserId}{user.OrganisationId}{SubsidiaryBulkUploadStatusKeys.SubsidiaryBulkUploadRowsAdded}";
         var errorsKey = $"{user.UserId}{user.OrganisationId}{SubsidiaryBulkUploadStatusKeys.SubsidiaryBulkUploadErrors}";
 
-        await _redisDatabase.StringSetAsync(key, status);
+        var expiry = _redisOptions.TimeToLiveInMinutes is not null
+            ? TimeSpan.FromMinutes(_redisOptions.TimeToLiveInMinutes.Value)
+            : default(TimeSpan?);
+
+        await _redisDatabase.StringSetAsync(progressKey, status, expiry);
+        await _redisDatabase.KeyDeleteAsync(rowsAddedKey);
         await _redisDatabase.KeyDeleteAsync(errorsKey);
 
-        _logger.LogInformation("Redis status: {Key} set to {Value} and any errors removed", key, status);
+        logger.LogInformation("Redis status: {Key} set to {Value}. Rows added and errors removed", progressKey, status);
     }
 
     private async Task<(Guid UserId, Guid OrganisationId)> GetUserAndOrganisationAsync()
     {
-        var userId = _httpContextAccessor.HttpContext.User.UserId();
+        var userId = httpContextAccessor.HttpContext.User.UserId();
 
         try
         {
-            var userAccount = await _accountServiceClient.GetUserAccount(userId);
+            var userAccount = await accountServiceClient.GetUserAccount(userId);
             var organisation = userAccount.User.Organisations[0];
 
             return (userId, organisation.Id);
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error getting user accounts with id {UserId}", userId);
+            logger.LogError(exception, "Error getting user accounts with id {UserId}", userId);
             throw;
         }
     }

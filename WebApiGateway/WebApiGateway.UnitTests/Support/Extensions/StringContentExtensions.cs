@@ -1,7 +1,7 @@
-﻿namespace WebApiGateway.UnitTests.Support.Extensions;
-
-using System.Text;
+﻿using System.Text;
 using Newtonsoft.Json;
+
+namespace WebApiGateway.UnitTests.Support.Extensions;
 
 public static class StringContentExtensions
 {

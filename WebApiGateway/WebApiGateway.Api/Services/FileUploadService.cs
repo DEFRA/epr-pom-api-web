@@ -1,23 +1,15 @@
-﻿namespace WebApiGateway.Api.Services;
+﻿using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Constants;
+using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Helpers;
 
-using Core.Constants;
-using Core.Enumeration;
-using Core.Helpers;
-using Interfaces;
+namespace WebApiGateway.Api.Services;
 
-public class FileUploadService : IFileUploadService
+public class FileUploadService(
+    ISubmissionService submissionService,
+    IAntivirusService antivirusService)
+    : IFileUploadService
 {
-    private readonly ISubmissionService _submissionService;
-    private readonly IAntivirusService _antivirusService;
-
-    public FileUploadService(
-        ISubmissionService submissionService,
-        IAntivirusService antivirusService)
-    {
-        _submissionService = submissionService;
-        _antivirusService = antivirusService;
-    }
-
     public async Task<Guid> UploadFileAsync(
         Stream fileStream,
         SubmissionType submissionType,
@@ -33,12 +25,12 @@ public class FileUploadService : IFileUploadService
             : (FileType)Enum.Parse(typeof(FileType), submissionSubType.ToString());
 
         var submissionId = fileType is FileType.Pom or FileType.CompanyDetails && originalSubmissionId is null
-            ? await _submissionService.CreateSubmissionAsync(submissionType, submissionPeriod, complianceSchemeId)
+            ? await submissionService.CreateSubmissionAsync(submissionType, submissionPeriod, complianceSchemeId)
             : originalSubmissionId.Value;
 
         var truncatedFileName = FileHelpers.GetTruncatedFileName(fileName, FileConstants.FileNameTruncationLength);
-        var fileId = await _submissionService.CreateAntivirusCheckEventAsync(truncatedFileName, fileType, submissionId, registrationSetId);
-        await _antivirusService.SendFileAsync(submissionType, fileId, truncatedFileName, fileStream);
+        var fileId = await submissionService.CreateAntivirusCheckEventAsync(truncatedFileName, fileType, submissionId, registrationSetId);
+        await antivirusService.SendFileAsync(submissionType, fileId, truncatedFileName, fileStream);
 
         return submissionId;
     }
@@ -53,10 +45,10 @@ public class FileUploadService : IFileUploadService
             ? FileType.Subsidiaries
             : (FileType)Enum.Parse(typeof(FileType), submissionType.ToString());
 
-        var submissionId = await _submissionService.CreateSubmissionAsync(submissionType, "NA Subsidiary File Upload", complianceSchemeId);
+        var submissionId = await submissionService.CreateSubmissionAsync(submissionType, "NA Subsidiary File Upload", complianceSchemeId);
         var truncatedFileName = FileHelpers.GetTruncatedFileName(fileName, FileConstants.FileNameTruncationLength);
-        var fileId = await _submissionService.CreateAntivirusCheckEventAsync(truncatedFileName, fileType, submissionId, null);
-        await _antivirusService.SendFileAsync(submissionType, fileId, truncatedFileName, fileStream);
+        var fileId = await submissionService.CreateAntivirusCheckEventAsync(truncatedFileName, fileType, submissionId, null);
+        await antivirusService.SendFileAsync(submissionType, fileId, truncatedFileName, fileStream);
 
         return submissionId;
     }

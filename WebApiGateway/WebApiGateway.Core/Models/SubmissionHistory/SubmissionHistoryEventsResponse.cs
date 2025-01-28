@@ -1,16 +1,17 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
-namespace WebApiGateway.Core.Models.SubmissionHistory
+namespace WebApiGateway.Core.Models.SubmissionHistory;
+
+[ExcludeFromCodeCoverage]
+public class SubmissionHistoryEventsResponse
 {
-    public class SubmissionHistoryEventsResponse
-    {
-        [JsonPropertyName("submittedEvents")]
-        public List<SubmittedEventResponse> SubmittedEvents { get; set; }
+    [JsonPropertyName("submittedEvents")]
+    public List<SubmittedEventResponse> SubmittedEvents { get; set; }
 
-        [JsonPropertyName("regulatorDecisionEvents")]
-        public List<RegulatorDecisionEventResponse> RegulatorDecisionEvents { get; set; }
+    [JsonPropertyName("regulatorDecisionEvents")]
+    public List<RegulatorDecisionEventResponse> RegulatorDecisionEvents { get; set; }
 
-        [JsonPropertyName("antivirusCheckEvents")]
-        public List<AntivirusCheckEventResponse> AntivirusCheckEvents { get; set; }
-    }
+    [JsonPropertyName("antivirusCheckEvents")]
+    public List<AntivirusCheckEventResponse> AntivirusCheckEvents { get; set; }
 }

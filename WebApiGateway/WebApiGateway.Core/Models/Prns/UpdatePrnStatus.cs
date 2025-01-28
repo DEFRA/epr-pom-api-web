@@ -1,9 +1,8 @@
-﻿namespace WebApiGateway.Core.Models.Prns
-{
-    public class UpdatePrnStatus
-    {
-        public Guid PrnId { get; set; }
+﻿namespace WebApiGateway.Core.Models.Prns;
 
-        public string Status { get; set; }
-    }
+public class UpdatePrnStatus
+{
+    public Guid PrnId { get; set; }
+
+    public string Status { get; set; }
 }

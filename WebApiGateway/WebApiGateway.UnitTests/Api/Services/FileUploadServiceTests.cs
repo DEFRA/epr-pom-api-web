@@ -1,11 +1,11 @@
-﻿namespace WebApiGateway.UnitTests.Api.Services;
-
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Services;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Enumeration;
+
+namespace WebApiGateway.UnitTests.Api.Services;
 
 [TestClass]
 public class FileUploadServiceTests

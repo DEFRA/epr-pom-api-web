@@ -5,6 +5,7 @@ using AutoFixture.AutoMoq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -14,26 +15,29 @@ using WebApiGateway.Api.Services;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Models.Subsidiary;
 using WebApiGateway.Core.Models.UserAccount;
+using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.UnitTests.Api.Services;
 
 [TestClass]
 public class SubsidiaryServiceTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
-    private readonly UserAccount _userAccount = _fixture.Create<UserAccount>();
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private readonly UserAccount _userAccount = Fixture.Create<UserAccount>();
 
     private Mock<ILogger<SubsidiaryService>> _loggerMock;
     private Mock<IAccountServiceClient> _accountServiceClientMock;
     private Mock<IConnectionMultiplexer> _connectionMultiplexerMock;
     private Mock<IDatabase> _databaseMock;
+    private Mock<IHttpContextAccessor> _httpContextAccessorMock;
+
+    private RedisOptions _redisOptions;
 
     private SubsidiaryService _service;
 
     [TestInitialize]
     public void Setup()
     {
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
 
         claimsPrincipalMock.Setup(x => x.Claims).Returns(new List<Claim>
@@ -43,17 +47,29 @@ public class SubsidiaryServiceTests
 
         _accountServiceClientMock = new Mock<IAccountServiceClient>();
         _accountServiceClientMock.Setup(x => x.GetUserAccount(_userAccount.User.Id)).ReturnsAsync(_userAccount);
-        httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipalMock.Object);
+
+        _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipalMock.Object);
 
         _loggerMock = new Mock<ILogger<SubsidiaryService>>();
 
+        _redisOptions = new RedisOptions
+        {
+            ConnectionString = "localhost",
+            TimeToLiveInMinutes = 5
+        };
         _databaseMock = new Mock<IDatabase>();
         _connectionMultiplexerMock = new Mock<IConnectionMultiplexer>();
 
         _connectionMultiplexerMock.Setup(m => m.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(_databaseMock.Object);
 
-        _service = new SubsidiaryService(_accountServiceClientMock.Object, httpContextAccessorMock.Object, _connectionMultiplexerMock.Object, _loggerMock.Object);
+        _service = new SubsidiaryService(
+            _accountServiceClientMock.Object,
+            _httpContextAccessorMock.Object,
+            _connectionMultiplexerMock.Object,
+            Options.Create<RedisOptions>(_redisOptions),
+            _loggerMock.Object);
     }
 
     [TestMethod]
@@ -85,8 +101,8 @@ public class SubsidiaryServiceTests
             Status = "Finished",
             Errors = new List<UploadFileErrorModel>
                 {
-                    new UploadFileErrorModel { FileLineNumber = 1, FileContent = "Content1", Message = "Message1", IsError = true, ErrorNumber = 6 },
-                    new UploadFileErrorModel { FileLineNumber = 2, FileContent = "Content2", Message = "Message2", IsError = false, ErrorNumber = 9 }
+                    new() { FileLineNumber = 1, FileContent = "Content1", Message = "Message1", IsError = true, ErrorNumber = 6 },
+                    new() { FileLineNumber = 2, FileContent = "Content2", Message = "Message2", IsError = false, ErrorNumber = 9 }
                 }
         };
 
@@ -174,10 +190,42 @@ public class SubsidiaryServiceTests
         await _service.InitializeUploadStatusAsync();
 
         // Assert
+        _databaseMock.Verify(db => db.StringSetAsync(key, expectedStatus, It.Is<TimeSpan>(t => (int)t.TotalMinutes == _redisOptions.TimeToLiveInMinutes), false, When.Always, CommandFlags.None), Times.Once);
+        _databaseMock.Verify(db => db.KeyDeleteAsync(errorsKey, It.IsAny<CommandFlags>()), Times.Once);
+
+        _loggerMock.VerifyLog(x => x.LogInformation("Redis status: {Key} set to {Value}. Rows added and errors removed", key, expectedStatus), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task InitializeUploadStatusAsync_Calls_Redis_When_Ttl_Is_Null()
+    {
+        // Arrange
+        var userAndOrganisationKeyPart = $"{_userAccount.User.Id}{_userAccount.User.Organisations[0].Id}";
+        var key = $"{userAndOrganisationKeyPart}{SubsidiaryBulkUploadStatusKeys.SubsidiaryBulkUploadProgress}";
+        var errorsKey = $"{userAndOrganisationKeyPart}{SubsidiaryBulkUploadStatusKeys.SubsidiaryBulkUploadErrors}";
+
+        var expectedStatus = "Uploading";
+
+        _redisOptions = new RedisOptions
+        {
+            ConnectionString = "localhost",
+            TimeToLiveInMinutes = null
+        };
+        _service = new SubsidiaryService(
+            _accountServiceClientMock.Object,
+            _httpContextAccessorMock.Object,
+            _connectionMultiplexerMock.Object,
+            Options.Create<RedisOptions>(_redisOptions),
+            _loggerMock.Object);
+
+        // Act
+        await _service.InitializeUploadStatusAsync();
+
+        // Assert
         _databaseMock.Verify(db => db.StringSetAsync(key, expectedStatus, null, false, When.Always, CommandFlags.None), Times.Once);
         _databaseMock.Verify(db => db.KeyDeleteAsync(errorsKey, It.IsAny<CommandFlags>()), Times.Once);
 
-        _loggerMock.VerifyLog(x => x.LogInformation("Redis status: {Key} set to {Value} and any errors removed", key, expectedStatus), Times.Once);
+        _loggerMock.VerifyLog(x => x.LogInformation("Redis status: {Key} set to {Value}. Rows added and errors removed", key, expectedStatus), Times.Once);
     }
 
     [TestMethod]

@@ -1,6 +1,4 @@
-﻿namespace WebApiGateway.UnitTests.Api.Controllers;
-
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,6 +6,8 @@ using Moq;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Enumeration;
+
+namespace WebApiGateway.UnitTests.Api.Controllers;
 
 [TestClass]
 public class FileUploadControllerTests

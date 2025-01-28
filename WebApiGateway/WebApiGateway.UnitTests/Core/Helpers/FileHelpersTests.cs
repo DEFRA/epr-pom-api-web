@@ -1,8 +1,8 @@
-﻿namespace WebApiGateway.UnitTests.Core.Helpers;
-
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WebApiGateway.Core.Helpers;
+
+namespace WebApiGateway.UnitTests.Core.Helpers;
 
 [TestClass]
 public class FileHelpersTests

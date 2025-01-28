@@ -1,24 +1,17 @@
-﻿namespace WebApiGateway.Api.Controllers;
-
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Asp.Versioning;
-using Core.Constants;
-using Core.Enumeration;
 using Microsoft.AspNetCore.Mvc;
-using Services.Interfaces;
+using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Constants;
+using WebApiGateway.Core.Enumeration;
+
+namespace WebApiGateway.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/file-upload")]
-public class FileUploadController : ControllerBase
+public class FileUploadController(IFileUploadService fileUploadService) : ControllerBase
 {
-    private readonly IFileUploadService _fileUploadService;
-
-    public FileUploadController(IFileUploadService fileUploadService)
-    {
-        _fileUploadService = fileUploadService;
-    }
-
     [HttpPost]
     [RequestSizeLimit(FileConstants.MaxFileSizeInBytes)]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -42,7 +35,7 @@ public class FileUploadController : ControllerBase
             return ValidationProblem(statusCode: 400);
         }
 
-        var id = await _fileUploadService.UploadFileAsync(
+        var id = await fileUploadService.UploadFileAsync(
             Request.Body,
             submissionType,
             submissionSubType,

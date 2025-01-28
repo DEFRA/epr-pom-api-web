@@ -1,6 +1,4 @@
-﻿using AutoFixture;
-using AutoFixture.AutoMoq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,7 +12,6 @@ namespace WebApiGateway.UnitTests.Api.Controllers;
 [TestClass]
 public class DecisionControllerTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
     private Mock<IDecisionService> _decisionServiceMock;
     private DecisionController _systemUnderTest;
 

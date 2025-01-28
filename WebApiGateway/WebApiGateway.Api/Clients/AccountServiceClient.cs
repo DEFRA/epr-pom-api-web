@@ -4,22 +4,16 @@ using WebApiGateway.Core.Models.UserAccount;
 
 namespace WebApiGateway.Api.Clients;
 
-public class AccountServiceClient : IAccountServiceClient
+public class AccountServiceClient(
+    HttpClient httpClient,
+    ILogger<AccountServiceClient> logger)
+    : IAccountServiceClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<AccountServiceClient> _logger;
-
-    public AccountServiceClient(HttpClient httpClient, ILogger<AccountServiceClient> logger)
-    {
-        _httpClient = httpClient;
-        _logger = logger;
-    }
-
     public async Task<UserAccount> GetUserAccount(Guid userId)
     {
         try
         {
-            var response = await _httpClient.GetAsync($"users/user-organisations?userId={userId}");
+            var response = await httpClient.GetAsync($"users/user-organisations?userId={userId}");
 
             response.EnsureSuccessStatusCode();
 
@@ -29,7 +23,7 @@ public class AccountServiceClient : IAccountServiceClient
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "An error occurred retrieving user by id: {userId}", userId);
+            logger.LogError(exception, "An error occurred retrieving user by id: {userId}", userId);
             throw;
         }
     }

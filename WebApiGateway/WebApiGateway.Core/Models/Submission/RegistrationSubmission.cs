@@ -1,7 +1,7 @@
-﻿namespace WebApiGateway.Core.Models.Submission;
+﻿using System.Diagnostics.CodeAnalysis;
+using WebApiGateway.Core.Enumeration;
 
-using System.Diagnostics.CodeAnalysis;
-using Enumeration;
+namespace WebApiGateway.Core.Models.Submission;
 
 [ExcludeFromCodeCoverage]
 public class RegistrationSubmission : AbstractSubmission

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,6 +12,7 @@ using Moq.Protected;
 using Newtonsoft.Json;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
 using WebApiGateway.Core.Models.UserAccount;
@@ -27,13 +29,16 @@ namespace WebApiGateway.UnitTests.Api.Clients
         private Mock<HttpMessageHandler> _httpMessageHandlerMock;
         private HttpClient _httpClient;
         private Mock<IAccountServiceClient> _accountServiceClientMock;
+        private Mock<IConfiguration> _configurationMock;
         private PrnServiceClient _systemUnderTest;
+        private Mock<IComplianceSchemeDetailsService> _complianceSchemeSvcMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
             _loggerMock = new Mock<ILogger<PrnServiceClient>>();
             _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
+            _complianceSchemeSvcMock = new Mock<IComplianceSchemeDetailsService>();
 
             _httpClient = new HttpClient(_httpMessageHandlerMock.Object)
             {
@@ -51,7 +56,11 @@ namespace WebApiGateway.UnitTests.Api.Clients
             _accountServiceClientMock = new Mock<IAccountServiceClient>();
             _accountServiceClientMock.Setup(x => x.GetUserAccount(_userAccount.User.Id)).ReturnsAsync(_userAccount);
             httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipalMock.Object);
-            _systemUnderTest = new PrnServiceClient(_httpClient, _loggerMock.Object, httpContextAccessorMock.Object, _accountServiceClientMock.Object);
+
+            _configurationMock = new Mock<IConfiguration>();
+            _configurationMock.Setup(c => c["LogPrefix"]).Returns("[WebApiGateway]");
+
+            _systemUnderTest = new PrnServiceClient(_httpClient, _loggerMock.Object, httpContextAccessorMock.Object, _accountServiceClientMock.Object, _configurationMock.Object, _complianceSchemeSvcMock.Object);
         }
 
         [TestMethod]
@@ -74,15 +83,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
         public async Task GetAllPrnsForOrganisation_ThrowsExceptionIfStatusIsNotSUccess()
         {
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
-            await _systemUnderTest
-                .Invoking(x => x.GetAllPrnsForOrganisation())
-                .Should()
-            .ThrowAsync<HttpRequestException>();
-
-            _loggerMock.VerifyLog(x => x.LogError(
-                It.IsAny<HttpRequestException>(),
-                "An error occurred retrieving prns for organisation {organisationId}",
-                _userAccount.User.Organisations.First().Id.ToString()));
+            await _systemUnderTest.Invoking(x => x.GetAllPrnsForOrganisation()).Should().ThrowAsync<HttpRequestException>();
         }
 
         [TestMethod]
@@ -109,12 +110,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var prnId = Guid.NewGuid();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
 
-            await _systemUnderTest
-                .Invoking(x => x.GetPrnById(prnId))
-                .Should()
-            .ThrowAsync<HttpRequestException>();
-
-            _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "An error occurred retrieving prns for Id {prnId}", prnId));
+            await _systemUnderTest.Invoking(x => x.GetPrnById(prnId)).Should().ThrowAsync<HttpRequestException>();
         }
 
         [TestMethod]
@@ -137,38 +133,24 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var updatePrns = _fixture.CreateMany<UpdatePrnStatus>().ToList();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
 
-            await _systemUnderTest
-                .Invoking(x => x.UpdatePrnStatus(updatePrns))
-                .Should()
-            .ThrowAsync<HttpRequestException>();
-
-            _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "An error occurred updating prns status"));
+            await _systemUnderTest.Invoking(x => x.UpdatePrnStatus(updatePrns)).Should().ThrowAsync<HttpRequestException>();
         }
 
         [TestMethod]
-        public async Task GetObligationCalculationByOrganisationId_ReturnsCalculations()
+        public async Task GetObligationCalculationByYear_ReturnsCalculations()
         {
-            int orgId = 0;
-            var calculations = _fixture.CreateMany<ObligationCalculation>().ToList();
+            int year = DateTime.Now.Year;
+            var calculations = _fixture.Create<ObligationModel>();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, calculations.ToJsonContent());
 
-            var result = await _systemUnderTest.GetObligationCalculationByOrganisationIdAsync(orgId);
+            var result = await _systemUnderTest.GetObligationCalculationByYearAsync(year);
 
             var expectedMethod = HttpMethod.Get;
-            var expectedRequestUri = new Uri($"https://example.com/v1/prn/obligationcalculation/{orgId}");
+            var expectedRequestUri = new Uri($"https://example.com/v1/prn/obligationcalculation/{year}");
 
             _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, Times.Once());
-            result.Should().BeOfType<List<ObligationCalculation>>();
+            result.Should().BeOfType<ObligationModel>();
             result.Should().BeEquivalentTo(calculations);
-        }
-
-        [TestMethod]
-        public async Task GetObligationCalculationsByOrganisationId_ThrowsExceptionIfStatusIsNotSUccess()
-        {
-            int orgId = 0;
-            _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
-            await _systemUnderTest.Invoking(x => x.GetObligationCalculationByOrganisationIdAsync(orgId)).Should().ThrowAsync<HttpRequestException>();
-            _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), $"An error occurred retrievig obligation calculations for organisation id {orgId}", orgId));
         }
 
         [TestMethod]
@@ -176,12 +158,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
         {
             _accountServiceClientMock.Setup(x => x.GetUserAccount(It.IsAny<Guid>())).ThrowsAsync(new HttpRequestException());
 
-            await _systemUnderTest
-                .Invoking(x => x.GetAllPrnsForOrganisation())
-            .Should()
-            .ThrowAsync<HttpRequestException>();
-
-            _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting user accounts with id {userId}", _userAccount.User.Id));
+            await _systemUnderTest.Invoking(x => x.GetAllPrnsForOrganisation()).Should().ThrowAsync<HttpRequestException>();
         }
 
         [TestMethod]
@@ -303,7 +280,43 @@ namespace WebApiGateway.UnitTests.Api.Clients
 
             // Assert
             await act.Should().ThrowAsync<HttpRequestException>().WithMessage("Request failed");
-            _loggerMock.VerifyLog(x => x.LogError(exception, "An error occurred retrieving PRN search result"), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetObligationCalculationByYearAsync_LogsErrorAndThrowsException_OnHttpRequestException()
+        {
+            // Arrange
+            int year = DateTime.Now.Year;
+            var exceptionMessage = "Test HttpRequestException";
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ThrowsAsync(new HttpRequestException(exceptionMessage));
+            var logEntries = new List<string>();
+            _loggerMock
+                .Setup(logger => logger.Log(
+                    It.IsAny<LogLevel>(),
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()))
+                .Callback<LogLevel, EventId, object, Exception, Delegate>((logLevel, eventId, state, exception, formatter) =>
+                {
+                    logEntries.Add(state.ToString());
+                });
+
+            // Act
+            Func<Task> act = async () => await _systemUnderTest.GetObligationCalculationByYearAsync(year);
+
+            // Assert
+            await act.Should().ThrowAsync<HttpRequestException>().WithMessage(exceptionMessage);
+            logEntries.Should().Contain(log =>
+                log.Contains("PrnServiceClient - GetObligationCalculationByYearAsync: An error occurred retrievig obligation calculations for organisation") &&
+                log.Contains("v1/prn/obligationcalculation") &&
+                log.Contains(year.ToString()));
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace WebApiGateway.Core.Models.UserAccount;
+﻿using System.Diagnostics.CodeAnalysis;
 
-using System.Diagnostics.CodeAnalysis;
+namespace WebApiGateway.Core.Models.UserAccount;
 
 [ExcludeFromCodeCoverage]
 public class OrganisationDetail

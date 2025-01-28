@@ -9,5 +9,11 @@ public enum SubmissionType
     [Display(Name = "registration")]
     Registration = 2,
     [Display(Name = "subsidiary")]
-    Subsidiary = 3
+    Subsidiary = 3,
+    [Display(Name = "companies house")]
+    CompaniesHouse = 4,
+    [Display(Name = "registration fee payment")]
+    RegistrationFeePayment = 5,
+    [Display(Name = "registration application submitted")]
+    RegistrationApplicationSubmitted = 6,
 }

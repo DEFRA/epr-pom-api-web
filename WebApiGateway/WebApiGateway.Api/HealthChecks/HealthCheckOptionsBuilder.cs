@@ -1,8 +1,8 @@
-﻿namespace WebApiGateway.Api.HealthChecks;
-
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+
+namespace WebApiGateway.Api.HealthChecks;
 
 [ExcludeFromCodeCoverage]
 public static class HealthCheckOptionsBuilder

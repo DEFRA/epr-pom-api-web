@@ -1,44 +1,18 @@
-﻿namespace WebApiGateway.Api.Controllers;
-
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Asp.Versioning;
-using Core.Constants;
-using Core.Enumeration;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Services.Interfaces;
+using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Constants;
+using WebApiGateway.Core.Enumeration;
+
+namespace WebApiGateway.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/file-upload-subsidiary")]
-public class FileUploadSubsidiaryController : ControllerBase
+public class FileUploadSubsidiaryController(IFileUploadService fileUploadService, ISubsidiaryService subsidiaryService)
+    : ControllerBase
 {
-    private readonly IFileUploadService _fileUploadService;
-    private readonly ISubsidiaryService _subsidiaryService;
-    private readonly ISubsidiariesService _subsidiariesService;
-
-    public FileUploadSubsidiaryController(IFileUploadService fileUploadService, ISubsidiaryService subsidiaryService, ISubsidiariesService subsidiariesService)
-    {
-        _fileUploadService = fileUploadService;
-        _subsidiaryService = subsidiaryService;
-        _subsidiariesService = subsidiariesService;
-    }
-
-    [HttpGet("template")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetFileUploadTemplateAsync()
-    {
-        var file = await _subsidiariesService.GetFileUploadTemplateAsync();
-
-        if (file == null)
-        {
-            return NotFound();
-        }
-
-        return File(file.Content, file.ContentType, file.Name);
-    }
-
     [HttpPost]
     [RequestSizeLimit(FileConstants.MaxFileSizeInBytes)]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -55,9 +29,9 @@ public class FileUploadSubsidiaryController : ControllerBase
             return ValidationProblem(statusCode: 400);
         }
 
-        await _subsidiaryService.InitializeUploadStatusAsync();
+        await subsidiaryService.InitializeUploadStatusAsync();
 
-        var id = await _fileUploadService.UploadFileSubsidiaryAsync(
+        var id = await fileUploadService.UploadFileSubsidiaryAsync(
             Request.Body,
             submissionType,
             fileName,

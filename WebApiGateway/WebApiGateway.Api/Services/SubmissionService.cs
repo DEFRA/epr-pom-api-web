@@ -3,6 +3,7 @@ using EPR.Common.Logging.Models;
 using EPR.Common.Logging.Services;
 using Microsoft.Extensions.Options;
 using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Api.Constants;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.Events;
@@ -15,24 +16,14 @@ using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.Api.Services;
 
-public class SubmissionService : ISubmissionService
+public class SubmissionService(
+    ISubmissionStatusClient submissionStatusClient,
+    ILoggingService loggingService,
+    ILogger<SubmissionService> logger,
+    IOptions<StorageAccountOptions> options)
+    : ISubmissionService
 {
-    private readonly ISubmissionStatusClient _submissionStatusClient;
-    private readonly ILoggingService _loggingService;
-    private readonly ILogger<SubmissionService> _logger;
-    private readonly StorageAccountOptions _options;
-
-    public SubmissionService(
-        ISubmissionStatusClient submissionStatusClient,
-        ILoggingService loggingService,
-        ILogger<SubmissionService> logger,
-        IOptions<StorageAccountOptions> options)
-    {
-        _submissionStatusClient = submissionStatusClient;
-        _loggingService = loggingService;
-        _logger = logger;
-        _options = options.Value;
-    }
+    private readonly StorageAccountOptions _options = options.Value;
 
     public async Task<Guid> CreateSubmissionAsync(SubmissionType submissionType, string submissionPeriod, Guid? complianceSchemeId)
     {
@@ -45,7 +36,7 @@ public class SubmissionService : ISubmissionService
             ComplianceSchemeId = complianceSchemeId
         };
 
-        await _submissionStatusClient.CreateSubmissionAsync(submission);
+        await submissionStatusClient.CreateSubmissionAsync(submission);
 
         return submission.Id;
     }
@@ -68,11 +59,11 @@ public class SubmissionService : ISubmissionService
             RegistrationSetId = registrationSetId
         };
 
-        await _submissionStatusClient.CreateEventAsync(@event, submissionId);
+        await submissionStatusClient.CreateEventAsync(@event, submissionId);
 
         try
         {
-            await _loggingService.SendEventAsync(new ProtectiveMonitoringEvent(
+            await loggingService.SendEventAsync(new ProtectiveMonitoringEvent(
                 submissionId,
                 "epr_pom_api_web",
                 PmcCodes.Code0212,
@@ -83,43 +74,73 @@ public class SubmissionService : ISubmissionService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An error occurred creating the protective monitoring event");
+            logger.LogError(exception, "An error occurred creating the protective monitoring event");
         }
 
         return @event.FileId;
     }
 
+    public async Task CreateRegistrationEventAsync(Guid submissionId, RegistrationApplicationPayload applicationPayload)
+    {
+        if (applicationPayload.SubmissionType == SubmissionType.RegistrationFeePayment)
+        {
+            var feePaymentEvent = new RegistrationFeePaymentEvent
+            {
+                ApplicationReferenceNumber = applicationPayload.ApplicationReferenceNumber,
+                ComplianceSchemeId = applicationPayload.ComplianceSchemeId,
+                PaidAmount = applicationPayload.PaidAmount,
+                PaymentMethod = applicationPayload.PaymentMethod,
+                PaymentStatus = applicationPayload.PaymentStatus
+            };
+
+            await submissionStatusClient.CreateRegistrationFeePaymentEventAsync(feePaymentEvent, submissionId);
+        }
+
+        if (applicationPayload.SubmissionType == SubmissionType.RegistrationApplicationSubmitted)
+        {
+            var submittedEvent = new RegistrationApplicationSubmittedEvent
+            {
+                Comments = applicationPayload.Comments,
+                ApplicationReferenceNumber = applicationPayload.ApplicationReferenceNumber,
+                ComplianceSchemeId = applicationPayload.ComplianceSchemeId,
+                SubmissionDate = DateTime.Today,
+            };
+
+            await submissionStatusClient.CreateApplicationSubmittedEventAsync(submittedEvent, submissionId);
+        }
+    }
+
     public async Task<HttpResponseMessage> GetSubmissionAsync(Guid submissionId)
     {
-        return await _submissionStatusClient.GetSubmissionAsync(submissionId);
+        return await submissionStatusClient.GetSubmissionAsync(submissionId);
     }
 
     public async Task<List<AbstractSubmission>> GetSubmissionsAsync(string queryString)
     {
-        return await _submissionStatusClient.GetSubmissionsAsync(queryString);
+        return await submissionStatusClient.GetSubmissionsAsync(queryString);
     }
 
     public async Task<List<SubmissionHistoryResponse>> GetSubmissionPeriodHistory(Guid submissionId, string queryString)
     {
-        var submissionHistory = await _submissionStatusClient.GetSubmissionPeriodHistory(submissionId, queryString);
+        var submissionHistory = await submissionStatusClient.GetSubmissionPeriodHistory(submissionId, queryString);
 
         return FormatSubmissionHistoryData(submissionHistory);
     }
 
     public async Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType)
     {
-        return await _submissionStatusClient.GetSubmissionsByFilter(organisationId, complianceSchemeId, year, submissionType);
+        return await submissionStatusClient.GetSubmissionsByFilter(organisationId, complianceSchemeId, year, submissionType);
     }
 
     public async Task<List<RegistrationValidationError>> GetRegistrationValidationErrorsAsync(Guid submissionId)
     {
-        return await _submissionStatusClient.GetRegistrationValidationErrorsAsync(submissionId);
+        return await submissionStatusClient.GetRegistrationValidationErrorsAsync(submissionId);
     }
 
     public async Task<List<ProducerValidationIssueRow>> GetProducerValidationIssuesAsync(Guid submissionId)
     {
-        var errorsTask = _submissionStatusClient.GetProducerValidationErrorRowsAsync(submissionId);
-        var warningsTask = _submissionStatusClient.GetProducerValidationWarningRowsAsync(submissionId);
+        var errorsTask = submissionStatusClient.GetProducerValidationErrorRowsAsync(submissionId);
+        var warningsTask = submissionStatusClient.GetProducerValidationWarningRowsAsync(submissionId);
 
         var issues = await Task.WhenAll(errorsTask, warningsTask);
         var result = issues
@@ -132,7 +153,46 @@ public class SubmissionService : ISubmissionService
 
     public async Task SubmitAsync(Guid submissionId, SubmissionPayload submissionPayload)
     {
-        await _submissionStatusClient.SubmitAsync(submissionId, submissionPayload);
+        await submissionStatusClient.SubmitAsync(submissionId, submissionPayload);
+    }
+
+    public async Task SubmitAsync(CreateSubmission submission)
+    {
+        await submissionStatusClient.CreateSubmissionAsync(submission);
+    }
+
+    public async Task<GetRegistrationApplicationDetailsResponse?> GetRegistrationApplicationDetails(string request)
+    {
+        return await submissionStatusClient.GetRegistrationApplicationDetails(request);
+    }
+
+    public async Task CreateFileDownloadCheckEventAsync(Guid submissionId, FileDownloadCheckEvent fileDownloadCheckEvent)
+    {
+        await submissionStatusClient.CreateFileDownloadEventAsync(fileDownloadCheckEvent, submissionId);
+        var transactionCode = fileDownloadCheckEvent.ContentScan == ContentScan.Clean ? TransactionCodes.DownloadAllowed : TransactionCodes.AntivirusThreatDetected;
+
+        try
+        {
+            await loggingService.SendEventAsync(new ProtectiveMonitoringEvent(
+                submissionId,
+                "epr_pom_api_web",
+                PmcCodes.Code0212,
+                Priorities.NormalEvent,
+                transactionCode,
+                fileDownloadCheckEvent.FileName,
+                $"FileId: {fileDownloadCheckEvent.FileId}"));
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "An error occurred creating the protective monitoring event");
+        }
+    }
+
+    public async Task<string> GetFileBlobNameAsync(Guid submissionId, Guid fileId)
+    {
+        var antivirusResultEvent = await submissionStatusClient.GetFileScanResultAsync(submissionId, fileId);
+
+        return antivirusResultEvent.BlobName;
     }
 
     private static List<SubmissionHistoryResponse> FormatSubmissionHistoryData(SubmissionHistoryEventsResponse submissionHistoryEventsResponse)

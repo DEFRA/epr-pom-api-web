@@ -9,21 +9,14 @@ namespace WebApiGateway.Api.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/decisions")]
 [AllowAnonymous]
-public class DecisionController : ControllerBase
+public class DecisionController(IDecisionService decisionService) : ControllerBase
 {
-    private readonly IDecisionService _decisionService;
-
-    public DecisionController(IDecisionService decisionService)
-    {
-        _decisionService = decisionService;
-    }
-
     [HttpGet]
 
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDecision()
     {
-        var decision = await _decisionService.GetDecisionAsync(Request.QueryString.Value);
+        var decision = await decisionService.GetDecisionAsync(Request.QueryString.Value);
         return new OkObjectResult(decision);
     }
 }

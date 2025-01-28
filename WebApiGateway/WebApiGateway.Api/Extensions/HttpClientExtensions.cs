@@ -1,6 +1,6 @@
-﻿namespace WebApiGateway.Api.Extensions;
+﻿using System.Net.Http.Headers;
 
-using System.Net.Http.Headers;
+namespace WebApiGateway.Api.Extensions;
 
 public static class HttpClientExtensions
 {

@@ -1,21 +1,21 @@
-﻿namespace WebApiGateway.UnitTests.Api.Clients;
-
-using System.Net;
+﻿using System.Net;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Support.Extensions;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Core.Models.UserAccount;
+using WebApiGateway.UnitTests.Support.Extensions;
+
+namespace WebApiGateway.UnitTests.Api.Clients;
 
 [TestClass]
 public class AccountServiceClientTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
-    private readonly UserAccount _userAccount = _fixture.Create<UserAccount>();
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private readonly UserAccount _userAccount = Fixture.Create<UserAccount>();
 
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
     private Mock<ILogger<AccountServiceClient>> _loggerMock;

@@ -1,9 +1,9 @@
-﻿namespace WebApiGateway.Api.Swagger;
-
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+
+namespace WebApiGateway.Api.Swagger;
 
 [ExcludeFromCodeCoverage]
 public class AddAuthHeaderOperationFilter : IOperationFilter

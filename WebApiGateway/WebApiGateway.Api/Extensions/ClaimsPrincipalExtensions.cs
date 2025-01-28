@@ -1,7 +1,7 @@
-﻿namespace WebApiGateway.Api.Extensions;
-
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.Identity.Web;
+
+namespace WebApiGateway.Api.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {

@@ -1,6 +1,6 @@
-﻿namespace WebApiGateway.Core.Models.Submission;
+﻿using System.Diagnostics.CodeAnalysis;
 
-using System.Diagnostics.CodeAnalysis;
+namespace WebApiGateway.Core.Models.Submission;
 
 [ExcludeFromCodeCoverage]
 public class UploadedRegistrationFilesInformation

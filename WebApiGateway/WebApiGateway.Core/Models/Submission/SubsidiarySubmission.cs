@@ -1,7 +1,7 @@
-﻿namespace WebApiGateway.Core.Models.Submission;
-
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using WebApiGateway.Core.Enumeration;
+
+namespace WebApiGateway.Core.Models.Submission;
 
 [ExcludeFromCodeCoverage]
 public class SubsidiarySubmission : AbstractSubmission

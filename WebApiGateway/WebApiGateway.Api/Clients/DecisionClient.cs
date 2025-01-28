@@ -5,32 +5,20 @@ using WebApiGateway.Core.Models.Decision;
 
 namespace WebApiGateway.Api.Clients;
 
-public class DecisionClient : IDecisionClient
+public class DecisionClient(
+    HttpClient httpClient,
+    IAccountServiceClient accountServiceClient,
+    IHttpContextAccessor httpContextAccessor,
+    ILogger<DecisionClient> logger)
+    : IDecisionClient
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ILogger<DecisionClient> _logger;
-    private readonly HttpClient _httpClient;
-    private readonly IAccountServiceClient _accountServiceClient;
-
-    public DecisionClient(
-        HttpClient httpClient,
-        IAccountServiceClient accountServiceClient,
-        IHttpContextAccessor httpContextAccessor,
-        ILogger<DecisionClient> logger)
-    {
-        _httpClient = httpClient;
-        _accountServiceClient = accountServiceClient;
-        _httpContextAccessor = httpContextAccessor;
-        _logger = logger;
-    }
-
     public async Task<RegulatorDecision> GetDecisionAsync(string queryString)
     {
         try
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.GetAsync($"decisions{queryString}");
+            var response = await httpClient.GetAsync($"decisions{queryString}");
 
             response.EnsureSuccessStatusCode();
 
@@ -40,26 +28,21 @@ public class DecisionClient : IDecisionClient
 
             var lastDecision = decisions.OrderBy(o => o.Created).LastOrDefault();
 
-            if (lastDecision == null)
-            {
-                return new RegulatorDecision();
-            }
-
-            return lastDecision;
+            return lastDecision ?? new RegulatorDecision();
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error getting Regulator Decisions");
+            logger.LogError(exception, "Error getting Regulator Decisions");
             throw;
         }
     }
 
     private async Task ConfigureHttpClientAsync()
     {
-        var userId = _httpContextAccessor.HttpContext.User.UserId();
-        var userAccount = await _accountServiceClient.GetUserAccount(userId);
+        var userId = httpContextAccessor.HttpContext.User.UserId();
+        var userAccount = await accountServiceClient.GetUserAccount(userId);
         var organisation = userAccount.User.Organisations[0];
-        _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
-        _httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
+        httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
+        httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
     }
 }

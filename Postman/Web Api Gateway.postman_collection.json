@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "b9c35fb5-268c-4814-8296-336d60e6606e",
+		"_postman_id": "d57b5924-dc6f-406f-96d2-9d48b1fe88a6",
 		"name": "Web Api Gateway",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "14931851"
+		"_exporter_id": "31000741"
 	},
 	"item": [
 		{
@@ -307,6 +307,34 @@
 					"path": [
 						"admin",
 						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Producer Details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:7265/api/v1/producer-details/get-producer-details?organisationId=1",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7265",
+					"path": [
+						"api",
+						"v1",
+						"producer-details",
+						"get-producer-details"
+					],
+					"query": [
+						{
+							"key": "organisationId",
+							"value": "1"
+						}
 					]
 				}
 			},

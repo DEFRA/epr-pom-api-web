@@ -1,20 +1,15 @@
-﻿namespace WebApiGateway.Api.Clients;
-
-using Core.Models.Antivirus;
-using Interfaces;
+﻿using System.Text;
 using Newtonsoft.Json;
+using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Core.Models.Antivirus;
 
-public class AntivirusClient : IAntivirusClient
+namespace WebApiGateway.Api.Clients;
+
+public class AntivirusClient(
+    HttpClient httpClient,
+    ILogger<AntivirusClient> logger)
+    : IAntivirusClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<AntivirusClient> _logger;
-
-    public AntivirusClient(HttpClient httpClient, ILogger<AntivirusClient> logger)
-    {
-        _httpClient = httpClient;
-        _logger = logger;
-    }
-
     public async Task SendFileAsync(FileDetails fileDetails, string fileName, Stream fileStream)
     {
         try
@@ -28,13 +23,34 @@ public class AntivirusClient : IAntivirusClient
             var boundary = formContent.Headers.ContentType.Parameters.First(o => o.Name == "boundary");
             boundary.Value = boundary.Value.Replace("\"", string.Empty);
 
-            var response = await _httpClient.PutAsync($"files/stream/{fileDetails.Collection}/{fileDetails.Key}", formContent);
+            var response = await httpClient.PutAsync($"files/stream/{fileDetails.Collection}/{fileDetails.Key}", formContent);
 
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error sending file to antivirus api");
+            logger.LogError(exception, "Error sending file to antivirus api");
+            throw;
+        }
+    }
+
+    public async Task<HttpResponseMessage> VirusScanFileAsync(FileDetails fileDetails, string fileName, MemoryStream fileStream)
+    {
+        try
+        {
+            fileDetails.Content = Convert.ToBase64String(fileStream.ToArray());
+
+            var jsonRequest = System.Text.Json.JsonSerializer.Serialize(fileDetails);
+            var stringContent = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PutAsync($"SyncAV/{fileDetails.Collection}/{fileDetails.Key}", stringContent);
+            response.EnsureSuccessStatusCode();
+
+            return response;
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogError(exception, "Error sending file to antivirus api");
             throw;
         }
     }

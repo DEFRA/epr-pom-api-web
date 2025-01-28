@@ -1,7 +1,9 @@
-﻿namespace WebApiGateway.Core.Models.Events;
+﻿using System.Diagnostics.CodeAnalysis;
+using WebApiGateway.Core.Enumeration;
 
-using Enumeration;
+namespace WebApiGateway.Core.Models.Events;
 
+[ExcludeFromCodeCoverage]
 public class AntivirusCheckEvent : AbstractEvent
 {
     public override EventType Type => EventType.AntivirusCheck;

@@ -18,10 +18,10 @@ namespace WebApiGateway.UnitTests.Performance;
 [TestClass]
 public class SubmissionServicePerformanceTests
 {
-    private const string _registrationContainerName = "registration-container-name";
-    private const string _pomContainerName = "pom-container-name";
+    private const string RegistrationContainerName = "registration-container-name";
+    private const string PomContainerName = "pom-container-name";
 
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
 
     private Mock<ISubmissionStatusClient> _submissionStatusClientMock;
     private Mock<ILoggingService> _loggingServiceMock;
@@ -36,8 +36,8 @@ public class SubmissionServicePerformanceTests
         var options = Options.Create(
             new StorageAccountOptions
             {
-                RegistrationContainer = _registrationContainerName,
-                PomContainer = _pomContainerName
+                RegistrationContainer = RegistrationContainerName,
+                PomContainer = PomContainerName
             });
         _loggingServiceMock = new Mock<ILoggingService>();
         _loggerMock = new Mock<ILogger<SubmissionService>>();
@@ -95,7 +95,7 @@ public class SubmissionServicePerformanceTests
     private static List<ProducerValidationIssueRow> GenerateRandomProducerValidationIssueList()
     {
         var random = new Random();
-        return _fixture
+        return Fixture
             .Build<ProducerValidationIssueRow>()
             .With(x => x.RowNumber, random.Next(1, 20))
             .CreateMany(1000)
@@ -104,8 +104,7 @@ public class SubmissionServicePerformanceTests
 
     private static List<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
     {
-        var random = new Random();
-        return _fixture
+        return Fixture
             .Build<RegistrationValidationError>()
             .CreateMany(1000)
             .ToList();

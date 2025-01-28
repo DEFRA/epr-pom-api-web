@@ -1,6 +1,6 @@
-﻿namespace WebApiGateway.Core.Models.Antivirus;
+﻿using System.Diagnostics.CodeAnalysis;
 
-using System.Diagnostics.CodeAnalysis;
+namespace WebApiGateway.Core.Models.Antivirus;
 
 [ExcludeFromCodeCoverage]
 public class FileDetails
@@ -18,4 +18,6 @@ public class FileDetails
     public Guid UserId { get; set; }
 
     public string UserEmail { get; set; }
+
+    public string Content { get; set; }
 }

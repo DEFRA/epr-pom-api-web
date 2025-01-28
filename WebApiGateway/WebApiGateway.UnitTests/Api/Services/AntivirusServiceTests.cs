@@ -1,25 +1,27 @@
-﻿namespace WebApiGateway.UnitTests.Api.Services;
-
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Api.Constants;
 using WebApiGateway.Api.Services;
 using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.Antivirus;
 using WebApiGateway.Core.Models.UserAccount;
 using WebApiGateway.Core.Options;
 
+namespace WebApiGateway.UnitTests.Api.Services;
+
 [TestClass]
 public class AntivirusServiceTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
-    private readonly UserAccount _userAccount = _fixture.Create<UserAccount>();
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private readonly UserAccount _userAccount = Fixture.Create<UserAccount>();
     private Mock<IAntivirusClient> _antivirusClientMock;
     private Mock<IHttpContextAccessor> _httpContextAccessorMock;
 
@@ -96,6 +98,43 @@ public class AntivirusServiceTests
                     && m.UserEmail == _userAccount.User.Email),
                 Filename,
                 fileStream),
+            Times.Once);
+    }
+
+    [TestMethod]
+    public async Task SendFileAndScanAsync_ReturnsSuccessResponse_WhenFileScanReturnedCleanResult()
+    {
+        // Arrange
+        const SubmissionType SubmissionType = SubmissionType.Producer;
+        const string Filename = "filename.csv";
+        var fileId = Guid.NewGuid();
+        var fileStream = new MemoryStream();
+        var options = Options.Create(new AntivirusApiOptions());
+
+        var sendFileResponse = new HttpResponseMessage
+        {
+            Content = new StringContent(ContentScan.Clean)
+        };
+        _antivirusClientMock.Setup(x => x.VirusScanFileAsync(
+            It.IsAny<FileDetails>(),
+            It.IsAny<string>(),
+            It.IsAny<MemoryStream>()))
+            .ReturnsAsync(sendFileResponse);
+
+        var systemUnderTest = new AntivirusService(_antivirusClientMock.Object, _httpContextAccessorMock.Object, options);
+
+        // Act
+        var result = await systemUnderTest.SendFileAndScanAsync(SubmissionType, fileId, Filename, fileStream);
+
+        // Assert
+        result.IsSuccessStatusCode.Should().BeTrue();
+        var scanResult = await result.Content.ReadAsStringAsync();
+        scanResult.Should().Be(ContentScan.Clean);
+        _antivirusClientMock.Verify(
+            x => x.VirusScanFileAsync(
+                It.IsAny<FileDetails>(),
+                It.IsAny<string>(),
+                It.IsAny<MemoryStream>()),
             Times.Once);
     }
 }

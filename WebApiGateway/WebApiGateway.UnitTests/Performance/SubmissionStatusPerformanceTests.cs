@@ -21,16 +21,15 @@ namespace WebApiGateway.UnitTests.Performance;
 [TestClass]
 public class SubmissionStatusPerformanceTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
-    private readonly UserAccount _userAccount = _fixture.Create<UserAccount>();
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private readonly UserAccount _userAccount = Fixture.Create<UserAccount>();
 
-    private Mock<ILogger<SubmissionStatusClient>> _loggerMock;
-    private Mock<HttpMessageHandler> _httpMessageHandlerMock;
-    private SubmissionStatusClient _systemUnderTest;
+    private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
+    private readonly SubmissionStatusClient _systemUnderTest;
 
     public SubmissionStatusPerformanceTests()
     {
-        _loggerMock = new Mock<ILogger<SubmissionStatusClient>>();
+        var loggerMock = new Mock<ILogger<SubmissionStatusClient>>();
         _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
 
         var httpClient = new HttpClient(_httpMessageHandlerMock.Object)
@@ -49,7 +48,7 @@ public class SubmissionStatusPerformanceTests
         var accountServiceClientMock = new Mock<IAccountServiceClient>();
         accountServiceClientMock.Setup(x => x.GetUserAccount(_userAccount.User.Id)).ReturnsAsync(_userAccount);
         httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipalMock.Object);
-        _systemUnderTest = new SubmissionStatusClient(httpClient, accountServiceClientMock.Object, httpContextAccessorMock.Object, _loggerMock.Object);
+        _systemUnderTest = new SubmissionStatusClient(httpClient, accountServiceClientMock.Object, httpContextAccessorMock.Object, loggerMock.Object);
     }
 
     [TestMethod]
@@ -58,7 +57,7 @@ public class SubmissionStatusPerformanceTests
         // Arrange
         var stopwatch = new Stopwatch();
         var submissionId = Guid.NewGuid();
-        var validationWarningRows = _fixture.Build<ProducerValidationIssueRow>()
+        var validationWarningRows = Fixture.Build<ProducerValidationIssueRow>()
             .With(x => x.Issue, "Warning")
             .CreateMany(1000)
             .ToList();
@@ -82,7 +81,7 @@ public class SubmissionStatusPerformanceTests
         // Arrange
         var stopwatch = new Stopwatch();
         var submissionId = Guid.NewGuid();
-        var validationErrorRows = _fixture.Build<ProducerValidationIssueRow>()
+        var validationErrorRows = Fixture.Build<ProducerValidationIssueRow>()
             .With(x => x.Issue, "Error")
             .CreateMany(1000)
             .ToList();
@@ -106,7 +105,7 @@ public class SubmissionStatusPerformanceTests
         // Arrange
         var stopwatch = new Stopwatch();
         var submissionId = Guid.NewGuid();
-        var registrationValidationErrorRows = _fixture.Build<RegistrationValidationError>()
+        var registrationValidationErrorRows = Fixture.Build<RegistrationValidationError>()
             .CreateMany(1000)
             .ToList();
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, registrationValidationErrorRows.ToJsonContent());

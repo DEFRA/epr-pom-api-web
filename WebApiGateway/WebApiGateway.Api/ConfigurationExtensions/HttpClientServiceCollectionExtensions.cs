@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
@@ -59,13 +58,6 @@ public static class HttpClientServiceCollectionExtensions
             })
             .AddPolicyHandler(GetRetryPolicy());
 
-        var blobStorageOptions = services.BuildServiceProvider().GetRequiredService<IOptions<BlobStorageOptions>>().Value;
-
-        services.AddAzureClients(cb =>
-        {
-            cb.AddBlobServiceClient(blobStorageOptions.ConnectionString);
-        });
-
         services.AddHttpClient<IPrnServiceClient, PrnServiceClient>((sp, client) =>
             {
                 var options = sp.GetRequiredService<IOptions<PrnServiceApiOptions>>().Value;
@@ -73,6 +65,19 @@ public static class HttpClientServiceCollectionExtensions
             })
             .AddHttpMessageHandler<PrnServiceAuthorisationHandler>()
             .AddPolicyHandler(GetRetryPolicy());
+
+        services.AddHttpClient<IProducerDetailsClient, ProducerDetailsClient>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<CommonDataApiOptions>>().Value;
+                client.BaseAddress = new Uri($"{options.BaseUrl}/api/");
+            })
+            .AddPolicyHandler(GetRetryPolicy());
+        services.AddHttpClient<IComplianceSchemeDetailsClient, ComplianceSchemeDetailsClient>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<CommonDataApiOptions>>().Value;
+                client.BaseAddress = new Uri($"{options.BaseUrl}/api/");
+            })
+           .AddPolicyHandler(GetRetryPolicy());
 
         return services;
     }

@@ -4,17 +4,10 @@ using WebApiGateway.Core.Models.Decision;
 
 namespace WebApiGateway.Api.Services;
 
-public class DecisionService : IDecisionService
+public class DecisionService(IDecisionClient decisionClient) : IDecisionService
 {
-    private readonly IDecisionClient _decisionClient;
-
-    public DecisionService(IDecisionClient decisionClient)
-    {
-        _decisionClient = decisionClient;
-    }
-
     public async Task<RegulatorDecision> GetDecisionAsync(string queryString)
     {
-        return await _decisionClient.GetDecisionAsync(queryString);
+        return await decisionClient.GetDecisionAsync(queryString);
     }
 }

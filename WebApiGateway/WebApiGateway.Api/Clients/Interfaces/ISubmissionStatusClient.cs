@@ -14,6 +14,10 @@ public interface ISubmissionStatusClient
 
     Task CreateEventAsync(AntivirusCheckEvent @event, Guid submissionId);
 
+    Task CreateApplicationSubmittedEventAsync(RegistrationApplicationSubmittedEvent registrationEvent, Guid submissionId);
+
+    Task CreateRegistrationFeePaymentEventAsync(RegistrationFeePaymentEvent registrationEvent, Guid submissionId);
+
     Task<HttpResponseMessage> GetSubmissionAsync(Guid submissionId);
 
     Task<List<AbstractSubmission>> GetSubmissionsAsync(string queryString);
@@ -29,4 +33,10 @@ public interface ISubmissionStatusClient
     Task<SubmissionHistoryEventsResponse> GetSubmissionPeriodHistory(Guid submissionId, string queryString);
 
     Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
+
+    Task<GetRegistrationApplicationDetailsResponse?> GetRegistrationApplicationDetails(string queryString);
+
+    Task<HttpResponseMessage> CreateFileDownloadEventAsync(FileDownloadCheckEvent fileDownloadCheckEvent, Guid submissionId);
+
+    Task<AntivirusResultEvent> GetFileScanResultAsync(Guid submissionId, Guid fileId);
 }

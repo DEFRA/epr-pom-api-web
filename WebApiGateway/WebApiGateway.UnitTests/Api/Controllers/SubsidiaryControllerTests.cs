@@ -33,10 +33,7 @@ public class SubsidiaryControllerTests
         var organisationId = Guid.NewGuid();
         var expectedErrors = new UploadFileErrorResponse
         {
-            Errors = new System.Collections.Generic.List<UploadFileErrorModel>
-                {
-                    new UploadFileErrorModel { FileLineNumber = 1, FileContent = "Content1", Message = "Message1", IsError = true }
-                }
+            Errors = [new UploadFileErrorModel { FileLineNumber = 1, FileContent = "Content1", Message = "Message1", IsError = true }]
         };
 
         _subsidiaryServiceMock

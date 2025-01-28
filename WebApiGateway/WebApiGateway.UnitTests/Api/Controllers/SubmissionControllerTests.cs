@@ -10,6 +10,8 @@ using Moq;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Models.ComplianceSchemeDetails;
+using WebApiGateway.Core.Models.ProducerDetails;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
@@ -22,15 +24,19 @@ namespace WebApiGateway.UnitTests.Api.Controllers;
 [TestClass]
 public class SubmissionControllerTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
     private Mock<ISubmissionService> _submissionServiceMock;
+    private Mock<IProducerDetailsService> _producerDetailsService;
+    private Mock<IComplianceSchemeDetailsService> _complianceSchemeDetailsService;
     private SubmissionController _systemUnderTest;
 
     [TestInitialize]
     public void TestInitialize()
     {
         _submissionServiceMock = new Mock<ISubmissionService>();
-        _systemUnderTest = new SubmissionController(_submissionServiceMock.Object)
+        _producerDetailsService = new Mock<IProducerDetailsService>();
+        _complianceSchemeDetailsService = new Mock<IComplianceSchemeDetailsService>();
+        _systemUnderTest = new SubmissionController(_submissionServiceMock.Object, _producerDetailsService.Object, _complianceSchemeDetailsService.Object)
         {
             ControllerContext = { HttpContext = new DefaultHttpContext() }
         };
@@ -65,7 +71,7 @@ public class SubmissionControllerTests
         // Arrange
         const string QueryString = "?key=value";
         _systemUnderTest.HttpContext.Request.QueryString = new QueryString(QueryString);
-        var submissions = _fixture.Create<List<AbstractSubmission>>();
+        var submissions = Fixture.Create<List<AbstractSubmission>>();
 
         _submissionServiceMock.Setup(x => x.GetSubmissionsAsync(QueryString)).ReturnsAsync(submissions);
 
@@ -82,7 +88,7 @@ public class SubmissionControllerTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var validationIssueRows = _fixture.Create<List<ProducerValidationIssueRow>>();
+        var validationIssueRows = Fixture.Create<List<ProducerValidationIssueRow>>();
         _submissionServiceMock.Setup(x => x.GetProducerValidationIssuesAsync(submissionId)).ReturnsAsync(validationIssueRows);
 
         // Act
@@ -113,13 +119,48 @@ public class SubmissionControllerTests
     }
 
     [TestMethod]
+    public async Task SubmitIsCalled_ReturnsNoContentResult()
+    {
+        // Arrange
+        var submission = new CreateSubmission
+        {
+            Id = Guid.NewGuid(),
+            SubmissionType = SubmissionType.Registration,
+            AppReferenceNumber = "PEPR00002125P1",
+        };
+
+        // Act
+        var result = await _systemUnderTest.Submit(submission);
+
+        // Assert
+        result.Should().BeOfType<NoContentResult>();
+        _submissionServiceMock.Verify(x => x.SubmitAsync(submission), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task SubmitRegistrationApplicationIsCalled_ReturnsNoContentResult()
+    {
+        // Arrange
+        Guid submissionId = Guid.NewGuid();
+        var applicationPayload = new RegistrationApplicationPayload
+        { Comments = "We've agreed to settle for a part-payment of £24,500 now.", ApplicationReferenceNumber = "PEPR00002125P1" };
+
+        // Act
+        var result = await _systemUnderTest.SubmitRegistrationApplication(submissionId, applicationPayload);
+
+        // Assert
+        result.Should().BeOfType<NoContentResult>();
+        _submissionServiceMock.Verify(x => x.CreateRegistrationEventAsync(submissionId, It.IsAny<RegistrationApplicationPayload>()), Times.Once);
+    }
+
+    [TestMethod]
     public async Task GetSubmissionHistory_ReturnsOkObjectResult()
     {
         // Arrange
         const string QueryString = "?key=value";
         var submissionId = Guid.NewGuid();
         _systemUnderTest.HttpContext.Request.QueryString = new QueryString(QueryString);
-        var submissions = _fixture.Create<List<SubmissionHistoryResponse>>();
+        var submissions = Fixture.Create<List<SubmissionHistoryResponse>>();
 
         _submissionServiceMock.Setup(x => x.GetSubmissionPeriodHistory(submissionId, QueryString)).ReturnsAsync(submissions);
 
@@ -135,13 +176,12 @@ public class SubmissionControllerTests
     public async Task GetSubmissionByFilter_ReturnsOkObjectResult()
     {
         // Arrange
-        var submissionId = Guid.NewGuid();
         var organisationId = Guid.NewGuid();
         var complianceSchemaId = Guid.NewGuid();
         var year = 2024;
         var submissionType = SubmissionType.Producer;
 
-        var submissions = _fixture.Create<List<SubmissionGetResponse>>();
+        var submissions = Fixture.Create<List<SubmissionGetResponse>>();
 
         _submissionServiceMock.Setup(x =>
             x.GetSubmissionsByFilter(
@@ -176,7 +216,7 @@ public class SubmissionControllerTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var validationIssueRows = _fixture.Create<List<RegistrationValidationError>>();
+        var validationIssueRows = Fixture.Create<List<RegistrationValidationError>>();
         _submissionServiceMock.Setup(x => x.GetRegistrationValidationErrorsAsync(submissionId)).ReturnsAsync(validationIssueRows);
 
         // Act
@@ -185,5 +225,67 @@ public class SubmissionControllerTests
         // Assert
         result.Value.Should().Be(validationIssueRows);
         _submissionServiceMock.Verify(x => x.GetRegistrationValidationErrorsAsync(submissionId), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ReturnsOkObjectResult()
+    {
+        // Arrange
+        var response = new GetRegistrationApplicationDetailsResponse();
+
+        _submissionServiceMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>())).ReturnsAsync(response);
+
+        _complianceSchemeDetailsService.Setup(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>())).ReturnsAsync(new List<GetComplianceSchemeMemberDetailsResponse> { new GetComplianceSchemeMemberDetailsResponse() });
+
+        _producerDetailsService.Setup(x => x.GetProducerDetails(It.IsAny<int>())).ReturnsAsync(new GetProducerDetailsResponse());
+
+        // Act
+        var result = await _systemUnderTest.GetRegistrationApplicationDetails(123, Guid.NewGuid()) as OkObjectResult;
+
+        // Assert
+        result!.Value.Should().Be(response);
+        response.CsoMemberDetails.Should().NotBeNull();
+        response.ProducerDetails.Should().NotBeNull();
+
+        _submissionServiceMock.Verify(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
+        _complianceSchemeDetailsService.Verify(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>()), Times.Once);
+        _producerDetailsService.Verify(x => x.GetProducerDetails(It.IsAny<int>()), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ReturnsNoContentResult()
+    {
+        // Arrange
+        _submissionServiceMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>())).ReturnsAsync((GetRegistrationApplicationDetailsResponse)null);
+
+        // Act
+        var result = await _systemUnderTest.GetRegistrationApplicationDetails(123, Guid.NewGuid()) as OkObjectResult;
+
+        // Assert
+        result!.Should().Be(null);
+
+        _submissionServiceMock.Verify(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
+        _complianceSchemeDetailsService.Verify(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
+        _producerDetailsService.Verify(x => x.GetProducerDetails(It.IsAny<int>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_When_GetComplianceSchemeDetails_is_Empty_ReturnsOkObjectResult()
+    {
+        // Arrange
+        var response = new GetRegistrationApplicationDetailsResponse();
+
+        _submissionServiceMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>())).ReturnsAsync(response);
+        _complianceSchemeDetailsService.Setup(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>())).ReturnsAsync(new List<GetComplianceSchemeMemberDetailsResponse>());
+
+        // Act
+        var result = await _systemUnderTest.GetRegistrationApplicationDetails(123, Guid.NewGuid()) as OkObjectResult;
+
+        // Assert
+        result!.Value.Should().Be(response);
+
+        _submissionServiceMock.Verify(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
+        _complianceSchemeDetailsService.Verify(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>()), Times.Once);
+        _producerDetailsService.Verify(x => x.GetProducerDetails(It.IsAny<int>()), Times.Once);
     }
 }

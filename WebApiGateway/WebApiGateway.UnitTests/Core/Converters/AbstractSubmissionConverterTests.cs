@@ -1,16 +1,16 @@
-﻿namespace WebApiGateway.UnitTests.Core.Converters;
-
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using WebApiGateway.Core.Models.Submission;
 
+namespace WebApiGateway.UnitTests.Core.Converters;
+
 [TestClass]
 public class AbstractSubmissionConverterTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
 
     [TestMethod]
     public void ConverterRead_ThrowsArgumentException_WhenSubmissionTypeIsNotValidEnumValue()
@@ -31,7 +31,7 @@ public class AbstractSubmissionConverterTests
     public void ConverterRead_ReturnsPomSubmission_WhenSubmissionTypeIsProducer()
     {
         // Arrange
-        var submission = _fixture.Create<PomSubmission>();
+        var submission = Fixture.Create<PomSubmission>();
         var serializedValue = JsonConvert.SerializeObject(submission);
 
         // Act
@@ -45,7 +45,7 @@ public class AbstractSubmissionConverterTests
     public void ConverterRead_ReturnsRegistrationSubmission_WhenSubmissionTypeIsRegistration()
     {
         // Arrange
-        var submission = _fixture.Create<RegistrationSubmission>();
+        var submission = Fixture.Create<RegistrationSubmission>();
         var serializedValue = JsonConvert.SerializeObject(submission);
 
         // Act

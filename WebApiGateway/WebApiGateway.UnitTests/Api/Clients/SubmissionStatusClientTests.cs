@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.Protected;
+using Newtonsoft.Json;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Core.Enumeration;
@@ -26,8 +28,8 @@ namespace WebApiGateway.UnitTests.Api.Clients;
 [TestClass]
 public class SubmissionStatusClientTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
-    private readonly UserAccount _userAccount = _fixture.Create<UserAccount>();
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private readonly UserAccount _userAccount = Fixture.Create<UserAccount>();
 
     private Mock<ILogger<SubmissionStatusClient>> _loggerMock;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
@@ -64,7 +66,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var antivirusCheckEvent = _fixture.Create<AntivirusCheckEvent>();
+        var antivirusCheckEvent = Fixture.Create<AntivirusCheckEvent>();
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.Created, null);
 
         // Act / Assert
@@ -89,7 +91,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var antivirusCheckEvent = _fixture.Create<AntivirusCheckEvent>();
+        var antivirusCheckEvent = Fixture.Create<AntivirusCheckEvent>();
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
 
         // Act / Assert
@@ -102,10 +104,78 @@ public class SubmissionStatusClientTests
     }
 
     [TestMethod]
+    public async Task CreateApplicationSubmittedEventAsync_DoesNotThrowException_WhenHttpClientResponseIsCreated()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var applicationSubmittedEvent = Fixture.Create<RegistrationApplicationSubmittedEvent>();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.Created, null);
+
+        // Act & Assert
+        await _systemUnderTest.Invoking(x => x.CreateApplicationSubmittedEventAsync(applicationSubmittedEvent, submissionId)).Should().NotThrowAsync();
+
+        var expectedRequestUri = new Uri($"https://example.com/submissions/{submissionId}/events");
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
+            { "UserId", _userAccount.User.Id.ToString() }
+        };
+
+        _httpMessageHandlerMock.VerifyRequest(HttpMethod.Post, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task CreateApplicationSubmittedEventAsync_LogsAndThrowsException_WhenHttpClientResponseIsInternalServerError()
+    {
+        // Arrange
+        var applicationSubmittedEvent = Fixture.Create<RegistrationApplicationSubmittedEvent>();
+
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+
+        // Act / Assert
+        await _systemUnderTest.Invoking(x => x.CreateApplicationSubmittedEventAsync(applicationSubmittedEvent, Guid.NewGuid())).Should().ThrowAsync<HttpRequestException>();
+        _loggerMock.VerifyLog(x => x.LogError("Error creating RegistrationApplicationSubmitted event"));
+    }
+
+    [TestMethod]
+    public async Task CreateRegistrationFeePaymentEventAsync_DoesNotThrowException_WhenHttpClientResponseIsCreated()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var registrationFeePaymentEvent = Fixture.Create<RegistrationFeePaymentEvent>();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.Created, null);
+
+        // Act & Assert
+        await _systemUnderTest.Invoking(x => x.CreateRegistrationFeePaymentEventAsync(registrationFeePaymentEvent, submissionId)).Should().NotThrowAsync();
+
+        var expectedRequestUri = new Uri($"https://example.com/submissions/{submissionId}/events");
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
+            { "UserId", _userAccount.User.Id.ToString() }
+        };
+
+        _httpMessageHandlerMock.VerifyRequest(HttpMethod.Post, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task CreateRegistrationFeePaymentEventAsync_LogsAndThrowsException_WhenHttpClientResponseIsInternalServerError()
+    {
+        // Arrange
+        var registrationFeePaymentEvent = Fixture.Create<RegistrationFeePaymentEvent>();
+
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+
+        // Act / Assert
+        await _systemUnderTest.Invoking(x => x.CreateRegistrationFeePaymentEventAsync(registrationFeePaymentEvent, Guid.NewGuid())).Should().ThrowAsync<HttpRequestException>();
+        _loggerMock.VerifyLog(x => x.LogError("Error creating RegistrationFeePayment event"));
+    }
+
+    [TestMethod]
     public async Task CreateSubmissionAsync_DoesNotThrowException_WhenHttpClientResponseIsCreated()
     {
         // Arrange
-        var createSubmission = _fixture.Create<CreateSubmission>();
+        var createSubmission = Fixture.Create<CreateSubmission>();
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.Created, null);
 
         // Act / Assert
@@ -129,7 +199,7 @@ public class SubmissionStatusClientTests
     public async Task CreateSubmissionAsync_LogsAndThrowsException_WhenHttpClientResponseIsInternalServerError()
     {
         // Arrange
-        var createSubmission = _fixture.Create<CreateSubmission>();
+        var createSubmission = Fixture.Create<CreateSubmission>();
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
 
         // Act / Assert
@@ -145,7 +215,7 @@ public class SubmissionStatusClientTests
     public async Task GetSubmissionAsync_ReturnsHttpResponseMessage()
     {
         // Arrange
-        var submission = _fixture.Create<RegistrationSubmission>();
+        var submission = Fixture.Create<RegistrationSubmission>();
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submission.ToJsonContent());
 
         // Act
@@ -171,7 +241,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         const string QueryString = "?key=value";
-        var submissions = _fixture.Create<List<RegistrationSubmission>>();
+        var submissions = Fixture.Create<List<RegistrationSubmission>>();
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
 
         // Act
@@ -211,7 +281,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var validationErrorRows = _fixture.Build<ProducerValidationIssueRow>()
+        var validationErrorRows = Fixture.Build<ProducerValidationIssueRow>()
             .With(x => x.Issue, "Error")
             .CreateMany()
             .ToList();
@@ -255,7 +325,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var validationWarningRows = _fixture.Build<ProducerValidationIssueRow>()
+        var validationWarningRows = Fixture.Build<ProducerValidationIssueRow>()
             .With(x => x.Issue, "Warning")
             .CreateMany()
             .ToList();
@@ -348,7 +418,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var registrationValidationErrorRows = _fixture.Build<RegistrationValidationError>()
+        var registrationValidationErrorRows = Fixture.Build<RegistrationValidationError>()
             .CreateMany()
             .ToList();
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, registrationValidationErrorRows.ToJsonContent());
@@ -375,19 +445,19 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var userOne = _fixture.Create<UserAccount>();
-        var userTwo = _fixture.Create<UserAccount>();
+        var userOne = Fixture.Create<UserAccount>();
+        var userTwo = Fixture.Create<UserAccount>();
         const string QueryString = "?key=value";
         var submissionHistoryEventsResponse = new SubmissionHistoryEventsResponse
         {
-            SubmittedEvents = _fixture.Build<SubmittedEventResponse>()
+            SubmittedEvents = Fixture.Build<SubmittedEventResponse>()
             .With(x => x.SubmittedBy, "First Last")
             .CreateMany(2)
             .ToList(),
-            RegulatorDecisionEvents = _fixture.Build<RegulatorDecisionEventResponse>()
+            RegulatorDecisionEvents = Fixture.Build<RegulatorDecisionEventResponse>()
             .CreateMany()
             .ToList(),
-            AntivirusCheckEvents = _fixture.Build<AntivirusCheckEventResponse>()
+            AntivirusCheckEvents = Fixture.Build<AntivirusCheckEventResponse>()
             .CreateMany()
             .ToList()
         };
@@ -429,19 +499,19 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var userOne = _fixture.Create<UserAccount>();
-        var userTwo = _fixture.Create<UserAccount>();
+        var userOne = Fixture.Create<UserAccount>();
+        var userTwo = Fixture.Create<UserAccount>();
         const string QueryString = "?key=value";
         var submissionHistoryEventsResponse = new SubmissionHistoryEventsResponse
         {
-            SubmittedEvents = _fixture.Build<SubmittedEventResponse>()
+            SubmittedEvents = Fixture.Build<SubmittedEventResponse>()
             .Without(x => x.SubmittedBy)
             .CreateMany(2)
             .ToList(),
-            RegulatorDecisionEvents = _fixture.Build<RegulatorDecisionEventResponse>()
+            RegulatorDecisionEvents = Fixture.Build<RegulatorDecisionEventResponse>()
             .CreateMany(2)
             .ToList(),
-            AntivirusCheckEvents = _fixture.Build<AntivirusCheckEventResponse>()
+            AntivirusCheckEvents = Fixture.Build<AntivirusCheckEventResponse>()
             .CreateMany(2)
             .ToList()
         };
@@ -603,5 +673,252 @@ public class SubmissionStatusClientTests
             .ThrowAsync<HttpRequestException>();
 
         _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting registration validation errors"));
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationSubmissionDetails_Should_Return_Response_When_Successful()
+    {
+        // Arrange
+        var queryString = "?id=123";
+        var expectedResponse = new GetRegistrationApplicationDetailsResponse
+        {
+            SubmissionId = Guid.NewGuid(),
+            IsSubmitted = true
+        };
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonConvert.SerializeObject(expectedResponse))
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetRegistrationApplicationDetails(queryString);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(expectedResponse);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationSubmissionDetails_Should_Return_Null_When_NoContent()
+    {
+        // Arrange
+        var queryString = "?id=123";
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.NoContent
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetRegistrationApplicationDetails(queryString);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationSubmissionDetails_Should_Throw_Exception_On_HttpError()
+    {
+        // Arrange
+        var queryString = "?id=123";
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.InternalServerError
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        Func<Task> act = async () => await _systemUnderTest.GetRegistrationApplicationDetails(queryString);
+
+        // Assert
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationSubmissionDetails_Should_Throw_Exception_On_InvalidUrl()
+    {
+        // Arrange
+        var queryString = "Https://localhost/test?id=123";
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.InternalServerError
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        Func<Task> act = async () => await _systemUnderTest.GetRegistrationApplicationDetails(queryString);
+
+        // Assert
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [TestMethod]
+    public async Task CreateFileDownloadEventAsync_DoesNotThrowException_WhenHttpClientResponseIsCreated()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var fileDownloadCheckEvent = Fixture.Create<FileDownloadCheckEvent>();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.Created, null);
+
+        // Act / Assert
+        await _systemUnderTest
+            .Invoking(x => x.CreateFileDownloadEventAsync(fileDownloadCheckEvent, submissionId))
+            .Should()
+            .NotThrowAsync();
+
+        var expectedMethod = HttpMethod.Post;
+        var expectedRequestUri = new Uri($"https://example.com/submissions/{submissionId}/events");
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
+            { "UserId", _userAccount.User.Id.ToString() }
+        };
+
+        _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task CreateFileDownloadEventAsync_LogsAndThrowsException_WhenHttpClientResponseIsInternalServerError()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var fileDownloadCheckEvent = Fixture.Create<FileDownloadCheckEvent>();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+
+        // Act / Assert
+        await _systemUnderTest
+            .Invoking(x => x.CreateFileDownloadEventAsync(fileDownloadCheckEvent, submissionId))
+            .Should()
+            .ThrowAsync<HttpRequestException>();
+
+        _loggerMock.VerifyLog(x => x.LogError("Error creating FileDownloadCheck event"));
+    }
+
+    [TestMethod]
+    public async Task GetFileScanResultAsync_ReturnsHttpResponseMessage()
+    {
+        // Arrange
+        var submission = Fixture.Create<RegistrationSubmission>();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submission.ToJsonContent());
+
+        // Act
+        var result = await _systemUnderTest.GetSubmissionAsync(submission.Id);
+
+        // Assert
+        result.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await result.Content.ReadFromJsonAsync<RegistrationSubmission>()).Should().BeEquivalentTo(submission);
+
+        var expectedMethod = HttpMethod.Get;
+        var expectedRequestUri = new Uri($"https://example.com/submissions/{submission.Id}");
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
+            { "UserId", _userAccount.User.Id.ToString() }
+        };
+
+        _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task GetFileScanResultAsync_ShouldReturnResponse_WhenSuccessful()
+    {
+        // Arrange
+        var fileId = Guid.NewGuid();
+        var submissionId = Guid.NewGuid();
+        var expectedResponse = new AntivirusResultEvent
+        {
+            SubmissionId = Guid.NewGuid(),
+            BlobName = Guid.NewGuid().ToString(),
+            FileId = fileId,
+            SubmissionType = SubmissionType.Registration,
+            AntivirusScanResult = AntivirusScanResult.Success,
+            AntivirusScanTrigger = AntivirusScanTrigger.Download,
+            OrganisationId = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Errors = new List<string>()
+        };
+
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonConvert.SerializeObject(expectedResponse))
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(fileId.ToString())),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetFileScanResultAsync(submissionId, fileId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(expectedResponse);
+    }
+
+    [TestMethod]
+    public async Task GetFileScanResultAsync_ShouldThrowException_OnHttpError()
+    {
+        // Arrange
+        var fileId = Guid.NewGuid();
+        var submissionId = Guid.NewGuid();
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.InternalServerError
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(fileId.ToString())),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        Func<Task> act = async () => await _systemUnderTest.GetFileScanResultAsync(submissionId, fileId);
+
+        // Assert
+        await act.Should().ThrowAsync<HttpRequestException>();
     }
 }

@@ -1,8 +1,8 @@
-﻿namespace WebApiGateway.UnitTests.Api.Extensions;
-
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WebApiGateway.Api.Extensions;
+
+namespace WebApiGateway.UnitTests.Api.Extensions;
 
 [TestClass]
 public class HttpContentHeaderExtensionsTests

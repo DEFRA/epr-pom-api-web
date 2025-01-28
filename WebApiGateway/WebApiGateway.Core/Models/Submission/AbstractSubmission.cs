@@ -1,9 +1,9 @@
-﻿namespace WebApiGateway.Core.Models.Submission;
-
-using System.Diagnostics.CodeAnalysis;
-using Converters;
-using Enumeration;
+﻿using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
+using WebApiGateway.Core.Converters;
+using WebApiGateway.Core.Enumeration;
+
+namespace WebApiGateway.Core.Models.Submission;
 
 [ExcludeFromCodeCoverage]
 [JsonConverter(typeof(AbstractSubmissionConverter))]
@@ -34,4 +34,6 @@ public abstract class AbstractSubmission
     public bool HasValidFile { get; set; }
 
     public bool HasWarnings { get; set; }
+
+    public string? AppReferenceNumber { get; set; }
 }

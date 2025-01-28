@@ -1,6 +1,4 @@
-﻿namespace WebApiGateway.UnitTests.Api.Controllers;
-
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,7 +6,8 @@ using Moq;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Enumeration;
-using WebApiGateway.Core.Models.Subsidiaries;
+
+namespace WebApiGateway.UnitTests.Api.Controllers;
 
 [TestClass]
 public class FileUploadSubsidiaryControllerTests
@@ -17,60 +16,17 @@ public class FileUploadSubsidiaryControllerTests
     private readonly Guid _submissionId = Guid.NewGuid();
     private Mock<IFileUploadService> _fileUploadServiceMock;
     private Mock<ISubsidiaryService> _subsidiaryServiceMock;
-    private Mock<ISubsidiariesService> _subsidiariesServiceMock;
     private FileUploadSubsidiaryController _systemUnderTest;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        var userId = Guid.NewGuid();
-
         _fileUploadServiceMock = new Mock<IFileUploadService>();
         _subsidiaryServiceMock = new Mock<ISubsidiaryService>();
-        _subsidiariesServiceMock = new Mock<ISubsidiariesService>();
-        _systemUnderTest = new FileUploadSubsidiaryController(_fileUploadServiceMock.Object, _subsidiaryServiceMock.Object, _subsidiariesServiceMock.Object)
+        _systemUnderTest = new FileUploadSubsidiaryController(_fileUploadServiceMock.Object, _subsidiaryServiceMock.Object)
         {
             ControllerContext = { HttpContext = new DefaultHttpContext() }
         };
-    }
-
-    [TestMethod]
-    public async Task GetFileUploadTemplateAsync_ReturnsFile_WhenFileExists()
-    {
-        // Arrange
-        var expectedResponse = new GetFileUploadTemplateResponse
-        {
-            Name = "template.ods",
-            ContentType = "application/vnd.oasis.opendocument.spreadsheet",
-            Content = new MemoryStream()
-        };
-
-        _subsidiariesServiceMock.Setup(x => x.GetFileUploadTemplateAsync()).ReturnsAsync(expectedResponse);
-
-        // Act
-        var result = await _systemUnderTest.GetFileUploadTemplateAsync() as FileStreamResult;
-
-        // Assert
-        _subsidiariesServiceMock.Verify(x => x.GetFileUploadTemplateAsync(), Times.Once);
-
-        result.FileDownloadName.Should().Be(expectedResponse.Name);
-        result.ContentType.Should().Be(expectedResponse.ContentType);
-        result.FileStream.Should().BeSameAs(expectedResponse.Content);
-    }
-
-    [TestMethod]
-    public async Task GetFileUploadTemplate_ReturnsNotFound_WhenFileDoesNotExist()
-    {
-        // Arrange
-        _subsidiariesServiceMock.Setup(x => x.GetFileUploadTemplateAsync()).ReturnsAsync((GetFileUploadTemplateResponse)null);
-
-        // Act
-        var result = await _systemUnderTest.GetFileUploadTemplateAsync();
-
-        // Assert
-        _subsidiariesServiceMock.Verify(x => x.GetFileUploadTemplateAsync(), Times.Once);
-
-        result.Should().BeOfType<NotFoundResult>();
     }
 
     [DataTestMethod]

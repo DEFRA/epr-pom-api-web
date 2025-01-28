@@ -1,7 +1,7 @@
-﻿namespace WebApiGateway.Api.Extensions;
-
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+
+namespace WebApiGateway.Api.Extensions;
 
 public static class EnumExtensions
 {

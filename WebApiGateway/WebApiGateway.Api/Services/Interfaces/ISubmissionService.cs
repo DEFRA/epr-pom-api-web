@@ -1,4 +1,5 @@
 ﻿using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
@@ -13,6 +14,10 @@ public interface ISubmissionService
 
     Task<Guid> CreateAntivirusCheckEventAsync(string fileName, FileType fileType, Guid submissionId, Guid? registrationSetId);
 
+    Task CreateFileDownloadCheckEventAsync(Guid submissionId, FileDownloadCheckEvent fileDownloadCheckEvent);
+
+    Task CreateRegistrationEventAsync(Guid submissionId, RegistrationApplicationPayload applicationPayload);
+
     Task<HttpResponseMessage> GetSubmissionAsync(Guid submissionId);
 
     Task<List<AbstractSubmission>> GetSubmissionsAsync(string queryString);
@@ -23,7 +28,13 @@ public interface ISubmissionService
 
     Task SubmitAsync(Guid submissionId, SubmissionPayload submissionPayload);
 
+    Task SubmitAsync(CreateSubmission submission);
+
     Task<List<SubmissionHistoryResponse>> GetSubmissionPeriodHistory(Guid submissionId, string queryString);
 
     Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
+
+    Task<GetRegistrationApplicationDetailsResponse?> GetRegistrationApplicationDetails(string request);
+
+    Task<string> GetFileBlobNameAsync(Guid submissionId, Guid fileId);
 }

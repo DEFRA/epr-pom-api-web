@@ -1,11 +1,11 @@
-﻿namespace WebApiGateway.Core.Converters;
-
-using System.ComponentModel;
-using Enumeration;
-using Models.Submission;
+﻿using System.ComponentModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Models.Submission;
+
+namespace WebApiGateway.Core.Converters;
 
 public class AbstractSubmissionConverter : CustomCreationConverter<AbstractSubmission>
 {

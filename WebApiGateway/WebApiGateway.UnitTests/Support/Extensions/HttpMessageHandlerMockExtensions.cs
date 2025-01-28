@@ -1,9 +1,9 @@
-﻿namespace WebApiGateway.UnitTests.Support.Extensions;
-
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using Moq;
 using Moq.Protected;
+
+namespace WebApiGateway.UnitTests.Support.Extensions;
 
 public static class HttpMessageHandlerMockExtensions
 {

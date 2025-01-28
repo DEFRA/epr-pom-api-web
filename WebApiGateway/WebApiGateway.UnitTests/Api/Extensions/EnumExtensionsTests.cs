@@ -1,9 +1,9 @@
-﻿namespace WebApiGateway.UnitTests.Api.Extensions;
-
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WebApiGateway.Api.Extensions;
 using WebApiGateway.Core.Enumeration;
+
+namespace WebApiGateway.UnitTests.Api.Extensions;
 
 [TestClass]
 public class EnumExtensionsTests

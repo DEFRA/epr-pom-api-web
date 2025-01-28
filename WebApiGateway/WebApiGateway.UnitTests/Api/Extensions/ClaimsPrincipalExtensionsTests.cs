@@ -1,12 +1,12 @@
-﻿namespace WebApiGateway.UnitTests.Api.Extensions;
-
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Identity.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Extensions;
+
+namespace WebApiGateway.UnitTests.Api.Extensions;
 
 [TestClass]
 public class ClaimsPrincipalExtensionsTests

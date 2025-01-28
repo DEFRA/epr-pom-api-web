@@ -1,25 +1,20 @@
-﻿namespace WebApiGateway.Api.Services;
+﻿using Microsoft.Extensions.Options;
+using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Api.Extensions;
+using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Models.Antivirus;
+using WebApiGateway.Core.Options;
 
-using Clients.Interfaces;
-using Core.Enumeration;
-using Core.Models.Antivirus;
-using Core.Options;
-using Extensions;
-using Interfaces;
-using Microsoft.Extensions.Options;
+namespace WebApiGateway.Api.Services;
 
-public class AntivirusService : IAntivirusService
+public class AntivirusService(
+    IAntivirusClient antivirusClient,
+    IHttpContextAccessor httpContextAccessor,
+    IOptions<AntivirusApiOptions> antivirusApiOptions)
+    : IAntivirusService
 {
-    private readonly IAntivirusClient _antivirusClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly AntivirusApiOptions _antivirusApiOptions;
-
-    public AntivirusService(IAntivirusClient antivirusClient, IHttpContextAccessor httpContextAccessor, IOptions<AntivirusApiOptions> antivirusApiOptions)
-    {
-        _antivirusClient = antivirusClient;
-        _httpContextAccessor = httpContextAccessor;
-        _antivirusApiOptions = antivirusApiOptions.Value;
-    }
+    private readonly AntivirusApiOptions _antivirusApiOptions = antivirusApiOptions.Value;
 
     public async Task SendFileAsync(SubmissionType submissionType, Guid fileId, string fileName, Stream fileStream)
     {
@@ -29,11 +24,26 @@ public class AntivirusService : IAntivirusService
             Extension = Path.GetExtension(fileName),
             FileName = Path.GetFileNameWithoutExtension(fileName),
             Collection = GetCollectionName(submissionType.GetDisplayName()),
-            UserId = _httpContextAccessor.HttpContext.User.UserId(),
-            UserEmail = _httpContextAccessor.HttpContext.User.Email()
+            UserId = httpContextAccessor.HttpContext.User.UserId(),
+            UserEmail = httpContextAccessor.HttpContext.User.Email()
         };
 
-        await _antivirusClient.SendFileAsync(fileDetails, fileName, fileStream);
+        await antivirusClient.SendFileAsync(fileDetails, fileName, fileStream);
+    }
+
+    public async Task<HttpResponseMessage> SendFileAndScanAsync(SubmissionType submissionType, Guid fileId, string fileName, MemoryStream fileStream)
+    {
+        var fileDetails = new FileDetails
+        {
+            Key = fileId,
+            Extension = Path.GetExtension(fileName),
+            FileName = Path.GetFileNameWithoutExtension(fileName),
+            Collection = GetCollectionName(submissionType.GetDisplayName()),
+            UserId = httpContextAccessor.HttpContext.User.UserId(),
+            UserEmail = httpContextAccessor.HttpContext.User.Email()
+        };
+
+        return await antivirusClient.VirusScanFileAsync(fileDetails, fileName, fileStream);
     }
 
     private string GetCollectionName(string submissionType)

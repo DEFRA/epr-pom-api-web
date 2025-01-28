@@ -1,12 +1,12 @@
-﻿namespace WebApiGateway.Api.Handlers;
-
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
-using Core.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
+using WebApiGateway.Core.Options;
+
+namespace WebApiGateway.Api.Handlers;
 
 [ExcludeFromCodeCoverage]
 public class AccountServiceAuthorisationHandler : DelegatingHandler
@@ -30,7 +30,7 @@ public class AccountServiceAuthorisationHandler : DelegatingHandler
         if (_credentials != null)
         {
             var tokenResult = await _credentials.GetTokenAsync(_tokenRequestContext, cancellationToken);
-            request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Bearer, tokenResult.Token);
+            request.Headers.Authorization = new AuthenticationHeaderValue(Microsoft.Identity.Web.Constants.Bearer, tokenResult.Token);
         }
 
         return await base.SendAsync(request, cancellationToken);

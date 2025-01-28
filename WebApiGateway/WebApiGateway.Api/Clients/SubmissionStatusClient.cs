@@ -1,53 +1,71 @@
-﻿namespace WebApiGateway.Api.Clients;
-
-using System;
-using System.Net.Http;
-using Core.Models.Events;
-using Core.Models.ProducerValidation;
-using Core.Models.Submission;
-using Extensions;
-using Interfaces;
-using Microsoft.AspNetCore.Http;
+﻿using System.Net;
 using Newtonsoft.Json;
+using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Api.Extensions;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Models.Events;
+using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
+using WebApiGateway.Core.Models.Submission;
 using WebApiGateway.Core.Models.SubmissionHistory;
 using WebApiGateway.Core.Models.Submissions;
-using WebApiGateway.Core.Models.UserAccount;
+using static System.Net.WebRequestMethods;
 
-public class SubmissionStatusClient : ISubmissionStatusClient
+namespace WebApiGateway.Api.Clients;
+
+public class SubmissionStatusClient(
+    HttpClient httpClient,
+    IAccountServiceClient accountServiceClient,
+    IHttpContextAccessor httpContextAccessor,
+    ILogger<SubmissionStatusClient> logger)
+    : ISubmissionStatusClient
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ILogger<SubmissionStatusClient> _logger;
-    private readonly HttpClient _httpClient;
-    private readonly IAccountServiceClient _accountServiceClient;
-
-    public SubmissionStatusClient(
-        HttpClient httpClient,
-        IAccountServiceClient accountServiceClient,
-        IHttpContextAccessor httpContextAccessor,
-        ILogger<SubmissionStatusClient> logger)
-    {
-        _httpClient = httpClient;
-        _accountServiceClient = accountServiceClient;
-        _httpContextAccessor = httpContextAccessor;
-        _logger = logger;
-    }
-
     public async Task CreateEventAsync(AntivirusCheckEvent @event, Guid submissionId)
     {
         try
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", @event);
+            var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", @event);
 
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error creating {eventType} event", @event.Type);
+            logger.LogError(exception, "Error creating {eventType} event", @event.Type);
+            throw;
+        }
+    }
+
+    public async Task CreateApplicationSubmittedEventAsync(RegistrationApplicationSubmittedEvent registrationEvent, Guid submissionId)
+    {
+        try
+        {
+            await ConfigureHttpClientAsync();
+            var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", registrationEvent);
+
+            response.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogError(exception, "Error creating {eventType} event", registrationEvent.Type);
+            throw;
+        }
+    }
+
+    public async Task CreateRegistrationFeePaymentEventAsync(RegistrationFeePaymentEvent registrationEvent, Guid submissionId)
+    {
+        try
+        {
+            await ConfigureHttpClientAsync();
+            var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", registrationEvent);
+
+            response.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogError(exception, "Error creating {eventType} event", registrationEvent.Type);
             throw;
         }
     }
@@ -58,13 +76,13 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.PostAsJsonAsync("submissions", submission);
+            var response = await httpClient.PostAsJsonAsync("submissions", submission);
 
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error creating submission");
+            logger.LogError(exception, "Error creating submission");
             throw;
         }
     }
@@ -73,7 +91,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         await ConfigureHttpClientAsync();
 
-        return await _httpClient.GetAsync($"submissions/{submissionId}");
+        return await httpClient.GetAsync($"submissions/{submissionId}");
     }
 
     public async Task<List<AbstractSubmission>> GetSubmissionsAsync(string queryString)
@@ -82,7 +100,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.GetAsync($"submissions{queryString}");
+            var response = await httpClient.GetAsync($"submissions{queryString}");
 
             response.EnsureSuccessStatusCode();
 
@@ -92,7 +110,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error getting submissions");
+            logger.LogError(exception, "Error getting submissions");
             throw;
         }
     }
@@ -103,7 +121,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.GetAsync($"submissions/{submissionId}/organisation-details-errors");
+            var response = await httpClient.GetAsync($"submissions/{submissionId}/organisation-details-errors");
 
             response.EnsureSuccessStatusCode();
 
@@ -113,7 +131,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error getting registration validation errors");
+            logger.LogError(exception, "Error getting registration validation errors");
             throw;
         }
     }
@@ -124,7 +142,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.GetAsync($"submissions/{submissionId}/producer-validations");
+            var response = await httpClient.GetAsync($"submissions/{submissionId}/producer-validations");
 
             response.EnsureSuccessStatusCode();
 
@@ -138,7 +156,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error getting producer validation errors");
+            logger.LogError(exception, "Error getting producer validation errors");
             throw;
         }
     }
@@ -149,7 +167,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.GetAsync($"submissions/{submissionId}/producer-warning-validations");
+            var response = await httpClient.GetAsync($"submissions/{submissionId}/producer-warning-validations");
 
             response.EnsureSuccessStatusCode();
 
@@ -163,7 +181,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error getting producer validation warnings");
+            logger.LogError(exception, "Error getting producer validation warnings");
             throw;
         }
     }
@@ -174,13 +192,13 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         {
             await ConfigureHttpClientAsync();
 
-            var response = await _httpClient.PostAsJsonAsync($"submissions/{submissionId}/submit", submissionPayload);
+            var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/submit", submissionPayload);
 
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error submitting submission with id {submissionId} and file id {fileId}", submissionId, submissionPayload.FileId);
+            logger.LogError(exception, "Error submitting submission with id {submissionId} and file id {fileId}", submissionId, submissionPayload.FileId);
             throw;
         }
     }
@@ -189,7 +207,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         await ConfigureHttpClientAsync();
 
-        var response = await _httpClient.GetAsync($"submissions/events/events-by-type/{submissionId}{queryString}");
+        var response = await httpClient.GetAsync($"submissions/events/events-by-type/{submissionId}{queryString}");
 
         response.EnsureSuccessStatusCode();
 
@@ -199,11 +217,11 @@ public class SubmissionStatusClient : ISubmissionStatusClient
 
         foreach (var submitted in results.SubmittedEvents)
         {
-            var userDetails = await _accountServiceClient.GetUserAccount(submitted.UserId);
+            var userDetails = await accountServiceClient.GetUserAccount(submitted.UserId);
 
-            if (userDetails == null)
+            if (userDetails == null!)
             {
-                _logger.LogError("Error searching for user with id {userId}", submitted.UserId);
+                logger.LogError("Error searching for user with id {userId}", submitted.UserId);
             }
             else
             {
@@ -218,7 +236,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
     {
         await ConfigureHttpClientAsync();
 
-        string endpoint = $"submissions/submissions?Type={submissionType}&OrganisationId={organisationId}";
+        var endpoint = $"submissions/submissions?Type={submissionType}&OrganisationId={organisationId}";
 
         if (complianceSchemeId is not null && complianceSchemeId != Guid.Empty)
         {
@@ -230,7 +248,7 @@ public class SubmissionStatusClient : ISubmissionStatusClient
             endpoint += $"&Year={year}";
         }
 
-        var response = await _httpClient.GetAsync(endpoint);
+        var response = await httpClient.GetAsync(endpoint);
 
         response.EnsureSuccessStatusCode();
 
@@ -239,23 +257,88 @@ public class SubmissionStatusClient : ISubmissionStatusClient
         return JsonConvert.DeserializeObject<List<SubmissionGetResponse>>(content);
     }
 
-    private async Task ConfigureHttpClientAsync()
+    public async Task<GetRegistrationApplicationDetailsResponse?> GetRegistrationApplicationDetails(string queryString)
     {
-        Guid userId = Guid.NewGuid();
-        UserAccount userAccount;
-        OrganisationDetail organisation;
+        await ConfigureHttpClientAsync();
 
+        var endpointUrl = $"submissions/get-registration-application-details{queryString}";
+
+        var uri = ValidateUrl(endpointUrl);
+
+        var response = await httpClient.GetAsync(uri);
+
+        response.EnsureSuccessStatusCode();
+
+        if (response.StatusCode == HttpStatusCode.NoContent)
+        {
+            return null;
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<GetRegistrationApplicationDetailsResponse>(content);
+    }
+
+    public async Task<HttpResponseMessage> CreateFileDownloadEventAsync(FileDownloadCheckEvent fileDownloadCheckEvent, Guid submissionId)
+    {
         try
         {
-            userId = _httpContextAccessor.HttpContext.User.UserId();
-            userAccount = await _accountServiceClient.GetUserAccount(userId);
-            organisation = userAccount.User.Organisations[0];
-            _httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
-            _httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
+            await ConfigureHttpClientAsync();
+
+            var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", fileDownloadCheckEvent);
+            response.EnsureSuccessStatusCode();
+
+            return response;
         }
         catch (HttpRequestException exception)
         {
-            _logger.LogError(exception, "Error getting user accounts with id {UserId}", userId);
+            logger.LogError(exception, "Error creating {EventType} event", fileDownloadCheckEvent.Type);
+            throw;
+        }
+    }
+
+    public async Task<AntivirusResultEvent> GetFileScanResultAsync(Guid submissionId, Guid fileId)
+    {
+        await ConfigureHttpClientAsync();
+
+        var response = await httpClient.GetAsync($"submissions/{submissionId}/uploadedfile/{fileId}");
+
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<AntivirusResultEvent>(content);
+    }
+
+    private static Uri ValidateUrl(string endpointUrl)
+    {
+        var uri = new Uri(endpointUrl, UriKind.RelativeOrAbsolute);
+        string[] allowedSchemes = { "https", "http" };
+        string[] allowedDomains = { "localhost" };
+
+        if (uri.IsAbsoluteUri && !allowedDomains.Contains(uri.Host) && !allowedSchemes.Contains(uri.Scheme))
+        {
+            throw new InvalidOperationException();
+        }
+
+        return uri;
+    }
+
+    private async Task ConfigureHttpClientAsync()
+    {
+        var userId = Guid.NewGuid();
+
+        try
+        {
+            userId = httpContextAccessor.HttpContext.User.UserId();
+            var userAccount = await accountServiceClient.GetUserAccount(userId);
+            var organisation = userAccount.User.Organisations[0];
+            httpClient.DefaultRequestHeaders.AddIfNotExists("OrganisationId", organisation.Id.ToString());
+            httpClient.DefaultRequestHeaders.AddIfNotExists("UserId", userId.ToString());
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogError(exception, "Error getting user accounts with id {UserId}", userId);
             throw;
         }
     }

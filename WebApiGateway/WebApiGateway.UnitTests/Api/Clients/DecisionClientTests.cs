@@ -19,8 +19,8 @@ namespace WebApiGateway.UnitTests.Api.Clients;
 [TestClass]
 public class DecisionClientTests
 {
-    private static readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
-    private readonly UserAccount _userAccount = _fixture.Create<UserAccount>();
+    private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private readonly UserAccount _userAccount = Fixture.Create<UserAccount>();
 
     private Mock<ILogger<DecisionClient>> _loggerMock;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;

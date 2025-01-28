@@ -1,18 +1,17 @@
 ﻿using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
 
-namespace WebApiGateway.Api.Services.Interfaces
+namespace WebApiGateway.Api.Services.Interfaces;
+
+public interface IPrnService
 {
-    public interface IPrnService
-    {
-        Task<List<PrnModel>> GetAllPrnsForOrganisation();
+    Task<List<PrnModel>> GetAllPrnsForOrganisation();
 
-        Task<PrnModel> GetPrnById(Guid id);
+    Task<PrnModel> GetPrnById(Guid id);
 
-        Task UpdatePrnStatus(List<UpdatePrnStatus> updatePrns);
+    Task UpdatePrnStatus(List<UpdatePrnStatus> updatePrns);
 
-        Task<PaginatedResponse<PrnModel>> GetSearchPrns(PaginatedRequest request);
+    Task<PaginatedResponse<PrnModel>> GetSearchPrns(PaginatedRequest request);
 
-        Task<List<ObligationCalculation>> GetObligationCalculationsByOrganisationId(int organisationId);
-    }
+    Task<ObligationModel> GetObligationCalculationByYear(int year);
 }

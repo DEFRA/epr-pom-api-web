@@ -7,18 +7,19 @@ using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
 using WebApiGateway.Api.Clients;
-using WebApiGateway.Core.Models.ProducerDetails;
+using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Core.Models.RegistrationFeeCalculation;
 
 namespace WebApiGateway.UnitTests.Api.Clients;
 
 [TestClass]
-public class ProducerDetailsClientTests
+public class RegistrationFeeCalculationDetailsClientTests
 {
     private IFixture _fixture;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
     private HttpClient _httpClient;
-    private Mock<ILogger<ProducerDetailsClient>> _loggerMock;
-    private ProducerDetailsClient _client;
+    private Mock<ILogger<IRegistrationFeeCalculationDetailsClient>> _loggerMock;
+    private RegistrationFeeCalculationDetailsClient _client;
 
     [TestInitialize]
     public void SetUp()
@@ -29,42 +30,42 @@ public class ProducerDetailsClientTests
         {
             BaseAddress = new Uri("http://localhost")
         };
-        _loggerMock = new Mock<ILogger<ProducerDetailsClient>>();
-        _client = new ProducerDetailsClient(_httpClient, _loggerMock.Object);
+        _loggerMock = new Mock<ILogger<IRegistrationFeeCalculationDetailsClient>>();
+        _client = new RegistrationFeeCalculationDetailsClient(_httpClient, _loggerMock.Object);
     }
 
     [TestMethod]
-    public async Task GetProducerDetails_ShouldSendRequestWithCorrectUrl()
+    public async Task GetFeeCalculationDetails_ShouldSendRequestWithCorrectUrl()
     {
         // Arrange
-        var organisationId = _fixture.Create<int>();
+        var fileId = Guid.NewGuid();
         var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(JsonConvert.SerializeObject(_fixture.Create<GetProducerDetailsResponse>()))
+            Content = new StringContent(JsonConvert.SerializeObject(_fixture.Create<RegistrationFeeCalculationDetails[]>()))
         };
 
         _httpMessageHandlerMock
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == $"http://localhost/producer-details/get-producer-details/{organisationId}"),
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == $"http://localhost/registration-fee-calculation-details/get-registration-fee-calculation-details/{fileId}"),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(responseMessage)
             .Verifiable("The URL in the request was not as expected.");
 
         // Act
-        await _client.GetProducerDetails(organisationId);
+        await _client.GetRegistrationFeeCalculationDetails(fileId);
 
         // Assert
         _httpMessageHandlerMock.Verify();
     }
 
     [TestMethod]
-    public async Task GetProducerDetails_ShouldReturnProducerDetails_WhenResponseIsOk()
+    public async Task GetFeeCalculationDetails_ShouldReturnFeeCalculationDetails_WhenResponseIsOk()
     {
         // Arrange
-        var expectedResponse = _fixture.Create<GetProducerDetailsResponse>();
-        var organisationId = _fixture.Create<int>();
+        var fileId = Guid.NewGuid();
+        var expectedResponse = _fixture.Create<RegistrationFeeCalculationDetails[]>();
         var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(JsonConvert.SerializeObject(expectedResponse))
@@ -79,17 +80,17 @@ public class ProducerDetailsClientTests
             .ReturnsAsync(responseMessage);
 
         // Act
-        var result = await _client.GetProducerDetails(organisationId);
+        var result = await _client.GetRegistrationFeeCalculationDetails(fileId);
 
         // Assert
         result.Should().BeEquivalentTo(expectedResponse);
     }
 
     [TestMethod]
-    public void GetProducerDetails_ShouldLogAndThrowHttpRequestException_WhenResponseIsBadRequest()
+    public void GetFeeCalculationDetails_ShouldLogAndThrowHttpRequestException_WhenResponseIsBadRequest()
     {
         // Arrange
-        var organisationId = _fixture.Create<int>();
+        var fileId = Guid.NewGuid();
         var responseMessage = new HttpResponseMessage(HttpStatusCode.BadRequest)
         {
             ReasonPhrase = "Bad Request"
@@ -104,27 +105,27 @@ public class ProducerDetailsClientTests
             .ReturnsAsync(responseMessage);
 
         // Act
-        Func<Task> act = async () => await _client.GetProducerDetails(organisationId);
+        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId);
 
         // Assert
         act.Should().ThrowAsync<HttpRequestException>()
-            .WithMessage("Error Getting Producer Details, Response status code does not indicate success: 400 (Bad Request)");
+            .WithMessage("Error Getting registration fee calculation details, StatusCode : 400 (Bad Request)");
 
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error Getting Producer Details")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error Getting registration fee calculation details, StatusCode : ")),
                 It.IsAny<Exception>(),
                 (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
             Times.Once);
     }
 
     [TestMethod]
-    public void GetProducerDetails_ShouldLogAndThrowHttpRequestException_WhenResponseIsNoContent()
+    public void GetFeeCalculationDetails_ShouldLogAndThrowHttpRequestException_WhenResponseIsNoContent()
     {
         // Arrange
-        var organisationId = _fixture.Create<int>();
+        var fileId = Guid.NewGuid();
         var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent)
         {
             ReasonPhrase = "No Content"
@@ -139,27 +140,27 @@ public class ProducerDetailsClientTests
             .ReturnsAsync(responseMessage);
 
         // Act
-        Func<Task> act = async () => await _client.GetProducerDetails(organisationId);
+        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId);
 
         // Assert
         act.Should().ThrowAsync<HttpRequestException>()
-            .WithMessage("Error Getting Producer Details, Response status code does not indicate success: 204 (No Content)");
+            .WithMessage("Error Getting registration fee calculation details, StatusCode : 204 (No Content)");
 
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error Getting Producer Details")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error Getting registration fee calculation details, StatusCode : ")),
                 It.IsAny<Exception>(),
                 (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
             Times.Once);
     }
 
     [TestMethod]
-    public void GetProducerDetails_ShouldLogAndThrowHttpRequestException_WhenResponseIsInternalServerError()
+    public void GetFeeCalculationDetails_ShouldLogAndThrowHttpRequestException_WhenResponseIsInternalServerError()
     {
         // Arrange
-        var organisationId = _fixture.Create<int>();
+        var fileId = Guid.NewGuid();
         var responseMessage = new HttpResponseMessage(HttpStatusCode.InternalServerError)
         {
             ReasonPhrase = "Internal Server Error"
@@ -174,17 +175,17 @@ public class ProducerDetailsClientTests
             .ReturnsAsync(responseMessage);
 
         // Act
-        Func<Task> act = async () => await _client.GetProducerDetails(organisationId);
+        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId);
 
         // Assert
         act.Should().ThrowAsync<HttpRequestException>()
-            .WithMessage("Error Getting Producer Details, Response status code does not indicate success: 500 (Internal Server Error)");
+            .WithMessage("Error Getting registration fee calculation details, StatusCode : 500 (Internal Server Error)");
 
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error Getting Producer Details")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error Getting registration fee calculation details, StatusCode : ")),
                 It.IsAny<Exception>(),
                 (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
             Times.Once);

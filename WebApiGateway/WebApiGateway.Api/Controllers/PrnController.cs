@@ -16,20 +16,20 @@ public class PrnController : ControllerBase
 {
     private readonly IPrnService _prnService;
     private readonly ILogger<PrnController> _logger;
-    private readonly string logPrefix;
+    private readonly string _logPrefix;
 
     public PrnController(IPrnService prnService, ILogger<PrnController> logger, IConfiguration config)
     {
         _prnService = prnService;
         _logger = logger;
-        logPrefix = config["LogPrefix"];
+        _logPrefix = config["LogPrefix"];
     }
 
     [HttpGet("prn/organisation")]
     [ProducesResponseType(typeof(List<PrnModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPrnsForOrganisation()
     {
-        _logger.LogInformation("{Logprefix}: PrnController - GetAllPrnsForOrganisation: Get AllPrns For logged in User's Organisation", logPrefix);
+        _logger.LogInformation("{Logprefix}: PrnController - GetAllPrnsForOrganisation: Get AllPrns For logged in User's Organisation", _logPrefix);
         return new OkObjectResult(await _prnService.GetAllPrnsForOrganisation());
     }
 
@@ -37,7 +37,7 @@ public class PrnController : ControllerBase
     [ProducesResponseType(typeof(PrnModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPrnById(Guid id)
     {
-        _logger.LogInformation("{Logprefix}: PrnController - GetPrnById: Get Prn for given Id {Id}", logPrefix, id);
+        _logger.LogInformation("{Logprefix}: PrnController - GetPrnById: Get Prn for given Id {Id}", _logPrefix, id);
         return new OkObjectResult(await _prnService.GetPrnById(id));
     }
 
@@ -45,7 +45,7 @@ public class PrnController : ControllerBase
     [ProducesResponseType(typeof(List<ObligationModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetObligation(int year)
     {
-        _logger.LogInformation("{Logprefix}: PrnController - GetObligation: Get Obligation request for user organisation and year {Year}", logPrefix, year);
+        _logger.LogInformation("{Logprefix}: PrnController - GetObligation: Get Obligation request for user organisation and year {Year}", _logPrefix, year);
         return new OkObjectResult(await _prnService.GetObligationCalculationByYear(year));
     }
 
@@ -53,14 +53,14 @@ public class PrnController : ControllerBase
     [ProducesResponseType(typeof(PaginatedResponse<PrnModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> SearchPrn([FromQuery] PaginatedRequest request)
     {
-        _logger.LogInformation("{Logprefix}: PrnController - SearchPrn: Search Prns for given serach criteria {SearchCriteria}", logPrefix, JsonConvert.SerializeObject(request));
+        _logger.LogInformation("{Logprefix}: PrnController - SearchPrn: Search Prns for given serach criteria {SearchCriteria}", _logPrefix, JsonConvert.SerializeObject(request));
         return new OkObjectResult(await _prnService.GetSearchPrns(request));
     }
 
     [HttpPost("prn/status")]
     public async Task<IActionResult> UpdatePrnStatusToAccepted(List<UpdatePrnStatus> updatePrns)
     {
-        _logger.LogInformation("{Logprefix}: PrnController - UpdatePrnStatusToAccepted: Update Prn Satus for given Prns {Prns}", logPrefix, JsonConvert.SerializeObject(updatePrns));
+        _logger.LogInformation("{Logprefix}: PrnController - UpdatePrnStatusToAccepted: Update Prn Satus for given Prns {Prns}", _logPrefix, JsonConvert.SerializeObject(updatePrns));
         await _prnService.UpdatePrnStatus(updatePrns);
         return NoContent();
     }

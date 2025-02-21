@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using WebApiGateway.Core.Models.ComplianceSchemeDetails;
-using WebApiGateway.Core.Models.ProducerDetails;
+using WebApiGateway.Core.Models.RegistrationFeeCalculation;
 
 namespace WebApiGateway.Core.Models.Submission;
 
 [ExcludeFromCodeCoverage]
-public class GetRegistrationApplicationDetailsResponse
+public class RegistrationApplicationDetails
 {
     public enum ApplicationStatusType
     {
@@ -26,9 +25,13 @@ public class GetRegistrationApplicationDetailsResponse
 
     public string? ApplicationReferenceNumber { get; set; } = string.Empty;
 
+    public string? RegistrationReferenceNumber { get; set; }
+
     public LastSubmittedFileDetails? LastSubmittedFile { get; set; }
 
     public string? RegistrationFeePaymentMethod { get; set; }
+
+    public bool IsLateFeeApplicable { get; set; }
 
     public DateTime? RegistrationApplicationSubmittedDate { get; set; }
 
@@ -38,9 +41,7 @@ public class GetRegistrationApplicationDetailsResponse
 
     public ApplicationStatusType ApplicationStatus { get; set; }
 
-    public GetProducerDetailsResponse? ProducerDetails { get; set; }
-
-    public List<GetComplianceSchemeMemberDetailsResponse>? CsoMemberDetails { get; set; }
+    public RegistrationFeeCalculationDetails[]? RegistrationFeeCalculationDetails { get; set; }
 
     public class LastSubmittedFileDetails
     {

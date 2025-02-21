@@ -680,7 +680,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var queryString = "?id=123";
-        var expectedResponse = new GetRegistrationApplicationDetailsResponse
+        var expectedResponse = new RegistrationApplicationDetails
         {
             SubmissionId = Guid.NewGuid(),
             IsSubmitted = true

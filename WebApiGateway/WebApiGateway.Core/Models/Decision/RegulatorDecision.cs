@@ -9,7 +9,7 @@ public class RegulatorDecision
 
     public Guid SubmissionId { get; set; }
 
-    public string Type { get; }
+    public string Type { get; } = string.Empty;
 
     public Guid FileId { get; set; }
 

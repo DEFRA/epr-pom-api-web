@@ -34,7 +34,7 @@ public interface ISubmissionStatusClient
 
     Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
 
-    Task<GetRegistrationApplicationDetailsResponse?> GetRegistrationApplicationDetails(string queryString);
+    Task<RegistrationApplicationDetails?> GetRegistrationApplicationDetails(string queryString);
 
     Task<HttpResponseMessage> CreateFileDownloadEventAsync(FileDownloadCheckEvent fileDownloadCheckEvent, Guid submissionId);
 

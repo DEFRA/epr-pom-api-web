@@ -34,7 +34,5 @@ public interface ISubmissionService
 
     Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
 
-    Task<GetRegistrationApplicationDetailsResponse?> GetRegistrationApplicationDetails(string request);
-
     Task<string> GetFileBlobNameAsync(Guid submissionId, Guid fileId);
 }

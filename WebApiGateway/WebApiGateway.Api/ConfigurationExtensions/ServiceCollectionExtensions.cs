@@ -19,10 +19,8 @@ public static class ServiceCollectionExtensions
         var sp = services.BuildServiceProvider();
         var redisConfig = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
         var storageAccountOptions = sp.GetRequiredService<IOptions<StorageAccountOptions>>().Value;
-        services.AddScoped<IProducerDetailsClient, ProducerDetailsClient>();
-        services.AddScoped<IProducerDetailsService, ProducerDetailsService>();
-        services.AddScoped<IComplianceSchemeDetailsClient, ComplianceSchemeDetailsClient>();
-        services.AddScoped<IComplianceSchemeDetailsService, ComplianceSchemeDetailsService>();
+        services.AddScoped<IRegistrationFeeCalculationDetailsClient, RegistrationFeeCalculationDetailsClient>();
+        services.AddScoped<IRegistrationApplicationService, RegistrationApplicationService>();
         services.AddScoped<ISubmissionStatusClient, SubmissionStatusClient>();
         services.AddScoped<IAntivirusClient, AntivirusClient>();
         services.AddScoped<IFileUploadService, FileUploadService>();

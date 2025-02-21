@@ -161,11 +161,6 @@ public class SubmissionService(
         await submissionStatusClient.CreateSubmissionAsync(submission);
     }
 
-    public async Task<GetRegistrationApplicationDetailsResponse?> GetRegistrationApplicationDetails(string request)
-    {
-        return await submissionStatusClient.GetRegistrationApplicationDetails(request);
-    }
-
     public async Task CreateFileDownloadCheckEventAsync(Guid submissionId, FileDownloadCheckEvent fileDownloadCheckEvent)
     {
         await submissionStatusClient.CreateFileDownloadEventAsync(fileDownloadCheckEvent, submissionId);

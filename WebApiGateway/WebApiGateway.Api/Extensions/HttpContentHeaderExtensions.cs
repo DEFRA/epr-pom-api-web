@@ -4,7 +4,7 @@ namespace WebApiGateway.Api.Extensions;
 
 public static class HttpContentHeaderExtensions
 {
-    public static string? GetContentType(this HttpContentHeaders headers)
+    public static string GetContentType(this HttpContentHeaders headers)
     {
         var returnString = string.Empty;
         headers.TryGetValues("Content-Type", out var matchingHeaders);

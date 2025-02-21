@@ -14,7 +14,7 @@ namespace WebApiGateway.UnitTests.Api.Services;
 [TestClass]
 public class PrnServiceTests
 {
-    private static readonly IFixture _fixture = new Fixture();
+    private static readonly IFixture Fixture = new Fixture();
     private Mock<ILogger<PrnService>> _loggerMock;
     private Mock<IPrnServiceClient> _prnServiceClient;
     private Mock<IConfiguration> _configuration;
@@ -32,8 +32,7 @@ public class PrnServiceTests
     [TestMethod]
     public async Task GetAllPrnsForOrganisation_ReturnListOfPrns()
     {
-        var orgId = Guid.NewGuid();
-        var response = _fixture.CreateMany<PrnModel>().ToList();
+        var response = Fixture.CreateMany<PrnModel>().ToList();
         _prnServiceClient.Setup(x => x.GetAllPrnsForOrganisation()).ReturnsAsync(response);
         var result = await _systemUnderTest.GetAllPrnsForOrganisation();
         result.Should().BeEquivalentTo(response);
@@ -43,7 +42,7 @@ public class PrnServiceTests
     public async Task GetPrnsById_ReturnPrn()
     {
         var id = Guid.NewGuid();
-        var response = _fixture.Create<PrnModel>();
+        var response = Fixture.Create<PrnModel>();
         _prnServiceClient.Setup(x => x.GetPrnById(id)).ReturnsAsync(response);
         var result = await _systemUnderTest.GetPrnById(id);
         result.Should().BeEquivalentTo(response);
@@ -52,7 +51,7 @@ public class PrnServiceTests
     [TestMethod]
     public async Task UpdatePrnStatusToAccepted_CallService()
     {
-        var updatePrns = _fixture.CreateMany<UpdatePrnStatus>().ToList();
+        var updatePrns = Fixture.CreateMany<UpdatePrnStatus>().ToList();
         _prnServiceClient.Setup(x => x.UpdatePrnStatus(updatePrns)).Returns(Task.CompletedTask);
         await _systemUnderTest.UpdatePrnStatus(updatePrns);
         _prnServiceClient.Verify();
@@ -62,8 +61,8 @@ public class PrnServiceTests
     public async Task GetSearchPrns_ShouldReturnPaginatedResponse_WhenRequestIsValid()
     {
         // Arrange
-        var request = _fixture.Create<PaginatedRequest>();
-        var expectedResponse = _fixture.Create<PaginatedResponse<PrnModel>>();
+        var request = Fixture.Create<PaginatedRequest>();
+        var expectedResponse = Fixture.Create<PaginatedResponse<PrnModel>>();
         _prnServiceClient
             .Setup(x => x.GetSearchPrns(request))
             .ReturnsAsync(expectedResponse);
@@ -79,7 +78,7 @@ public class PrnServiceTests
     public async Task GetSearchPrns_ShouldThrowException_WhenClientThrowsException()
     {
         // Arrange
-        var request = _fixture.Create<PaginatedRequest>();
+        var request = Fixture.Create<PaginatedRequest>();
         var exception = new Exception("Client error");
         _prnServiceClient
             .Setup(x => x.GetSearchPrns(request))
@@ -96,7 +95,7 @@ public class PrnServiceTests
     public async Task GetObligationCalculationByYear_ReturnsCalculations()
     {
         int year = DateTime.Now.Year;
-        var calculations = _fixture.Create<ObligationModel>();
+        var calculations = Fixture.Create<ObligationModel>();
         _prnServiceClient.Setup(x => x.GetObligationCalculationByYearAsync(year)).ReturnsAsync(calculations);
         var result = await _systemUnderTest.GetObligationCalculationByYear(year);
         result.Should().BeEquivalentTo(calculations);

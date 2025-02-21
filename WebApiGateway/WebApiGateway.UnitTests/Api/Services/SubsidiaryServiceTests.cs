@@ -68,7 +68,7 @@ public class SubsidiaryServiceTests
             _accountServiceClientMock.Object,
             _httpContextAccessorMock.Object,
             _connectionMultiplexerMock.Object,
-            Options.Create<RedisOptions>(_redisOptions),
+            Options.Create(_redisOptions),
             _loggerMock.Object);
     }
 
@@ -215,7 +215,7 @@ public class SubsidiaryServiceTests
             _accountServiceClientMock.Object,
             _httpContextAccessorMock.Object,
             _connectionMultiplexerMock.Object,
-            Options.Create<RedisOptions>(_redisOptions),
+            Options.Create(_redisOptions),
             _loggerMock.Object);
 
         // Act

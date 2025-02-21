@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApiGateway.Api.Extensions;
 using WebApiGateway.Api.Services.Interfaces;
-using WebApiGateway.Core.Models.ComplianceSchemeDetails;
 using WebApiGateway.Core.Models.Submission;
 using WebApiGateway.Core.Models.Submissions;
 
@@ -12,9 +11,7 @@ namespace WebApiGateway.Api.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/submissions")]
 public class SubmissionController(
-    ISubmissionService submissionService,
-    IProducerDetailsService producerDetailsService,
-    IComplianceSchemeDetailsService complianceSchemeDetailsService) : ControllerBase
+    ISubmissionService submissionService) : ControllerBase
 {
     [HttpGet("{submissionId:guid}", Name = nameof(GetSubmission))]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -100,29 +97,5 @@ public class SubmissionController(
     {
         await submissionService.CreateRegistrationEventAsync(submissionId, applicationPayload);
         return new NoContentResult();
-    }
-
-    [HttpGet("get-registration-application-details")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> GetRegistrationApplicationDetails([FromQuery] int organisationNumber, [FromQuery] Guid? complianceSchemeId)
-    {
-        var result = await submissionService.GetRegistrationApplicationDetails(Request.QueryString.Value);
-        if (result is null)
-        {
-            return NoContent();
-        }
-
-        var producerDetails = await producerDetailsService.GetProducerDetails(organisationNumber);
-        result.ProducerDetails = producerDetails ?? null!;
-
-        result.CsoMemberDetails = Enumerable.Empty<GetComplianceSchemeMemberDetailsResponse>().ToList();
-
-        if (complianceSchemeId.HasValue)
-        {
-            var csoMemberDetails = await complianceSchemeDetailsService.GetComplianceSchemeDetails(organisationNumber, complianceSchemeId.Value);
-            result.CsoMemberDetails = csoMemberDetails is null || csoMemberDetails.Count == 0 ? result.CsoMemberDetails : csoMemberDetails;
-        }
-
-        return Ok(result);
     }
 }

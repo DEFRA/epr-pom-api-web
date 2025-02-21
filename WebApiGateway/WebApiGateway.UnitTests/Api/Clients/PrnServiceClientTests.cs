@@ -23,8 +23,8 @@ namespace WebApiGateway.UnitTests.Api.Clients
     [TestClass]
     public class PrnServiceClientTests
     {
-        private static readonly IFixture _fixture = new Fixture();
-        private readonly UserAccount _userAccount = _fixture.Create<UserAccount>();
+        private static readonly IFixture Fixture = new Fixture();
+        private readonly UserAccount _userAccount = Fixture.Create<UserAccount>();
         private Mock<ILogger<PrnServiceClient>> _loggerMock;
         private Mock<HttpMessageHandler> _httpMessageHandlerMock;
         private HttpClient _httpClient;
@@ -66,7 +66,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
         [TestMethod]
         public async Task GetAllPrnsForOrganisation_ReturnListOfPrns()
         {
-            var response = _fixture.CreateMany<PrnModel>().ToList();
+            var response = Fixture.CreateMany<PrnModel>().ToList();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
 
             var result = await _systemUnderTest.GetAllPrnsForOrganisation();
@@ -90,7 +90,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
         public async Task GetPrnById_ReturnPrns()
         {
             var prnId = Guid.NewGuid();
-            var response = _fixture.Create<PrnModel>();
+            var response = Fixture.Create<PrnModel>();
 
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
 
@@ -116,7 +116,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
         [TestMethod]
         public async Task UpdatePrnStatusToAccepted_ReturnNoContent()
         {
-            var updatePrns = _fixture.CreateMany<UpdatePrnStatus>().ToList();
+            var updatePrns = Fixture.CreateMany<UpdatePrnStatus>().ToList();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.NoContent, null);
 
             await _systemUnderTest.UpdatePrnStatus(updatePrns);
@@ -130,7 +130,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
         [TestMethod]
         public async Task UpdatePrnStatusToAccepted_ThrowsExceptionIfStatusIsNotSUccess()
         {
-            var updatePrns = _fixture.CreateMany<UpdatePrnStatus>().ToList();
+            var updatePrns = Fixture.CreateMany<UpdatePrnStatus>().ToList();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
 
             await _systemUnderTest.Invoking(x => x.UpdatePrnStatus(updatePrns)).Should().ThrowAsync<HttpRequestException>();
@@ -140,7 +140,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
         public async Task GetObligationCalculationByYear_ReturnsCalculations()
         {
             int year = DateTime.Now.Year;
-            var calculations = _fixture.Create<ObligationModel>();
+            var calculations = Fixture.Create<ObligationModel>();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, calculations.ToJsonContent());
 
             var result = await _systemUnderTest.GetObligationCalculationByYearAsync(year);
@@ -265,7 +265,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
         public async Task GetSearchPrns_ShouldLogErrorAndThrowException_WhenHttpRequestFails()
         {
             // Arrange
-            var request = _fixture.Create<PaginatedRequest>();
+            var request = Fixture.Create<PaginatedRequest>();
             var exception = new HttpRequestException("Request failed");
             _httpMessageHandlerMock
                 .Protected()
@@ -303,7 +303,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
                     It.IsAny<It.IsAnyType>(),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()))
-                .Callback<LogLevel, EventId, object, Exception, Delegate>((logLevel, eventId, state, exception, formatter) =>
+                .Callback<LogLevel, EventId, object, Exception, Delegate>((_, _, state, _, _) =>
                 {
                     logEntries.Add(state.ToString());
                 });

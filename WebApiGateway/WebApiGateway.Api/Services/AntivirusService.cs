@@ -14,7 +14,7 @@ public class AntivirusService(
     IOptions<AntivirusApiOptions> antivirusApiOptions)
     : IAntivirusService
 {
-    private readonly AntivirusApiOptions _antivirusApiOptions = antivirusApiOptions.Value;
+    private readonly AntivirusApiOptions? _antivirusApiOptions = antivirusApiOptions.Value;
 
     public async Task SendFileAsync(SubmissionType submissionType, Guid fileId, string fileName, Stream fileStream)
     {

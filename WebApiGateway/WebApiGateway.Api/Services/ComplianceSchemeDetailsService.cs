@@ -1,22 +1,11 @@
-﻿using WebApiGateway.Api.Clients.Interfaces;
-using WebApiGateway.Api.Services.Interfaces;
+﻿using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Constants;
-using WebApiGateway.Core.Models.ComplianceSchemeDetails;
 
 namespace WebApiGateway.Api.Services;
 
-public class ComplianceSchemeDetailsService(
-    IComplianceSchemeDetailsClient complianceSchemeDetailsClient,
-    ILogger<ComplianceSchemeDetailsService> logger,
-    IHttpContextAccessor httpContextAccessor)
+public class ComplianceSchemeDetailsService(IHttpContextAccessor httpContextAccessor)
     : IComplianceSchemeDetailsService
 {
-    public async Task<List<GetComplianceSchemeMemberDetailsResponse>?> GetComplianceSchemeDetails(int organisationId, Guid complianceSchemeId)
-    {
-        logger.LogDebug("Get Compliance Scheme Details For Organisation Id {OrganisationId}", organisationId);
-        return await complianceSchemeDetailsClient.GetComplianceSchemeDetails(organisationId, complianceSchemeId);
-    }
-
     public async Task<Guid?> GetComplianceSchemeIdAsync()
     {
         var context = httpContextAccessor.HttpContext;

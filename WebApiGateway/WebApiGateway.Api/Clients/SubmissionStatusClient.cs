@@ -10,7 +10,6 @@ using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
 using WebApiGateway.Core.Models.SubmissionHistory;
 using WebApiGateway.Core.Models.Submissions;
-using static System.Net.WebRequestMethods;
 
 namespace WebApiGateway.Api.Clients;
 
@@ -257,7 +256,7 @@ public class SubmissionStatusClient(
         return JsonConvert.DeserializeObject<List<SubmissionGetResponse>>(content);
     }
 
-    public async Task<GetRegistrationApplicationDetailsResponse?> GetRegistrationApplicationDetails(string queryString)
+    public async Task<RegistrationApplicationDetails?> GetRegistrationApplicationDetails(string queryString)
     {
         await ConfigureHttpClientAsync();
 
@@ -276,7 +275,7 @@ public class SubmissionStatusClient(
 
         var content = await response.Content.ReadAsStringAsync();
 
-        return JsonConvert.DeserializeObject<GetRegistrationApplicationDetailsResponse>(content);
+        return JsonConvert.DeserializeObject<RegistrationApplicationDetails>(content);
     }
 
     public async Task<HttpResponseMessage> CreateFileDownloadEventAsync(FileDownloadCheckEvent fileDownloadCheckEvent, Guid submissionId)

@@ -619,22 +619,6 @@ public class SubmissionServiceTests
     }
 
     [TestMethod]
-    public async Task GetRegistrationApplicationSubmissionDetails_ReturnsRegistrationValidationErrorsRows()
-    {
-        // Arrange
-        var response = new GetRegistrationApplicationDetailsResponse();
-        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>())).ReturnsAsync(response);
-
-        // Act
-        var result = await _systemUnderTest.GetRegistrationApplicationDetails("TestQueryString");
-
-        // Assert
-        result.Should().BeEquivalentTo(response);
-
-        _submissionStatusClientMock.Verify(x => x.GetRegistrationApplicationDetails("TestQueryString"), Times.Once);
-    }
-
-    [TestMethod]
     [DataRow(ContentScan.Clean)]
     [DataRow(ContentScan.Malicious)]
 

@@ -66,18 +66,12 @@ public static class HttpClientServiceCollectionExtensions
             .AddHttpMessageHandler<PrnServiceAuthorisationHandler>()
             .AddPolicyHandler(GetRetryPolicy());
 
-        services.AddHttpClient<IProducerDetailsClient, ProducerDetailsClient>((sp, client) =>
+        services.AddHttpClient<IRegistrationFeeCalculationDetailsClient, RegistrationFeeCalculationDetailsClient>((sp, client) =>
             {
                 var options = sp.GetRequiredService<IOptions<CommonDataApiOptions>>().Value;
                 client.BaseAddress = new Uri($"{options.BaseUrl}/api/");
             })
             .AddPolicyHandler(GetRetryPolicy());
-        services.AddHttpClient<IComplianceSchemeDetailsClient, ComplianceSchemeDetailsClient>((sp, client) =>
-            {
-                var options = sp.GetRequiredService<IOptions<CommonDataApiOptions>>().Value;
-                client.BaseAddress = new Uri($"{options.BaseUrl}/api/");
-            })
-           .AddPolicyHandler(GetRetryPolicy());
 
         return services;
     }

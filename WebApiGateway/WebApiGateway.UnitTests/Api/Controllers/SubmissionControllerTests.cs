@@ -10,8 +10,6 @@ using Moq;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Enumeration;
-using WebApiGateway.Core.Models.ComplianceSchemeDetails;
-using WebApiGateway.Core.Models.ProducerDetails;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
@@ -26,17 +24,13 @@ public class SubmissionControllerTests
 {
     private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
     private Mock<ISubmissionService> _submissionServiceMock;
-    private Mock<IProducerDetailsService> _producerDetailsService;
-    private Mock<IComplianceSchemeDetailsService> _complianceSchemeDetailsService;
     private SubmissionController _systemUnderTest;
 
     [TestInitialize]
     public void TestInitialize()
     {
         _submissionServiceMock = new Mock<ISubmissionService>();
-        _producerDetailsService = new Mock<IProducerDetailsService>();
-        _complianceSchemeDetailsService = new Mock<IComplianceSchemeDetailsService>();
-        _systemUnderTest = new SubmissionController(_submissionServiceMock.Object, _producerDetailsService.Object, _complianceSchemeDetailsService.Object)
+        _systemUnderTest = new SubmissionController(_submissionServiceMock.Object)
         {
             ControllerContext = { HttpContext = new DefaultHttpContext() }
         };
@@ -225,67 +219,5 @@ public class SubmissionControllerTests
         // Assert
         result.Value.Should().Be(validationIssueRows);
         _submissionServiceMock.Verify(x => x.GetRegistrationValidationErrorsAsync(submissionId), Times.Once);
-    }
-
-    [TestMethod]
-    public async Task GetRegistrationApplicationDetails_ReturnsOkObjectResult()
-    {
-        // Arrange
-        var response = new GetRegistrationApplicationDetailsResponse();
-
-        _submissionServiceMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>())).ReturnsAsync(response);
-
-        _complianceSchemeDetailsService.Setup(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>())).ReturnsAsync(new List<GetComplianceSchemeMemberDetailsResponse> { new GetComplianceSchemeMemberDetailsResponse() });
-
-        _producerDetailsService.Setup(x => x.GetProducerDetails(It.IsAny<int>())).ReturnsAsync(new GetProducerDetailsResponse());
-
-        // Act
-        var result = await _systemUnderTest.GetRegistrationApplicationDetails(123, Guid.NewGuid()) as OkObjectResult;
-
-        // Assert
-        result!.Value.Should().Be(response);
-        response.CsoMemberDetails.Should().NotBeNull();
-        response.ProducerDetails.Should().NotBeNull();
-
-        _submissionServiceMock.Verify(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
-        _complianceSchemeDetailsService.Verify(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>()), Times.Once);
-        _producerDetailsService.Verify(x => x.GetProducerDetails(It.IsAny<int>()), Times.Once);
-    }
-
-    [TestMethod]
-    public async Task GetRegistrationApplicationDetails_ReturnsNoContentResult()
-    {
-        // Arrange
-        _submissionServiceMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>())).ReturnsAsync((GetRegistrationApplicationDetailsResponse)null);
-
-        // Act
-        var result = await _systemUnderTest.GetRegistrationApplicationDetails(123, Guid.NewGuid()) as OkObjectResult;
-
-        // Assert
-        result!.Should().Be(null);
-
-        _submissionServiceMock.Verify(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
-        _complianceSchemeDetailsService.Verify(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
-        _producerDetailsService.Verify(x => x.GetProducerDetails(It.IsAny<int>()), Times.Never);
-    }
-
-    [TestMethod]
-    public async Task GetRegistrationApplicationDetails_When_GetComplianceSchemeDetails_is_Empty_ReturnsOkObjectResult()
-    {
-        // Arrange
-        var response = new GetRegistrationApplicationDetailsResponse();
-
-        _submissionServiceMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>())).ReturnsAsync(response);
-        _complianceSchemeDetailsService.Setup(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>())).ReturnsAsync(new List<GetComplianceSchemeMemberDetailsResponse>());
-
-        // Act
-        var result = await _systemUnderTest.GetRegistrationApplicationDetails(123, Guid.NewGuid()) as OkObjectResult;
-
-        // Assert
-        result!.Value.Should().Be(response);
-
-        _submissionServiceMock.Verify(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
-        _complianceSchemeDetailsService.Verify(x => x.GetComplianceSchemeDetails(It.IsAny<int>(), It.IsAny<Guid>()), Times.Once);
-        _producerDetailsService.Verify(x => x.GetProducerDetails(It.IsAny<int>()), Times.Once);
     }
 }

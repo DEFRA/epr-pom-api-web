@@ -12,7 +12,7 @@ using Moq.Protected;
 using Newtonsoft.Json;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
-using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
 using WebApiGateway.Core.Models.UserAccount;
@@ -25,42 +25,40 @@ namespace WebApiGateway.UnitTests.Api.Clients
     {
         private static readonly IFixture Fixture = new Fixture();
         private readonly UserAccount _userAccount = Fixture.Create<UserAccount>();
+        private readonly Mock<ClaimsPrincipal> _claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         private Mock<ILogger<PrnServiceClient>> _loggerMock;
         private Mock<HttpMessageHandler> _httpMessageHandlerMock;
         private HttpClient _httpClient;
         private Mock<IAccountServiceClient> _accountServiceClientMock;
         private Mock<IConfiguration> _configurationMock;
         private PrnServiceClient _systemUnderTest;
-        private Mock<IComplianceSchemeDetailsService> _complianceSchemeSvcMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
             _loggerMock = new Mock<ILogger<PrnServiceClient>>();
             _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-            _complianceSchemeSvcMock = new Mock<IComplianceSchemeDetailsService>();
 
             _httpClient = new HttpClient(_httpMessageHandlerMock.Object)
             {
                 BaseAddress = new Uri("https://example.com")
             };
 
-            var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
-
-            claimsPrincipalMock.Setup(x => x.Claims).Returns(new List<Claim>
+            _claimsPrincipalMock.Setup(x => x.Claims).Returns(new List<Claim>
             {
                 new(ClaimConstants.ObjectId, _userAccount.User.Id.ToString())
             });
 
             _accountServiceClientMock = new Mock<IAccountServiceClient>();
             _accountServiceClientMock.Setup(x => x.GetUserAccount(_userAccount.User.Id)).ReturnsAsync(_userAccount);
-            httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipalMock.Object);
+            _httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(_claimsPrincipalMock.Object);
+            _httpContextAccessorMock.Setup(x => x.HttpContext.Items).Returns(new Dictionary<object, object>());
 
             _configurationMock = new Mock<IConfiguration>();
             _configurationMock.Setup(c => c["LogPrefix"]).Returns("[WebApiGateway]");
 
-            _systemUnderTest = new PrnServiceClient(_httpClient, _loggerMock.Object, httpContextAccessorMock.Object, _accountServiceClientMock.Object, _configurationMock.Object, _complianceSchemeSvcMock.Object);
+            _systemUnderTest = new PrnServiceClient(_httpClient, _loggerMock.Object, _httpContextAccessorMock.Object, _accountServiceClientMock.Object, _configurationMock.Object);
         }
 
         [TestMethod]
@@ -168,7 +166,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var request = new PaginatedRequest();
             var expectedResponse = new PaginatedResponse<PrnModel>
             {
-                Items = new List<PrnModel> { new() { Id = 1, PrnNumber = "PRN123" } },
+                Items = [new PrnModel { Id = 1, PrnNumber = "PRN123" }],
                 CurrentPage = 1,
                 TotalItems = 1,
                 PageSize = 10
@@ -200,7 +198,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var request = new PaginatedRequest();
             var expectedResponse = new PaginatedResponse<PrnModel>
             {
-                Items = new List<PrnModel>(),
+                Items = [],
                 CurrentPage = 1,
                 TotalItems = 0,
                 PageSize = 10
@@ -232,11 +230,11 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var request = new PaginatedRequest();
             var expectedResponse = new PaginatedResponse<PrnModel>
             {
-                Items = new List<PrnModel>
-                {
-                    new() { Id = 1, PrnNumber = "PRN123" },
-                    new() { Id = 2, PrnNumber = "PRN456" }
-                },
+                Items =
+                [
+                    new PrnModel { Id = 1, PrnNumber = "PRN123" },
+                    new PrnModel { Id = 2, PrnNumber = "PRN456" }
+                ],
                 CurrentPage = 1,
                 TotalItems = 2,
                 PageSize = 10
@@ -303,10 +301,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
                     It.IsAny<It.IsAnyType>(),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()))
-                .Callback<LogLevel, EventId, object, Exception, Delegate>((_, _, state, _, _) =>
-                {
-                    logEntries.Add(state.ToString());
-                });
+                .Callback<LogLevel, EventId, object, Exception, Delegate>((_, _, state, _, _) => { logEntries.Add(state.ToString()); });
 
             // Act
             Func<Task> act = async () => await _systemUnderTest.GetObligationCalculationByYearAsync(year);
@@ -317,6 +312,140 @@ namespace WebApiGateway.UnitTests.Api.Clients
                 log.Contains("PrnServiceClient - GetObligationCalculationByYearAsync: An error occurred retrievig obligation calculations for organisation") &&
                 log.Contains("v1/prn/obligationcalculation") &&
                 log.Contains(year.ToString()));
+        }
+
+        [TestMethod]
+        public async Task GetComplianceSchemeIdAsync_ShouldReturnComplianceSchemeId()
+        {
+            // Arrange
+            var expectedComplianceSchemeId = Guid.Parse("a8c8de60-4e05-4231-90d1-f66387b47d61");
+
+            _httpContextAccessorMock.Setup(accessor => accessor.HttpContext.Items).Returns(
+                new Dictionary<object, object> { { ComplianceScheme.ComplianceSchemeId, expectedComplianceSchemeId } });
+
+            var response = Fixture.CreateMany<PrnModel>().ToList();
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
+
+            // Act
+            _ = await _systemUnderTest.GetAllPrnsForOrganisation();
+
+            // Assert
+            _httpClient.DefaultRequestHeaders.GetValues("X-EPR-ORGANISATION").Should().BeEquivalentTo(expectedComplianceSchemeId.ToString());
+        }
+
+        [TestMethod]
+        public async Task GetComplianceSchemeIdAsync_ShouldReturnNull_WhenNoComplianceSchemeIdFound()
+        {
+            // Arrange
+            _accountServiceClientMock.Setup(x => x.GetUserAccount(It.IsAny<Guid>())).ReturnsAsync(_userAccount);
+
+            var response = Fixture.CreateMany<PrnModel>().ToList();
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
+
+            // Act
+            _ = await _systemUnderTest.GetAllPrnsForOrganisation();
+
+            // Assert
+            _httpClient.DefaultRequestHeaders.GetValues("X-EPR-ORGANISATION").Should().BeEquivalentTo(_userAccount.User.Organisations[0].Id.ToString());
+        }
+
+        [TestMethod]
+        public async Task GetComplianceSchemeIdAsync_ShouldReturnGuid_WhenValueIsGuid()
+        {
+            // Arrange
+            var expectedComplianceSchemeId = Guid.NewGuid();
+
+            _httpContextAccessorMock.Setup(accessor => accessor.HttpContext.Items).Returns(
+                new Dictionary<object, object> { { ComplianceScheme.ComplianceSchemeId, expectedComplianceSchemeId } });
+
+            var response = Fixture.CreateMany<PrnModel>().ToList();
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
+
+            // Act
+            _ = await _systemUnderTest.GetAllPrnsForOrganisation();
+
+            // Assert
+            _httpClient.DefaultRequestHeaders.GetValues("X-EPR-ORGANISATION").Should().BeEquivalentTo(expectedComplianceSchemeId.ToString());
+        }
+
+        [TestMethod]
+        public async Task GetComplianceSchemeIdAsync_ShouldReturnGuid_WhenValueIsValidStringRepresentationOfGuid()
+        {
+            // Arrange
+            var expectedComplianceSchemeId = Guid.NewGuid();
+
+            _httpContextAccessorMock.Setup(accessor => accessor.HttpContext.Items).Returns(
+                new Dictionary<object, object> { { ComplianceScheme.ComplianceSchemeId, expectedComplianceSchemeId } });
+
+            var response = Fixture.CreateMany<PrnModel>().ToList();
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
+
+            // Act
+            _ = await _systemUnderTest.GetAllPrnsForOrganisation();
+
+            // Assert
+            _httpClient.DefaultRequestHeaders.GetValues("X-EPR-ORGANISATION").Should().BeEquivalentTo(expectedComplianceSchemeId.ToString());
+        }
+
+        [TestMethod]
+        public async Task GetComplianceSchemeIdAsync_ShouldReturnNull_WhenValueIsInvalidString()
+        {
+            // Arrange
+            var invalidString = "InvalidGuidString";
+
+            _httpContextAccessorMock.Setup(accessor => accessor.HttpContext.Items).Returns(
+                new Dictionary<object, object> { { ComplianceScheme.ComplianceSchemeId, invalidString } });
+
+            _accountServiceClientMock.Setup(x => x.GetUserAccount(It.IsAny<Guid>())).ReturnsAsync(_userAccount);
+
+            var response = Fixture.CreateMany<PrnModel>().ToList();
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
+
+            // Act
+            _ = await _systemUnderTest.GetAllPrnsForOrganisation();
+
+            // Assert
+            _httpClient.DefaultRequestHeaders.GetValues("X-EPR-ORGANISATION").Should().BeEquivalentTo(_userAccount.User.Organisations[0].Id.ToString());
+        }
+
+        [TestMethod]
+        public async Task GetComplianceSchemeIdAsync_ShouldReturnNull_WhenValueIsOfDifferentType()
+        {
+            // Arrange
+            var invalidTypeValue = 12345; // Example of a different type
+
+            _httpContextAccessorMock.Setup(accessor => accessor.HttpContext.Items).Returns(
+                new Dictionary<object, object> { { ComplianceScheme.ComplianceSchemeId, invalidTypeValue } });
+
+            _accountServiceClientMock.Setup(x => x.GetUserAccount(It.IsAny<Guid>())).ReturnsAsync(_userAccount);
+
+            var response = Fixture.CreateMany<PrnModel>().ToList();
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
+
+            // Act
+            _ = await _systemUnderTest.GetAllPrnsForOrganisation();
+
+            // Assert
+            _httpClient.DefaultRequestHeaders.GetValues("X-EPR-ORGANISATION").Should().BeEquivalentTo(_userAccount.User.Organisations[0].Id.ToString());
+        }
+
+        [TestMethod]
+        public async Task GetComplianceSchemeIdAsync_ShouldReturnNull_WhenValueIsNull()
+        {
+            // Arrange
+            _httpContextAccessorMock.Setup(accessor => accessor.HttpContext.Items).Returns(
+                new Dictionary<object, object> { { ComplianceScheme.ComplianceSchemeId, null } });
+
+            _accountServiceClientMock.Setup(x => x.GetUserAccount(It.IsAny<Guid>())).ReturnsAsync(_userAccount);
+
+            var response = Fixture.CreateMany<PrnModel>().ToList();
+            _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, response.ToJsonContent());
+
+            // Act
+            _ = await _systemUnderTest.GetAllPrnsForOrganisation();
+
+            // Assert
+            _httpClient.DefaultRequestHeaders.GetValues("X-EPR-ORGANISATION").Should().BeEquivalentTo(_userAccount.User.Organisations[0].Id.ToString());
         }
     }
 }

@@ -1,5 +1,8 @@
-﻿namespace WebApiGateway.Core.Models.Prns;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace WebApiGateway.Core.Models.Prns;
+
+[ExcludeFromCodeCoverage]
 public class ObligationCalculation
 {
     public int OrganisationId { get; set; }

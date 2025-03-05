@@ -19,18 +19,18 @@ public class PrnServiceClient(HttpClient httpClient, ILogger<PrnServiceClient> l
         var orgId = await ConfigureHttpClientAsync();
         try
         {
-            logger.LogInformation("{Logprefix}: PrnServiceClient - GetAllPrnsForOrganisation: calling endpoint 'v1/prn/organisation' with organisation id {OrganisationId}", _logPrefix, orgId);
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - GetAllPrnsForOrganisation: calling endpoint 'v1/prn/organisation' with organisation id {OrganisationId}", _logPrefix, orgId);
 
             var response = await httpClient.GetAsync("v1/prn/organisation");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
 
-            logger.LogInformation("{Logprefix}: PrnServiceClient - GetAllPrnsForOrganisation: response from endpoint {Response}", _logPrefix, content);
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - GetAllPrnsForOrganisation: response from endpoint {Response}", _logPrefix, content);
             return JsonConvert.DeserializeObject<List<PrnModel>>(content);
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "{Logprefix}: PrnServiceClient - GetAllPrnsForOrganisation: An error occurred retrieving prns for organisation {OrganisationId}", _logPrefix, orgId);
+            logger.LogError(exception, "{_logPrefix}: PrnServiceClient - GetAllPrnsForOrganisation: An error occurred retrieving prns for organisation {OrganisationId}", _logPrefix, orgId);
             throw;
         }
     }
@@ -40,18 +40,18 @@ public class PrnServiceClient(HttpClient httpClient, ILogger<PrnServiceClient> l
         var orgId = await ConfigureHttpClientAsync();
         try
         {
-            logger.LogInformation("{Logprefix}: PrnServiceClient - GetSearchPrns: calling endpoint 'v1/prn/search' with organisation id {OrganisationId} and Search criteria {Search}", _logPrefix, orgId, JsonConvert.SerializeObject(request));
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - GetSearchPrns: calling endpoint 'v1/prn/search' with organisation id {OrganisationId} and Search criteria {Search}", _logPrefix, orgId, JsonConvert.SerializeObject(request));
 
             var response = await httpClient.GetAsync($"v1/prn/search{BuildUrlWithQueryString(request)}");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
 
-            logger.LogInformation("{Logprefix}: PrnServiceClient - GetSearchPrns: response from endpoint {Response}", _logPrefix, content);
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - GetSearchPrns: response from endpoint {Response}", _logPrefix, content);
             return JsonConvert.DeserializeObject<PaginatedResponse<PrnModel>>(content);
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "{Logprefix}: PrnServiceClient - GetSearchPrns: An error occurred retrieving PRN search result for organisation {OrganisationId}", _logPrefix, orgId);
+            logger.LogError(exception, "{_logPrefix}: PrnServiceClient - GetSearchPrns: An error occurred retrieving PRN search result for organisation {OrganisationId}", _logPrefix, orgId);
             throw;
         }
     }
@@ -61,17 +61,17 @@ public class PrnServiceClient(HttpClient httpClient, ILogger<PrnServiceClient> l
         try
         {
             await ConfigureHttpClientAsync();
-            logger.LogInformation("{Logprefix}: PrnServiceClient - GetPrnById: calling endpoint 'v1/prn/{Id}'", _logPrefix, id);
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - GetPrnById: calling endpoint 'v1/prn/{Id}'", _logPrefix, id);
             var response = await httpClient.GetAsync($"v1/prn/{id}");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
 
-            logger.LogInformation("{Logprefix}: PrnServiceClient - GetPrnById: response from endpoint {Response}", _logPrefix, content);
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - GetPrnById: response from endpoint {Response}", _logPrefix, content);
             return JsonConvert.DeserializeObject<PrnModel>(content);
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "{Logprefix}: PrnServiceClient - GetPrnById: An error occurred retrieving prns for Id {PrnId}", _logPrefix, id);
+            logger.LogError(exception, "{_logPrefix}: PrnServiceClient - GetPrnById: An error occurred retrieving prns for Id {PrnId}", _logPrefix, id);
             throw;
         }
     }
@@ -81,33 +81,34 @@ public class PrnServiceClient(HttpClient httpClient, ILogger<PrnServiceClient> l
         try
         {
             await ConfigureHttpClientAsync();
-            logger.LogInformation("{Logprefix}: PrnServiceClient - UpdatePrnStatus: calling endpoint 'v1/prn/status' with Prns to update {UpdatePrns}", _logPrefix, JsonConvert.SerializeObject(updatePrns));
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - UpdatePrnStatus: calling endpoint 'v1/prn/status' with Prns to update {UpdatePrns}", _logPrefix, JsonConvert.SerializeObject(updatePrns));
             var response = await httpClient.PostAsJsonAsync($"v1/prn/status", updatePrns);
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "{Logprefix}: PrnServiceClient - UpdatePrnStatus: An error occurred updating prns statuses {UpdatePrns}", _logPrefix, JsonConvert.SerializeObject(updatePrns));
+            logger.LogError(exception, "{_logPrefix}: PrnServiceClient - UpdatePrnStatus: An error occurred updating prns statuses {UpdatePrns}", _logPrefix, JsonConvert.SerializeObject(updatePrns));
             throw;
         }
     }
 
-    public async Task<ObligationModel> GetObligationCalculationByYearAsync(int year)
+    public async Task<ObligationModel> GetObligationHierarchyCalculationByYearAsync(List<Guid> organisationIds, int year)
     {
         try
         {
             var orgId = await ConfigureHttpClientAsync();
-            logger.LogInformation("{Logprefix}: PrnServiceClient - GetObligationCalculationByYearAsync: calling endpoint '{ObligationCalculationURL}/{Year}' for organisation {OrgId}", _logPrefix, ObligationCalculationUrl, year, orgId);
-            var response = await httpClient.GetAsync($"{ObligationCalculationUrl}/{year}");
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - GetObligationCalculationByYearAsync: calling endpoint '{ObligationCalculationUrl}/{Year}' for organisation {OrgId}", _logPrefix, ObligationCalculationUrl, year, orgId);
+
+            var response = await httpClient.PostAsJsonAsync($"{ObligationCalculationUrl}/{year}", organisationIds);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
 
-            logger.LogInformation("{Logprefix}: PrnServiceClient - GetObligationCalculationByYearAsync: response from endpoint {Response}", _logPrefix, content);
+            logger.LogInformation("{_logPrefix}: PrnServiceClient - GetObligationCalculationByYearAsync: response from endpoint {Response}", _logPrefix, content);
             return JsonConvert.DeserializeObject<ObligationModel>(content);
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "{Logprefix}: PrnServiceClient - GetObligationCalculationByYearAsync: An error occurred retrievig obligation calculations for organisation {ObligationCalculationURL}/{Year}", _logPrefix, ObligationCalculationUrl, year);
+            logger.LogError(exception, "{_logPrefix}: PrnServiceClient - GetObligationCalculationByYearAsync: An error occurred retrievig obligation calculations for organisation {ObligationCalculationUrl}/{Year}", _logPrefix, ObligationCalculationUrl, year);
             throw;
         }
     }
@@ -128,7 +129,7 @@ public class PrnServiceClient(HttpClient httpClient, ILogger<PrnServiceClient> l
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "{Logprefix}: PrnServiceClient - ConfigureHttpClientAsync: Error getting user accounts with id {UserId}", _logPrefix, userId);
+            logger.LogError(exception, "{_logPrefix}: PrnServiceClient - ConfigureHttpClientAsync: Error getting user accounts with id {UserId}", _logPrefix, userId);
             throw;
         }
     }

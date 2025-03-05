@@ -12,56 +12,47 @@ namespace WebApiGateway.Api.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}")]
 [ComplianceSchemeIdFilter]
-public class PrnController : ControllerBase
+public class PrnController(IPrnService prnService, ILogger<PrnController> logger, IConfiguration config) : ControllerBase
 {
-    private readonly IPrnService _prnService;
-    private readonly ILogger<PrnController> _logger;
-    private readonly string _logPrefix;
-
-    public PrnController(IPrnService prnService, ILogger<PrnController> logger, IConfiguration config)
-    {
-        _prnService = prnService;
-        _logger = logger;
-        _logPrefix = config["LogPrefix"];
-    }
+    private readonly string logPrefix = config["LogPrefix"];
 
     [HttpGet("prn/organisation")]
     [ProducesResponseType(typeof(List<PrnModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPrnsForOrganisation()
     {
-        _logger.LogInformation("{Logprefix}: PrnController - GetAllPrnsForOrganisation: Get AllPrns For logged in User's Organisation", _logPrefix);
-        return new OkObjectResult(await _prnService.GetAllPrnsForOrganisation());
+        logger.LogInformation("{Logprefix}: PrnController - GetAllPrnsForOrganisation: Get AllPrns For logged in User's Organisation", logPrefix);
+        return new OkObjectResult(await prnService.GetAllPrnsForOrganisation());
     }
 
     [HttpGet("prn/{id}")]
     [ProducesResponseType(typeof(PrnModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPrnById(Guid id)
     {
-        _logger.LogInformation("{Logprefix}: PrnController - GetPrnById: Get Prn for given Id {Id}", _logPrefix, id);
-        return new OkObjectResult(await _prnService.GetPrnById(id));
-    }
-
-    [HttpGet("prn/obligation/{year}")]
-    [ProducesResponseType(typeof(List<ObligationModel>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetObligation(int year)
-    {
-        _logger.LogInformation("{Logprefix}: PrnController - GetObligation: Get Obligation request for user organisation and year {Year}", _logPrefix, year);
-        return new OkObjectResult(await _prnService.GetObligationCalculationByYear(year));
+        logger.LogInformation("{Logprefix}: PrnController - GetPrnById: Get Prn for given Id {Id}", logPrefix, id);
+        return new OkObjectResult(await prnService.GetPrnById(id));
     }
 
     [HttpGet("prn/search")]
     [ProducesResponseType(typeof(PaginatedResponse<PrnModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> SearchPrn([FromQuery] PaginatedRequest request)
     {
-        _logger.LogInformation("{Logprefix}: PrnController - SearchPrn: Search Prns for given serach criteria {SearchCriteria}", _logPrefix, JsonConvert.SerializeObject(request));
-        return new OkObjectResult(await _prnService.GetSearchPrns(request));
+        logger.LogInformation("{Logprefix}: PrnController - SearchPrn: Search Prns for given serach criteria {SearchCriteria}", logPrefix, JsonConvert.SerializeObject(request));
+        return new OkObjectResult(await prnService.GetSearchPrns(request));
+    }
+
+    [HttpPost("prn/obligationcalculation/{year}")]
+    [ProducesResponseType(typeof(List<ObligationModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetObligationCalculation(List<Guid> organisationIds, int year)
+    {
+        logger.LogInformation("{Logprefix}: PrnController - GetObligationCalculation: Get Obligation request for given organisations and year {Year}, {Organisations}", logPrefix, year, organisationIds);
+        return new OkObjectResult(await prnService.GetObligationHierarchyCalculationByYearAsync(organisationIds, year));
     }
 
     [HttpPost("prn/status")]
     public async Task<IActionResult> UpdatePrnStatusToAccepted(List<UpdatePrnStatus> updatePrns)
     {
-        _logger.LogInformation("{Logprefix}: PrnController - UpdatePrnStatusToAccepted: Update Prn Satus for given Prns {Prns}", _logPrefix, JsonConvert.SerializeObject(updatePrns));
-        await _prnService.UpdatePrnStatus(updatePrns);
+        logger.LogInformation("{Logprefix}: PrnController - UpdatePrnStatusToAccepted: Update Prn Satus for given Prns {Prns}", logPrefix, JsonConvert.SerializeObject(updatePrns));
+        await prnService.UpdatePrnStatus(updatePrns);
         return NoContent();
     }
 }

@@ -94,10 +94,13 @@ public class PrnServiceTests
     [TestMethod]
     public async Task GetObligationCalculationByYear_ReturnsCalculations()
     {
+        List<Guid> organisationIds = [];
+        organisationIds.Add(Guid.NewGuid());
+        organisationIds.Add(Guid.NewGuid());
         int year = DateTime.Now.Year;
         var calculations = Fixture.Create<ObligationModel>();
-        _prnServiceClient.Setup(x => x.GetObligationCalculationByYearAsync(year)).ReturnsAsync(calculations);
-        var result = await _systemUnderTest.GetObligationCalculationByYear(year);
+        _prnServiceClient.Setup(x => x.GetObligationHierarchyCalculationByYearAsync(organisationIds, year)).ReturnsAsync(calculations);
+        var result = await _systemUnderTest.GetObligationHierarchyCalculationByYearAsync(organisationIds, year);
         result.Should().BeEquivalentTo(calculations);
     }
 }

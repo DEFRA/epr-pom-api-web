@@ -92,7 +92,7 @@ public class SubmissionStatusClientTests
         // Arrange
         var submissionId = Guid.NewGuid();
         var antivirusCheckEvent = Fixture.Create<AntivirusCheckEvent>();
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest
@@ -100,7 +100,7 @@ public class SubmissionStatusClientTests
             .Should()
             .ThrowAsync<HttpRequestException>();
 
-        _loggerMock.VerifyLog(x => x.LogError("Error creating AntivirusCheck event"));
+        _loggerMock.VerifyLog(x => x.LogError("Error creating AntivirusCheck event, responseContent Error Occured"));
     }
 
     [TestMethod]
@@ -130,11 +130,11 @@ public class SubmissionStatusClientTests
         // Arrange
         var applicationSubmittedEvent = Fixture.Create<RegistrationApplicationSubmittedEvent>();
 
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest.Invoking(x => x.CreateApplicationSubmittedEventAsync(applicationSubmittedEvent, Guid.NewGuid())).Should().ThrowAsync<HttpRequestException>();
-        _loggerMock.VerifyLog(x => x.LogError("Error creating RegistrationApplicationSubmitted event"));
+        _loggerMock.VerifyLog(x => x.LogError("Error creating RegistrationApplicationSubmitted event, responseContent Error Occured"));
     }
 
     [TestMethod]
@@ -164,11 +164,11 @@ public class SubmissionStatusClientTests
         // Arrange
         var registrationFeePaymentEvent = Fixture.Create<RegistrationFeePaymentEvent>();
 
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest.Invoking(x => x.CreateRegistrationFeePaymentEventAsync(registrationFeePaymentEvent, Guid.NewGuid())).Should().ThrowAsync<HttpRequestException>();
-        _loggerMock.VerifyLog(x => x.LogError("Error creating RegistrationFeePayment event"));
+        _loggerMock.VerifyLog(x => x.LogError("Error creating RegistrationFeePayment event, responseContent Error Occured"));
     }
 
     [TestMethod]
@@ -200,7 +200,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var createSubmission = Fixture.Create<CreateSubmission>();
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest
@@ -208,7 +208,7 @@ public class SubmissionStatusClientTests
             .Should()
             .ThrowAsync<HttpRequestException>();
 
-        _loggerMock.VerifyLog(x => x.LogError("Error creating submission"));
+        _loggerMock.VerifyLog(x => x.LogError("Error creating submission, responseContent Error Occured"));
     }
 
     [TestMethod]
@@ -265,7 +265,7 @@ public class SubmissionStatusClientTests
     public async Task GetSubmissionsAsync_LogsAndThrowsException_WhenHttpClientResponseIsInternalServerError()
     {
         // Arrange
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest
@@ -273,7 +273,7 @@ public class SubmissionStatusClientTests
             .Should()
             .ThrowAsync<HttpRequestException>();
 
-        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting submissions"));
+        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting submissions, responseContent Error Occured"));
     }
 
     [TestMethod]
@@ -309,7 +309,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest
@@ -317,7 +317,7 @@ public class SubmissionStatusClientTests
             .Should()
             .ThrowAsync<HttpRequestException>();
 
-        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting producer validation errors"));
+        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting producer validation errors, responseContent Error Occured"));
     }
 
     [TestMethod]
@@ -353,7 +353,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest
@@ -361,7 +361,7 @@ public class SubmissionStatusClientTests
             .Should()
             .ThrowAsync<HttpRequestException>();
 
-        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting producer validation warnings"));
+        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting producer validation warnings, responseContent Error Occured"));
     }
 
     [TestMethod]
@@ -375,7 +375,7 @@ public class SubmissionStatusClientTests
             SubmittedBy = "Test Name",
             FileId = fileId
         };
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest
@@ -383,7 +383,7 @@ public class SubmissionStatusClientTests
             .Should()
             .ThrowAsync<HttpRequestException>();
 
-        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error submitting submission with id {submissionId} and file id {fileId}", submissionId, fileId));
+        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error submitting submission with id {submissionId} and file id {fileId}, responseContent {responseContent}", submissionId, fileId, "Error Occured"));
     }
 
     [TestMethod]
@@ -664,7 +664,7 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest
@@ -672,7 +672,7 @@ public class SubmissionStatusClientTests
             .Should()
             .ThrowAsync<HttpRequestException>();
 
-        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting registration validation errors"));
+        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error getting registration validation errors, responseContent Error Occured"));
     }
 
     [TestMethod]
@@ -817,7 +817,7 @@ public class SubmissionStatusClientTests
         // Arrange
         var submissionId = Guid.NewGuid();
         var fileDownloadCheckEvent = Fixture.Create<FileDownloadCheckEvent>();
-        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, new StringContent("Error Occured"));
 
         // Act / Assert
         await _systemUnderTest
@@ -825,7 +825,7 @@ public class SubmissionStatusClientTests
             .Should()
             .ThrowAsync<HttpRequestException>();
 
-        _loggerMock.VerifyLog(x => x.LogError("Error creating FileDownloadCheck event"));
+        _loggerMock.VerifyLog(x => x.LogError("Error creating FileDownloadCheck event, responseContent Error Occured"));
     }
 
     [TestMethod]

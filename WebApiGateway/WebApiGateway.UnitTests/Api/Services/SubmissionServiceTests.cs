@@ -62,7 +62,7 @@ public class SubmissionServiceTests
         const string SubmissionPeriod = "Jan to Jun 23";
 
         // Act
-        await _systemUnderTest.CreateSubmissionAsync(SubmissionType, SubmissionPeriod, null);
+        await _systemUnderTest.CreateSubmissionAsync(SubmissionType, SubmissionPeriod, null, true);
 
         // Assert
         _submissionStatusClientMock.Verify(
@@ -71,7 +71,8 @@ public class SubmissionServiceTests
                     m.SubmissionType == SubmissionType
                     && m.SubmissionPeriod == SubmissionPeriod
                     && m.DataSourceType == DataSourceType.File
-                    && m.Id != Guid.Empty)),
+                    && m.Id != Guid.Empty
+                    && m.IsResubmission == true)),
             Times.Once);
     }
 
@@ -360,24 +361,6 @@ public class SubmissionServiceTests
 
         // Assert
         _submissionStatusClientMock.Verify(x => x.SubmitAsync(submissionId, submissionPayload), Times.Once);
-    }
-
-    [TestMethod]
-    public async Task WhenSubmitAsyncIsCalledToCreateSubmission_CallsSubmissionStatusClient()
-    {
-        // Arrange
-        var submission = new CreateSubmission
-        {
-            Id = Guid.NewGuid(),
-            SubmissionType = SubmissionType.Registration,
-            AppReferenceNumber = "PEPR00002125P1",
-        };
-
-        // Act
-        await _systemUnderTest.SubmitAsync(submission);
-
-        // Assert
-        _submissionStatusClientMock.Verify(x => x.CreateSubmissionAsync(submission), Times.Once);
     }
 
     [TestMethod]

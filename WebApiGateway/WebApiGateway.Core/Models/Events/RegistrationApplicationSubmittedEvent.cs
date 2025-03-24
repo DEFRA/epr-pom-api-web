@@ -15,4 +15,6 @@ public class RegistrationApplicationSubmittedEvent : AbstractEvent
     public Guid? ComplianceSchemeId { get; set; }
 
     public DateTime? SubmissionDate { get; set; }
+
+    public bool? IsResubmission { get; set; }
 }

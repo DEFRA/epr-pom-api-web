@@ -22,66 +22,80 @@ public class SubmissionStatusClient(
 {
     public async Task CreateEventAsync(AntivirusCheckEvent @event, Guid submissionId)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
 
             var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", @event);
 
+            responseContent = await response.Content.ReadAsStringAsync();
+
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error creating {eventType} event", @event.Type);
+            logger.LogError(exception, "Error creating {eventType} event, responseContent {responseContent}", @event.Type, responseContent);
             throw;
         }
     }
 
     public async Task CreateApplicationSubmittedEventAsync(RegistrationApplicationSubmittedEvent registrationEvent, Guid submissionId)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
+
             var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", registrationEvent);
+
+            responseContent = await response.Content.ReadAsStringAsync();
 
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error creating {eventType} event", registrationEvent.Type);
+            logger.LogError(exception, "Error creating {eventType} event, responseContent {responseContent}", registrationEvent.Type, responseContent);
             throw;
         }
     }
 
     public async Task CreateRegistrationFeePaymentEventAsync(RegistrationFeePaymentEvent registrationEvent, Guid submissionId)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
+
             var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", registrationEvent);
+
+            responseContent = await response.Content.ReadAsStringAsync();
 
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error creating {eventType} event", registrationEvent.Type);
+            logger.LogError(exception, "Error creating {eventType} event, responseContent {responseContent}", registrationEvent.Type, responseContent);
             throw;
         }
     }
 
     public async Task CreateSubmissionAsync(CreateSubmission submission)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
 
             var response = await httpClient.PostAsJsonAsync("submissions", submission);
 
+            responseContent = await response.Content.ReadAsStringAsync();
+
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error creating submission");
+            logger.LogError(exception, "Error creating submission, responseContent {responseContent}", responseContent);
             throw;
         }
     }
@@ -95,11 +109,14 @@ public class SubmissionStatusClient(
 
     public async Task<List<AbstractSubmission>> GetSubmissionsAsync(string queryString)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
 
             var response = await httpClient.GetAsync($"submissions{queryString}");
+
+            responseContent = await response.Content.ReadAsStringAsync();
 
             response.EnsureSuccessStatusCode();
 
@@ -109,18 +126,21 @@ public class SubmissionStatusClient(
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error getting submissions");
+            logger.LogError(exception, "Error getting submissions, responseContent {responseContent}", responseContent);
             throw;
         }
     }
 
     public async Task<List<RegistrationValidationError>> GetRegistrationValidationErrorsAsync(Guid submissionId)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
 
             var response = await httpClient.GetAsync($"submissions/{submissionId}/organisation-details-errors");
+
+            responseContent = await response.Content.ReadAsStringAsync();
 
             response.EnsureSuccessStatusCode();
 
@@ -130,18 +150,21 @@ public class SubmissionStatusClient(
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error getting registration validation errors");
+            logger.LogError(exception, "Error getting registration validation errors, responseContent {responseContent}", responseContent);
             throw;
         }
     }
 
     public async Task<List<ProducerValidationIssueRow>> GetProducerValidationErrorRowsAsync(Guid submissionId)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
 
             var response = await httpClient.GetAsync($"submissions/{submissionId}/producer-validations");
+
+            responseContent = await response.Content.ReadAsStringAsync();
 
             response.EnsureSuccessStatusCode();
 
@@ -155,18 +178,21 @@ public class SubmissionStatusClient(
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error getting producer validation errors");
+            logger.LogError(exception, "Error getting producer validation errors, responseContent {responseContent}", responseContent);
             throw;
         }
     }
 
     public async Task<List<ProducerValidationIssueRow>> GetProducerValidationWarningRowsAsync(Guid submissionId)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
 
             var response = await httpClient.GetAsync($"submissions/{submissionId}/producer-warning-validations");
+
+            responseContent = await response.Content.ReadAsStringAsync();
 
             response.EnsureSuccessStatusCode();
 
@@ -180,24 +206,27 @@ public class SubmissionStatusClient(
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error getting producer validation warnings");
+            logger.LogError(exception, "Error getting producer validation warnings, responseContent {responseContent}", responseContent);
             throw;
         }
     }
 
     public async Task SubmitAsync(Guid submissionId, SubmissionPayload submissionPayload)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
 
             var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/submit", submissionPayload);
 
+            responseContent = await response.Content.ReadAsStringAsync();
+
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error submitting submission with id {submissionId} and file id {fileId}", submissionId, submissionPayload.FileId);
+            logger.LogError(exception, "Error submitting submission with id {submissionId} and file id {fileId}, responseContent {responseContent}", submissionId, submissionPayload.FileId, responseContent);
             throw;
         }
     }
@@ -280,18 +309,22 @@ public class SubmissionStatusClient(
 
     public async Task<HttpResponseMessage> CreateFileDownloadEventAsync(FileDownloadCheckEvent fileDownloadCheckEvent, Guid submissionId)
     {
+        var responseContent = string.Empty;
         try
         {
             await ConfigureHttpClientAsync();
 
             var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", fileDownloadCheckEvent);
+
+            responseContent = await response.Content.ReadAsStringAsync();
+
             response.EnsureSuccessStatusCode();
 
             return response;
         }
         catch (HttpRequestException exception)
         {
-            logger.LogError(exception, "Error creating {EventType} event", fileDownloadCheckEvent.Type);
+            logger.LogError(exception, "Error creating {EventType} event, responseContent {responseContent}", fileDownloadCheckEvent.Type, responseContent);
             throw;
         }
     }

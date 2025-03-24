@@ -25,7 +25,7 @@ public class SubmissionService(
 {
     private readonly StorageAccountOptions _options = options.Value;
 
-    public async Task<Guid> CreateSubmissionAsync(SubmissionType submissionType, string submissionPeriod, Guid? complianceSchemeId)
+    public async Task<Guid> CreateSubmissionAsync(SubmissionType submissionType, string submissionPeriod, Guid? complianceSchemeId, bool? isResubmission)
     {
         var submission = new CreateSubmission
         {
@@ -33,7 +33,8 @@ public class SubmissionService(
             DataSourceType = DataSourceType.File,
             SubmissionType = submissionType,
             SubmissionPeriod = submissionPeriod,
-            ComplianceSchemeId = complianceSchemeId
+            ComplianceSchemeId = complianceSchemeId,
+            IsResubmission = isResubmission
         };
 
         await submissionStatusClient.CreateSubmissionAsync(submission);
@@ -90,7 +91,8 @@ public class SubmissionService(
                 ComplianceSchemeId = applicationPayload.ComplianceSchemeId,
                 PaidAmount = applicationPayload.PaidAmount,
                 PaymentMethod = applicationPayload.PaymentMethod,
-                PaymentStatus = applicationPayload.PaymentStatus
+                PaymentStatus = applicationPayload.PaymentStatus,
+                IsResubmission = applicationPayload.IsResubmission
             };
 
             await submissionStatusClient.CreateRegistrationFeePaymentEventAsync(feePaymentEvent, submissionId);
@@ -103,7 +105,8 @@ public class SubmissionService(
                 Comments = applicationPayload.Comments,
                 ApplicationReferenceNumber = applicationPayload.ApplicationReferenceNumber,
                 ComplianceSchemeId = applicationPayload.ComplianceSchemeId,
-                SubmissionDate = DateTime.Today,
+                SubmissionDate = DateTime.UtcNow,
+                IsResubmission = applicationPayload.IsResubmission
             };
 
             await submissionStatusClient.CreateApplicationSubmittedEventAsync(submittedEvent, submissionId);

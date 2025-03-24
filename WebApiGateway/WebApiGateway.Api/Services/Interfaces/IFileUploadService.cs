@@ -12,7 +12,8 @@ public interface IFileUploadService
         string submissionPeriod,
         Guid? originalSubmissionId,
         Guid? registrationSetId,
-        Guid? complianceSchemeId);
+        Guid? complianceSchemeId,
+        bool? isResubmission);
 
     Task<Guid> UploadFileSubsidiaryAsync(
         Stream fileStream,

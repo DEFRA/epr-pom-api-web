@@ -23,6 +23,8 @@ public class RegistrationApplicationDetails
 
     public bool IsSubmitted { get; set; }
 
+    public bool? IsResubmission { get; set; }
+
     public string? ApplicationReferenceNumber { get; set; } = string.Empty;
 
     public string? RegistrationReferenceNumber { get; set; }

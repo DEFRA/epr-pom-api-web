@@ -18,14 +18,15 @@ public class FileUploadService(
         string submissionPeriod,
         Guid? originalSubmissionId,
         Guid? registrationSetId,
-        Guid? complianceSchemeId)
+        Guid? complianceSchemeId,
+        bool? isResubmission)
     {
         var fileType = submissionType is SubmissionType.Producer
             ? FileType.Pom
             : (FileType)Enum.Parse(typeof(FileType), submissionSubType.ToString());
 
         var submissionId = fileType is FileType.Pom or FileType.CompanyDetails && originalSubmissionId is null
-            ? await submissionService.CreateSubmissionAsync(submissionType, submissionPeriod, complianceSchemeId)
+            ? await submissionService.CreateSubmissionAsync(submissionType, submissionPeriod, complianceSchemeId, isResubmission)
             : originalSubmissionId.Value;
 
         var truncatedFileName = FileHelpers.GetTruncatedFileName(fileName, FileConstants.FileNameTruncationLength);
@@ -45,7 +46,7 @@ public class FileUploadService(
             ? FileType.Subsidiaries
             : (FileType)Enum.Parse(typeof(FileType), submissionType.ToString());
 
-        var submissionId = await submissionService.CreateSubmissionAsync(submissionType, "NA Subsidiary File Upload", complianceSchemeId);
+        var submissionId = await submissionService.CreateSubmissionAsync(submissionType, "NA Subsidiary File Upload", complianceSchemeId, null);
         var truncatedFileName = FileHelpers.GetTruncatedFileName(fileName, FileConstants.FileNameTruncationLength);
         var fileId = await submissionService.CreateAntivirusCheckEventAsync(truncatedFileName, fileType, submissionId, null);
         await antivirusService.SendFileAsync(submissionType, fileId, truncatedFileName, fileStream);

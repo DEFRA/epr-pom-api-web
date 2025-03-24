@@ -23,7 +23,8 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
         [FromHeader] Guid? registrationSetId,
         [FromHeader][Required] string submissionPeriod,
         [FromHeader] Guid? submissionId,
-        [FromHeader] Guid? complianceSchemeId)
+        [FromHeader] Guid? complianceSchemeId,
+        [FromHeader] bool? isResubmission)
     {
         if (submissionType is SubmissionType.Registration)
         {
@@ -43,7 +44,8 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
             submissionPeriod,
             submissionId,
             registrationSetId,
-            complianceSchemeId);
+            complianceSchemeId,
+            isResubmission);
 
         return new CreatedAtRouteResult(nameof(SubmissionController.GetSubmission), new { submissionId = id }, null);
     }

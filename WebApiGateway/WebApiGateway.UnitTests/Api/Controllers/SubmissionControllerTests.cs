@@ -113,25 +113,6 @@ public class SubmissionControllerTests
     }
 
     [TestMethod]
-    public async Task SubmitIsCalled_ReturnsNoContentResult()
-    {
-        // Arrange
-        var submission = new CreateSubmission
-        {
-            Id = Guid.NewGuid(),
-            SubmissionType = SubmissionType.Registration,
-            AppReferenceNumber = "PEPR00002125P1",
-        };
-
-        // Act
-        var result = await _systemUnderTest.Submit(submission);
-
-        // Assert
-        result.Should().BeOfType<NoContentResult>();
-        _submissionServiceMock.Verify(x => x.SubmitAsync(submission), Times.Once);
-    }
-
-    [TestMethod]
     public async Task SubmitRegistrationApplicationIsCalled_ReturnsNoContentResult()
     {
         // Arrange

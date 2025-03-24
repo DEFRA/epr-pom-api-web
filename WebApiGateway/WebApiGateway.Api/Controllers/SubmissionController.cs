@@ -83,14 +83,6 @@ public class SubmissionController(
         return new NoContentResult();
     }
 
-    [HttpPost("create-submission")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> Submit([FromBody] CreateSubmission submission)
-    {
-        await submissionService.SubmitAsync(submission);
-        return new NoContentResult();
-    }
-
     [HttpPost("{submissionId:guid}/submit-registration-application")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> SubmitRegistrationApplication([FromRoute] Guid submissionId, [FromBody] RegistrationApplicationPayload applicationPayload)

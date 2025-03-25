@@ -73,6 +73,13 @@ public static class HttpClientServiceCollectionExtensions
             })
             .AddPolicyHandler(GetRetryPolicy());
 
+        services.AddHttpClient<ICommondataClient, CommondataClient>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<CommonDataApiOptions>>().Value;
+                client.BaseAddress = new Uri($"{options.BaseUrl}/api/");
+            })
+            .AddPolicyHandler(GetRetryPolicy());
+
         return services;
     }
 

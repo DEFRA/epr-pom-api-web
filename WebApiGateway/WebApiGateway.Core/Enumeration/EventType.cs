@@ -14,5 +14,9 @@ public enum EventType
     RegulatorRegistrationDecision = 10,
     FileDownloadCheck = 11,
     RegistrationFeePayment = 12,
-    RegistrationApplicationSubmitted = 13
+    RegistrationApplicationSubmitted = 13,
+    PackagingDataResubmissionFeePayment = 14,
+    PackagingResubmissionApplicationSubmitted = 15,
+    PackagingResubmissionReferenceNumberCreated = 16,
+    PackagingResubmissionFeeViewed = 17
 }

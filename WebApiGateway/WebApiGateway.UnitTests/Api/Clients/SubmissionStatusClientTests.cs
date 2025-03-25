@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using EPR.SubmissionMicroservice.Application.Features.Queries.Common;
+using EPR.SubmissionMicroservice.Data.Entities.SubmissionEvent;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -920,5 +922,154 @@ public class SubmissionStatusClientTests
 
         // Assert
         await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [TestMethod]
+    public async Task GetPackagingResubmissionApplicationDetails_Should_Return_Response_When_Successful()
+    {
+        // Arrange
+        var queryString = "?id=123";
+        var expectedResponse = new PackagingResubmissionApplicationDetails
+        {
+            SubmissionId = Guid.NewGuid(),
+            IsSubmitted = true
+        };
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonConvert.SerializeObject(expectedResponse))
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetPackagingResubmissionApplicationDetails(queryString);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(expectedResponse);
+    }
+
+    [TestMethod]
+    public async Task GetPackagingResubmissionApplicationDetailsSubmissionDetails_Should_Return_Null_When_NoContent()
+    {
+        // Arrange
+        var queryString = "?id=123";
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.NoContent
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetPackagingResubmissionApplicationDetails(queryString);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task GetPackagingResubmissionApplicationDetailsSubmissionDetails_Should_Throw_Exception_On_HttpError()
+    {
+        // Arrange
+        var queryString = "?id=123";
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.InternalServerError
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        Func<Task> act = async () => await _systemUnderTest.GetPackagingResubmissionApplicationDetails(queryString);
+
+        // Assert
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [TestMethod]
+    public async Task GetPackagingResubmissionApplicationDetailsSubmissionDetails_Should_Throw_Exception_On_InvalidUrl()
+    {
+        // Arrange
+        var queryString = "Https://localhost/test?id=123";
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.InternalServerError
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        Func<Task> act = async () => await _systemUnderTest.GetPackagingResubmissionApplicationDetails(queryString);
+
+        // Assert
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [TestMethod]
+    public async Task CreateEventAsync_DoesNotThrowException_WhenHttpClientResponseIsCreated_And_PackagingResubmissionReferenceNumberIsCreated()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var packagingResubmissionReferenceNumberCreatedEvent = Fixture.Create<PackagingResubmissionReferenceNumberCreatedEvent>();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.Created, null);
+
+        // Act & Assert
+        await _systemUnderTest.Invoking(x => x.CreateEventAsync(packagingResubmissionReferenceNumberCreatedEvent, submissionId)).Should().NotThrowAsync();
+
+        var expectedRequestUri = new Uri($"https://example.com/submissions/{submissionId}/events");
+        var expectedHeaders = new Dictionary<string, string>
+        {
+            { "OrganisationId", _userAccount.User.Organisations.First().Id.ToString() },
+            { "UserId", _userAccount.User.Id.ToString() }
+        };
+
+        _httpMessageHandlerMock.VerifyRequest(HttpMethod.Post, expectedRequestUri, expectedHeaders, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task CreateEventAsync_LogsAndThrowsException_WhenHttpClientResponseIsInternalServerError_With_PackagingResubmissionReferenceNumberEvent()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var packagingResubmissionReferenceNumberCreatedEvent = Fixture.Create<PackagingResubmissionReferenceNumberCreatedEvent>();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.InternalServerError, null);
+
+        // Act / Assert
+        await _systemUnderTest
+            .Invoking(x => x.CreateEventAsync(packagingResubmissionReferenceNumberCreatedEvent, submissionId))
+            .Should()
+            .ThrowAsync<HttpRequestException>();
+
+        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "Error creating PackagingResubmissionReferenceNumberCreated event"));
     }
 }

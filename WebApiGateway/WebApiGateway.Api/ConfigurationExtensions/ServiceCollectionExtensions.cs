@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
         {
             cb.AddBlobServiceClient(storageAccountOptions.ConnectionString);
         });
+        services.AddScoped<IPackagingResubmissionApplicationService, PackagingResubmissionApplicationService>();
 
         return services;
     }

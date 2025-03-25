@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using EPR.SubmissionMicroservice.Application.Features.Queries.Common;
 using Newtonsoft.Json;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Extensions;
@@ -36,6 +37,24 @@ public class SubmissionStatusClient(
         catch (HttpRequestException exception)
         {
             logger.LogError(exception, "Error creating {eventType} event, responseContent {responseContent}", @event.Type, responseContent);
+            throw;
+        }
+    }
+
+    public async Task CreateEventAsync<T>(T @event, Guid submissionId)
+        where T : AbstractEvent
+    {
+        try
+        {
+            await ConfigureHttpClientAsync();
+
+            var response = await httpClient.PostAsJsonAsync($"submissions/{submissionId}/events", @event);
+
+            response.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogError(exception, "Error creating {eventType} event", @event.Type);
             throw;
         }
     }
@@ -340,6 +359,28 @@ public class SubmissionStatusClient(
         var content = await response.Content.ReadAsStringAsync();
 
         return JsonConvert.DeserializeObject<AntivirusResultEvent>(content);
+    }
+
+    public async Task<PackagingResubmissionApplicationDetails?> GetPackagingResubmissionApplicationDetails(string queryString)
+    {
+        await ConfigureHttpClientAsync();
+
+        var endpointUrl = $"submissions/get-packaging-data-resubmission-application-details{queryString}";
+
+        var uri = ValidateUrl(endpointUrl);
+
+        var response = await httpClient.GetAsync(uri);
+
+        response.EnsureSuccessStatusCode();
+
+        if (response.StatusCode == HttpStatusCode.NoContent)
+        {
+            return null;
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<PackagingResubmissionApplicationDetails>(content);
     }
 
     private static Uri ValidateUrl(string endpointUrl)

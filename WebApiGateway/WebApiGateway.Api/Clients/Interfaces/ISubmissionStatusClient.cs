@@ -1,4 +1,6 @@
-﻿using WebApiGateway.Core.Enumeration;
+﻿using EPR.SubmissionMicroservice.Application.Features.Queries.Common;
+using EPR.SubmissionMicroservice.Data.Entities.SubmissionEvent;
+using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
@@ -13,6 +15,9 @@ public interface ISubmissionStatusClient
     Task CreateSubmissionAsync(CreateSubmission submission);
 
     Task CreateEventAsync(AntivirusCheckEvent @event, Guid submissionId);
+
+    Task CreateEventAsync<T>(T @event, Guid submissionId)
+    where T : AbstractEvent;
 
     Task CreateApplicationSubmittedEventAsync(RegistrationApplicationSubmittedEvent registrationEvent, Guid submissionId);
 
@@ -39,4 +44,6 @@ public interface ISubmissionStatusClient
     Task<HttpResponseMessage> CreateFileDownloadEventAsync(FileDownloadCheckEvent fileDownloadCheckEvent, Guid submissionId);
 
     Task<AntivirusResultEvent> GetFileScanResultAsync(Guid submissionId, Guid fileId);
+
+    Task<PackagingResubmissionApplicationDetails?> GetPackagingResubmissionApplicationDetails(string queryString);
 }

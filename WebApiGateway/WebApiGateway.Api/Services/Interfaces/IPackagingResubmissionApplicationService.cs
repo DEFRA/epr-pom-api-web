@@ -6,7 +6,7 @@ namespace WebApiGateway.Api.Services.Interfaces;
 
 public interface IPackagingResubmissionApplicationService
 {
-    Task<PackagingResubmissionApplicationDetails?> GetPackagingResubmissionApplicationDetails(string request);
+    Task<List<PackagingResubmissionApplicationDetails?>> GetPackagingResubmissionApplicationDetails(string request);
 
     Task<PackagingResubmissionMemberResponse> GetPackagingResubmissionMemberDetails(Guid submissionId, string complianceSchemeId);
 

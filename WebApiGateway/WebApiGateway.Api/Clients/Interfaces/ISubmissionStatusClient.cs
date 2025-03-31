@@ -45,5 +45,5 @@ public interface ISubmissionStatusClient
 
     Task<AntivirusResultEvent> GetFileScanResultAsync(Guid submissionId, Guid fileId);
 
-    Task<PackagingResubmissionApplicationDetails?> GetPackagingResubmissionApplicationDetails(string queryString);
+    Task<List<PackagingResubmissionApplicationDetails?>> GetPackagingResubmissionApplicationDetails(string queryString);
 }

@@ -361,7 +361,7 @@ public class SubmissionStatusClient(
         return JsonConvert.DeserializeObject<AntivirusResultEvent>(content);
     }
 
-    public async Task<PackagingResubmissionApplicationDetails?> GetPackagingResubmissionApplicationDetails(string queryString)
+    public async Task<List<PackagingResubmissionApplicationDetails?>> GetPackagingResubmissionApplicationDetails(string queryString)
     {
         await ConfigureHttpClientAsync();
 
@@ -380,7 +380,7 @@ public class SubmissionStatusClient(
 
         var content = await response.Content.ReadAsStringAsync();
 
-        return JsonConvert.DeserializeObject<PackagingResubmissionApplicationDetails>(content);
+        return JsonConvert.DeserializeObject<List<PackagingResubmissionApplicationDetails>>(content);
     }
 
     private static Uri ValidateUrl(string endpointUrl)

@@ -32,7 +32,7 @@ public class PackagingResubmissionApplicationControllerTests
     public async Task GetPackagingResubmissionApplicationDetails_ReturnsOkObjectResult()
     {
         // Arrange
-        var response = new PackagingResubmissionApplicationDetails();
+        var response = new List<PackagingResubmissionApplicationDetails>();
 
         _packagingResubmissionApplicationService.Setup(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>())).ReturnsAsync(response);
 
@@ -41,7 +41,6 @@ public class PackagingResubmissionApplicationControllerTests
 
         // Assert
         result!.Value.Should().BeEquivalentTo(response);
-
         _packagingResubmissionApplicationService.Verify(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()), Times.Once);
     }
 

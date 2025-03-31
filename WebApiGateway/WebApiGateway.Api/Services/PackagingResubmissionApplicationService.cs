@@ -11,16 +11,23 @@ public class PackagingResubmissionApplicationService(
     ICommondataClient commondataClient)
     : IPackagingResubmissionApplicationService
 {
-    public async Task<PackagingResubmissionApplicationDetails?> GetPackagingResubmissionApplicationDetails(string request)
+    public async Task<List<PackagingResubmissionApplicationDetails?>> GetPackagingResubmissionApplicationDetails(string request)
     {
-        var result = await submissionStatusClient.GetPackagingResubmissionApplicationDetails(request);
-
-        if (result?.LastSubmittedFile?.FileId is not null && result.IsSubmitted)
+        var applicationDetailsForMultipleSubmissionPeriods = await submissionStatusClient.GetPackagingResubmissionApplicationDetails(request);
+        if (applicationDetailsForMultipleSubmissionPeriods == null)
         {
-            result.SynapseResponse = await commondataClient.GetPackagingResubmissionFileDetailsFromSynapse(result.LastSubmittedFile.FileId.Value);
+            return null;
         }
 
-        return result;
+        foreach (var applicationDetail in applicationDetailsForMultipleSubmissionPeriods)
+        {
+            if (applicationDetail?.LastSubmittedFile?.FileId is not null && applicationDetail.IsSubmitted)
+            {
+                applicationDetail.SynapseResponse = await commondataClient.GetPackagingResubmissionFileDetailsFromSynapse(applicationDetail.LastSubmittedFile.FileId.Value);
+            }
+        }
+
+        return applicationDetailsForMultipleSubmissionPeriods;
     }
 
     public async Task<PackagingResubmissionMemberResponse> GetPackagingResubmissionMemberDetails(Guid submissionId, string complianceSchemeId)

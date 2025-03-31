@@ -929,11 +929,15 @@ public class SubmissionStatusClientTests
     {
         // Arrange
         var queryString = "?id=123";
-        var expectedResponse = new PackagingResubmissionApplicationDetails
+        var expectedResponse = new List<PackagingResubmissionApplicationDetails>
         {
-            SubmissionId = Guid.NewGuid(),
-            IsSubmitted = true
+            new PackagingResubmissionApplicationDetails
+            {
+                SubmissionId = Guid.NewGuid(),
+                IsSubmitted = true
+            }
         };
+
         var httpResponse = new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
@@ -954,7 +958,8 @@ public class SubmissionStatusClientTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(expectedResponse);
+        result.FirstOrDefault().Should().NotBeNull();
+        result.First().Should().BeEquivalentTo(expectedResponse.First());
     }
 
     [TestMethod]

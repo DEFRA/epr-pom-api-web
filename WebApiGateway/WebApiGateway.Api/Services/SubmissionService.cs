@@ -135,9 +135,22 @@ public class SubmissionService(
         return await submissionStatusClient.GetSubmissionsByFilter(organisationId, complianceSchemeId, year, submissionType);
     }
 
+    /// <summary>
+    /// Gets registration validation errors & warnings.
+    /// </summary>
+    /// <param name="submissionId">submission id.</param>
+    /// <returns>returns list of errors & warnings.</returns>
     public async Task<List<RegistrationValidationError>> GetRegistrationValidationErrorsAsync(Guid submissionId)
     {
-        return await submissionStatusClient.GetRegistrationValidationErrorsAsync(submissionId);
+        var errors = submissionStatusClient.GetRegistrationValidationErrorsAsync(submissionId);
+        var warnings = submissionStatusClient.GetRegistrationValidationWarningsAsync(submissionId);
+
+        var issues = await Task.WhenAll(errors, warnings);
+        var result = issues.SelectMany(x => x)
+                            .OrderBy(x => x.RowNumber)
+                            .ToList();
+
+        return result;
     }
 
     public async Task<List<ProducerValidationIssueRow>> GetProducerValidationIssuesAsync(Guid submissionId)

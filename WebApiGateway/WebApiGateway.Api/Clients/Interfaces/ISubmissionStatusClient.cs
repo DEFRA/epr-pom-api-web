@@ -29,6 +29,8 @@ public interface ISubmissionStatusClient
 
     Task<List<RegistrationValidationError>> GetRegistrationValidationErrorsAsync(Guid submissionId);
 
+    Task<List<RegistrationValidationError>> GetRegistrationValidationWarningsAsync(Guid submissionId);
+
     Task<List<ProducerValidationIssueRow>> GetProducerValidationErrorRowsAsync(Guid submissionId);
 
     Task<List<ProducerValidationIssueRow>> GetProducerValidationWarningRowsAsync(Guid submissionId);

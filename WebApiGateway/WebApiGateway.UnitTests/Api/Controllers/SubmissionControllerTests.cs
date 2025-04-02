@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
@@ -192,6 +193,10 @@ public class SubmissionControllerTests
         // Arrange
         var submissionId = Guid.NewGuid();
         var validationIssueRows = Fixture.Create<List<RegistrationValidationError>>();
+        validationIssueRows[0].IssueType = IssueType.Error;
+        validationIssueRows[2].IssueType = IssueType.Warning;
+        Fixture.Inject(validationIssueRows);
+
         _submissionServiceMock.Setup(x => x.GetRegistrationValidationErrorsAsync(submissionId)).ReturnsAsync(validationIssueRows);
 
         // Act

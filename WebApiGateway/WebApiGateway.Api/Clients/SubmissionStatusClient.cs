@@ -165,11 +165,40 @@ public class SubmissionStatusClient(
 
             var errors = await response.Content.ReadFromJsonAsync<List<RegistrationValidationError>>();
 
-            return errors;
+            return errors.Select(error =>
+            {
+                error.IssueType = IssueType.Error;
+                return error;
+            }).ToList();
         }
         catch (HttpRequestException exception)
         {
             logger.LogError(exception, "Error getting registration validation errors, responseContent {responseContent}", responseContent);
+            throw;
+        }
+    }
+
+    public async Task<List<RegistrationValidationError>> GetRegistrationValidationWarningsAsync(Guid submissionId)
+    {
+        try
+        {
+            await ConfigureHttpClientAsync();
+
+            var response = await httpClient.GetAsync($"submissions/{submissionId}/organisation-details-warnings");
+
+            response.EnsureSuccessStatusCode();
+
+            var warnings = await response.Content.ReadFromJsonAsync<List<RegistrationValidationError>>();
+
+            return warnings.Select(warning =>
+            {
+                warning.IssueType = IssueType.Warning;
+                return warning;
+            }).ToList();
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogError(exception, "Error getting registration validation warnings");
             throw;
         }
     }

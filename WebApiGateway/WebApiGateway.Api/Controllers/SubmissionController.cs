@@ -59,12 +59,17 @@ public class SubmissionController(
         return new OkObjectResult(submissions);
     }
 
+    /// <summary>
+    /// Gets organisation details errors & warnings.
+    /// </summary>
+    /// <param name="submissionId">submission id.</param>
+    /// <returns>list of registeration validation issues i.e. errors & warnings.</returns>
     [HttpGet("{submissionId:guid}/organisation-details-errors", Name = nameof(GetRegistrationValidationErrors))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRegistrationValidationErrors([FromRoute] Guid submissionId)
     {
-        var registrationValidationErrors = await submissionService.GetRegistrationValidationErrorsAsync(submissionId);
-        return new OkObjectResult(registrationValidationErrors);
+        var registrationValidationIssues = await submissionService.GetRegistrationValidationErrorsAsync(submissionId);
+        return new OkObjectResult(registrationValidationIssues);
     }
 
     [HttpGet("{submissionId:guid}/producer-validations", Name = nameof(GetProducerValidationIssues))]

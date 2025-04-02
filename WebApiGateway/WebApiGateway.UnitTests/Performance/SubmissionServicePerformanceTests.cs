@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Services;
+using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Options;
@@ -76,9 +77,11 @@ public class SubmissionServicePerformanceTests
         var stopwatch = new Stopwatch();
         var submissionId = Guid.NewGuid();
 
-        var registrationValidationErrorRows = GenerateRandomRegistrationValidationIssueList().ToList();
+        var registrationValidationErrorRows = GenerateRandomRegistrationValidationIssueList(false).ToList();
+        var registrationValidationWarningRows = GenerateRandomRegistrationValidationIssueList(true).ToList();
 
         _submissionStatusClientMock.Setup(x => x.GetRegistrationValidationErrorsAsync(submissionId)).ReturnsAsync(registrationValidationErrorRows);
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationValidationWarningsAsync(submissionId)).ReturnsAsync(registrationValidationWarningRows);
 
         // Act
         stopwatch.Start();
@@ -102,11 +105,23 @@ public class SubmissionServicePerformanceTests
             .ToList();
     }
 
-    private static List<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
+    private static List<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList(bool isWarning)
     {
-        return Fixture
-            .Build<RegistrationValidationError>()
-            .CreateMany(1000)
-            .ToList();
+        var fixture = Fixture
+               .Build<RegistrationValidationError>()
+               .CreateMany(1000)
+               .ToList();
+
+        if (isWarning)
+        {
+            fixture.ForEach(x => x.IssueType = IssueType.Warning);
+        }
+        else
+        {
+            fixture.ForEach(x => x.IssueType = IssueType.Error);
+        }
+
+        Fixture.Inject(fixture);
+        return fixture;
     }
 }

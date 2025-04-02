@@ -12,6 +12,7 @@ using Moq;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Constants;
 using WebApiGateway.Api.Services;
+using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;
@@ -584,21 +585,27 @@ public class SubmissionServiceTests
     }
 
     [TestMethod]
-    public async Task GetRegistrationValidationErrorsAsync_ReturnsRegistrationValidationErrorsRows()
+    public async Task GetRegistrationValidationIssuesAsync_ReturnsRegistrationValidationErrors_And_WarningsRows()
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var registrationValidationErrorsRows = GenerateRandomRegistrationValidationIssueList().ToList();
 
+        var registrationValidationErrorsRows = GenerateRandomRegistrationValidationErrorList().ToList();
         _submissionStatusClientMock.Setup(x => x.GetRegistrationValidationErrorsAsync(submissionId)).ReturnsAsync(registrationValidationErrorsRows);
+
+        var warningRows = GenerateRandomRegistrationValidationWarningList().ToList();
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationValidationWarningsAsync(submissionId)).ReturnsAsync(warningRows);
+
+        var resultedList = registrationValidationErrorsRows.Concat(warningRows).OrderBy(x => x.RowNumber).ToList();
 
         // Act
         var result = await _systemUnderTest.GetRegistrationValidationErrorsAsync(submissionId);
 
         // Assert
-        result.Should().BeEquivalentTo(registrationValidationErrorsRows);
+        result.Should().BeEquivalentTo(resultedList);
 
         _submissionStatusClientMock.Verify(x => x.GetRegistrationValidationErrorsAsync(submissionId), Times.Once);
+        _submissionStatusClientMock.Verify(x => x.GetRegistrationValidationWarningsAsync(submissionId), Times.Once);
     }
 
     [TestMethod]
@@ -746,11 +753,23 @@ public class SubmissionServiceTests
             .ToList();
     }
 
-    private static List<RegistrationValidationError> GenerateRandomRegistrationValidationIssueList()
+    private static List<RegistrationValidationError> GenerateRandomRegistrationValidationErrorList()
     {
-        return Fixture
-            .Build<RegistrationValidationError>()
-            .CreateMany(10)
-            .ToList();
+        var fixture = Fixture.Build<RegistrationValidationError>()
+                                .CreateMany(10)
+                                .ToList();
+
+        fixture.ForEach(x => x.IssueType = IssueType.Error);
+        return fixture;
+    }
+
+    private static List<RegistrationValidationError> GenerateRandomRegistrationValidationWarningList()
+    {
+        var fixture = Fixture.Build<RegistrationValidationError>()
+                                .CreateMany(2)
+                                .ToList();
+
+        fixture.ForEach(x => x.IssueType = IssueType.Warning);
+        return fixture;
     }
 }

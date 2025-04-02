@@ -121,4 +121,27 @@ public class SubmissionStatusPerformanceTests
         Console.WriteLine($"Fetching {registrationValidationErrorRows.Count} validation error rows took {elapsedTime} milliseconds");
         elapsedTime.Should().BeLessThan(100, $"Expected elapsed time should take 100ms but instead took {elapsedTime}ms");
     }
+
+    [TestMethod]
+    public async Task GetRegistrationValidationWarningsAsync_WhenCalledWith1000Errors_ReturnsErrorsBackInLessThan100ms()
+    {
+        // Arrange
+        var stopwatch = new Stopwatch();
+        var submissionId = Guid.NewGuid();
+        var registrationValidationErrorRows = Fixture.Build<RegistrationValidationError>()
+            .CreateMany(1000)
+            .ToList();
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, registrationValidationErrorRows.ToJsonContent());
+
+        // Act
+        stopwatch.Start();
+        await _systemUnderTest.GetRegistrationValidationWarningsAsync(submissionId);
+        stopwatch.Stop();
+
+        // Assert
+        var elapsedTime = stopwatch.ElapsedMilliseconds;
+
+        Console.WriteLine($"Fetching {registrationValidationErrorRows.Count} validation error rows took {elapsedTime} milliseconds");
+        elapsedTime.Should().BeLessThan(100, $"Expected elapsed time should take 100ms but instead took {elapsedTime}ms");
+    }
 }

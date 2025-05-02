@@ -12,5 +12,7 @@ public class RegistrationFeeCalculationDetails
 
     public bool IsOnlineMarketplace { get; set; }
 
+    public bool IsNewJoiner { get; set; }
+
     public int NationId { get; set; }
 }

@@ -151,7 +151,8 @@ public class PackagingResubmissionApplicationControllerTests
         // Arrange
         var @event = new PackagingResubmissionFeeViewCreatedEvent()
         {
-            IsPackagingResubmissionFeeViewed = true
+            IsPackagingResubmissionFeeViewed = true,
+            FileId = Guid.NewGuid()
         };
 
         _packagingResubmissionApplicationService.Setup(x => x.CreateEventAsync(@event, It.IsAny<Guid>()));

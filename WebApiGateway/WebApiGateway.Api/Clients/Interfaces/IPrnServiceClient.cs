@@ -7,7 +7,7 @@ public interface IPrnServiceClient
 {
     Task<List<PrnModel>> GetAllPrnsForOrganisation();
 
-    Task<ObligationModel> GetObligationHierarchyCalculationByYearAsync(List<Guid> organisationIds, int year);
+    Task<ObligationModel> GetObligationCalculationByYearAsync(int year);
 
     Task<PrnModel> GetPrnById(Guid id);
 

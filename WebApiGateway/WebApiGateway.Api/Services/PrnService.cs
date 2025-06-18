@@ -34,9 +34,9 @@ public class PrnService(IPrnServiceClient prnServiceClient, ILogger<PrnService> 
         return await prnServiceClient.GetSearchPrns(request);
     }
 
-    public async Task<ObligationModel> GetObligationHierarchyCalculationByYearAsync(List<Guid> organisationIds, int year)
+    public async Task<ObligationModel> GetObligationCalculationByYearAsync(int year)
     {
-        logger.LogInformation("{Logprefix}: PrnService - GetObligationHierarchyCalculationByYearAsync for {Year}, {Organisations}", logPrefix, year, organisationIds);
-        return await prnServiceClient.GetObligationHierarchyCalculationByYearAsync(organisationIds, year);
+        logger.LogInformation("{Logprefix}: PrnService - GetObligationCalculationByYearAsync for {Year}", logPrefix, year);
+        return await prnServiceClient.GetObligationCalculationByYearAsync(year);
     }
 }

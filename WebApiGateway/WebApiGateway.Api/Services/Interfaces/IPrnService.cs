@@ -13,5 +13,5 @@ public interface IPrnService
 
     Task<PaginatedResponse<PrnModel>> GetSearchPrns(PaginatedRequest request);
 
-    Task<ObligationModel> GetObligationHierarchyCalculationByYearAsync(List<Guid> organisationIds, int year);
+    Task<ObligationModel> GetObligationCalculationByYearAsync(int year);
 }

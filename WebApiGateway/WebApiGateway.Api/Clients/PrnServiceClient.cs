@@ -92,14 +92,14 @@ public class PrnServiceClient(HttpClient httpClient, ILogger<PrnServiceClient> l
         }
     }
 
-    public async Task<ObligationModel> GetObligationHierarchyCalculationByYearAsync(List<Guid> organisationIds, int year)
+    public async Task<ObligationModel> GetObligationCalculationByYearAsync(int year)
     {
         try
         {
             var orgId = await ConfigureHttpClientAsync();
             logger.LogInformation("{_logPrefix}: PrnServiceClient - GetObligationCalculationByYearAsync: calling endpoint '{ObligationCalculationUrl}/{Year}' for organisation {OrgId}", _logPrefix, ObligationCalculationUrl, year, orgId);
 
-            var response = await httpClient.PostAsJsonAsync($"{ObligationCalculationUrl}/{year}", organisationIds);
+            var response = await httpClient.GetAsync($"{ObligationCalculationUrl}/{year}");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
 

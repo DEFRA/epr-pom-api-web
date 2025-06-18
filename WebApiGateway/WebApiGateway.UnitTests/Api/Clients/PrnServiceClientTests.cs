@@ -33,7 +33,6 @@ namespace WebApiGateway.UnitTests.Api.Clients
         private Mock<IAccountServiceClient> _accountServiceClientMock;
         private Mock<IConfiguration> _configurationMock;
         private PrnServiceClient _systemUnderTest;
-        private List<Guid> organisationIds = [];
 
         [TestInitialize]
         public void TestInitialize()
@@ -60,9 +59,6 @@ namespace WebApiGateway.UnitTests.Api.Clients
             _configurationMock.Setup(c => c["LogPrefix"]).Returns("[WebApiGateway]");
 
             _systemUnderTest = new PrnServiceClient(_httpClient, _loggerMock.Object, _httpContextAccessorMock.Object, _accountServiceClientMock.Object, _configurationMock.Object);
-
-            organisationIds.Add(Guid.NewGuid());
-            organisationIds.Add(Guid.NewGuid());
         }
 
         [TestMethod]
@@ -145,9 +141,9 @@ namespace WebApiGateway.UnitTests.Api.Clients
             var calculations = Fixture.Create<ObligationModel>();
             _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, calculations.ToJsonContent());
 
-            var result = await _systemUnderTest.GetObligationHierarchyCalculationByYearAsync(organisationIds, year);
+            var result = await _systemUnderTest.GetObligationCalculationByYearAsync(year);
 
-            var expectedMethod = HttpMethod.Post;
+            var expectedMethod = HttpMethod.Get;
             var expectedRequestUri = new Uri($"https://example.com/v1/prn/obligationcalculation/{year}");
 
             _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, Times.Once());
@@ -308,7 +304,7 @@ namespace WebApiGateway.UnitTests.Api.Clients
                 .Callback<LogLevel, EventId, object, Exception, Delegate>((_, _, state, _, _) => { logEntries.Add(state.ToString()); });
 
             // Act
-            Func<Task> act = async () => await _systemUnderTest.GetObligationHierarchyCalculationByYearAsync(organisationIds, year);
+            Func<Task> act = async () => await _systemUnderTest.GetObligationCalculationByYearAsync(year);
 
             // Assert
             await act.Should().ThrowAsync<HttpRequestException>().WithMessage(exceptionMessage);

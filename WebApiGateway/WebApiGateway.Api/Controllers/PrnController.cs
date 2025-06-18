@@ -40,12 +40,12 @@ public class PrnController(IPrnService prnService, ILogger<PrnController> logger
         return new OkObjectResult(await prnService.GetSearchPrns(request));
     }
 
-    [HttpPost("prn/obligationcalculation/{year}")]
+    [HttpGet("prn/obligationcalculation/{year}")]
     [ProducesResponseType(typeof(List<ObligationModel>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetObligationCalculation(List<Guid> organisationIds, int year)
+    public async Task<IActionResult> GetObligationCalculation(int year)
     {
-        logger.LogInformation("{Logprefix}: PrnController - GetObligationCalculation: Get Obligation request for given organisations and year {Year}, {Organisations}", logPrefix, year, organisationIds);
-        return new OkObjectResult(await prnService.GetObligationHierarchyCalculationByYearAsync(organisationIds, year));
+        logger.LogInformation("{Logprefix}: PrnController - GetObligationCalculation: Get Obligation calculation for year {Year}", logPrefix, year);
+        return new OkObjectResult(await prnService.GetObligationCalculationByYearAsync(year));
     }
 
     [HttpPost("prn/status")]

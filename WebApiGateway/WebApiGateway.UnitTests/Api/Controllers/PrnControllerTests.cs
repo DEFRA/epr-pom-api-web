@@ -20,7 +20,6 @@ public class PrnControllerTests
     private Mock<IPrnService> _prnService;
     private Mock<IConfiguration> _configuration;
     private PrnController _systemUnderTest;
-    private List<Guid> organisationIds = [];
 
     [TestInitialize]
     public void TestInitialize()
@@ -29,9 +28,6 @@ public class PrnControllerTests
         _prnService = new Mock<IPrnService>();
         _configuration = new Mock<IConfiguration>();
         _systemUnderTest = new PrnController(_prnService.Object, _loggerMock.Object, _configuration.Object);
-
-        organisationIds.Add(Guid.NewGuid());
-        organisationIds.Add(Guid.NewGuid());
     }
 
     [TestMethod]
@@ -70,10 +66,10 @@ public class PrnControllerTests
         int year = DateTime.Now.Year;
 
         var response = Fixture.Create<ObligationModel>();
-        _prnService.Setup(x => x.GetObligationHierarchyCalculationByYearAsync(organisationIds, year)).ReturnsAsync(response);
+        _prnService.Setup(x => x.GetObligationCalculationByYearAsync(year)).ReturnsAsync(response);
 
         // Act
-        var result = await _systemUnderTest.GetObligationCalculation(organisationIds, year);
+        var result = await _systemUnderTest.GetObligationCalculation(year);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeEquivalentTo(response);
@@ -85,10 +81,10 @@ public class PrnControllerTests
         // Arrange
         int year = DateTime.Now.Year;
         var response = Fixture.Create<ObligationModel>();
-        _prnService.Setup(x => x.GetObligationHierarchyCalculationByYearAsync(organisationIds, year)).ReturnsAsync(response);
+        _prnService.Setup(x => x.GetObligationCalculationByYearAsync(year)).ReturnsAsync(response);
 
         // Act
-        var result = await _systemUnderTest.GetObligationCalculation(organisationIds, year); // Pass complianceSchemeId here
+        var result = await _systemUnderTest.GetObligationCalculation(year); // Pass complianceSchemeId here
 
         // Assert
         result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeEquivalentTo(response);

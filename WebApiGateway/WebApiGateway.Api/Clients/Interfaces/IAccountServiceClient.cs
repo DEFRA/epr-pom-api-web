@@ -5,4 +5,6 @@ using Core.Models.UserAccount;
 public interface IAccountServiceClient
 {
     Task<UserAccount> GetUserAccount(Guid userId);
+
+    Task<UserAccount> GetUserAccountIncludeDeleted(Guid userId);
 }

@@ -524,8 +524,8 @@ public class SubmissionStatusClientTests
         var userIdOne = submissionHistoryEventsResponse.SubmittedEvents[0].UserId;
         var userIdTwo = submissionHistoryEventsResponse.SubmittedEvents[1].UserId;
 
-        _accountServiceClientMock.Setup(x => x.GetUserAccount(userIdOne)).ReturnsAsync(userOne);
-        _accountServiceClientMock.Setup(x => x.GetUserAccount(userIdTwo)).ReturnsAsync(userTwo);
+        _accountServiceClientMock.Setup(x => x.GetUserAccountIncludeDeleted(userIdOne)).ReturnsAsync(userOne);
+        _accountServiceClientMock.Setup(x => x.GetUserAccountIncludeDeleted(userIdTwo)).ReturnsAsync(userTwo);
 
         // Act
         var result = await _systemUnderTest.GetSubmissionPeriodHistory(submissionId, QueryString);
@@ -547,8 +547,8 @@ public class SubmissionStatusClientTests
 
         _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, expectedHeaders, Times.Once());
 
-        _accountServiceClientMock.Verify(x => x.GetUserAccount(userIdOne), Times.Once);
-        _accountServiceClientMock.Verify(x => x.GetUserAccount(userIdTwo), Times.Once);
+        _accountServiceClientMock.Verify(x => x.GetUserAccountIncludeDeleted(userIdOne), Times.Once);
+        _accountServiceClientMock.Verify(x => x.GetUserAccountIncludeDeleted(userIdTwo), Times.Once);
     }
 
     [TestMethod]
@@ -578,8 +578,8 @@ public class SubmissionStatusClientTests
         var userIdOne = submissionHistoryEventsResponse.SubmittedEvents.First().UserId;
         var userIdTwo = submissionHistoryEventsResponse.SubmittedEvents[1].UserId;
 
-        _accountServiceClientMock.Setup(x => x.GetUserAccount(userIdOne)).ReturnsAsync(userOne);
-        _accountServiceClientMock.Setup(x => x.GetUserAccount(userIdTwo)).ReturnsAsync(userTwo);
+        _accountServiceClientMock.Setup(x => x.GetUserAccountIncludeDeleted(userIdOne)).ReturnsAsync(userOne);
+        _accountServiceClientMock.Setup(x => x.GetUserAccountIncludeDeleted(userIdTwo)).ReturnsAsync(userTwo);
 
         // Act
         var result = await _systemUnderTest.GetSubmissionPeriodHistory(submissionId, QueryString);
@@ -588,8 +588,8 @@ public class SubmissionStatusClientTests
         result.SubmittedEvents[0].SubmittedBy.Should().BeEquivalentTo(userOne.User.FirstName + " " + userOne.User.LastName);
         result.SubmittedEvents[1].SubmittedBy.Should().BeEquivalentTo(userTwo.User.FirstName + " " + userTwo.User.LastName);
 
-        _accountServiceClientMock.Verify(x => x.GetUserAccount(userIdOne), Times.Once);
-        _accountServiceClientMock.Verify(x => x.GetUserAccount(userIdTwo), Times.Once);
+        _accountServiceClientMock.Verify(x => x.GetUserAccountIncludeDeleted(userIdOne), Times.Once);
+        _accountServiceClientMock.Verify(x => x.GetUserAccountIncludeDeleted(userIdTwo), Times.Once);
     }
 
     [TestMethod]

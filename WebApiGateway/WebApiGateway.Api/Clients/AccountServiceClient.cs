@@ -11,9 +11,21 @@ public class AccountServiceClient(
 {
     public async Task<UserAccount> GetUserAccount(Guid userId)
     {
+        string endpoint = $"users/user-organisations?userId={userId}";
+        return await GetUserAccount(httpClient, logger, userId, endpoint);
+    }
+
+    public async Task<UserAccount> GetUserAccountIncludeDeleted(Guid userId)
+    {
+        string endpoint = $"users/user-organisations-include-deleted?userId={userId}";
+        return await GetUserAccount(httpClient, logger, userId, endpoint);
+    }
+
+    private static async Task<UserAccount> GetUserAccount(HttpClient httpClient, ILogger<AccountServiceClient> logger, Guid userId, string endpoint)
+    {
         try
         {
-            var response = await httpClient.GetAsync($"users/user-organisations?userId={userId}");
+            var response = await httpClient.GetAsync(endpoint);
 
             response.EnsureSuccessStatusCode();
 

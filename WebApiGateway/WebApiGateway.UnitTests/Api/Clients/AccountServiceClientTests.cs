@@ -67,4 +67,37 @@ public class AccountServiceClientTests
 
         _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "An error occurred retrieving user by id: {userId}", _userAccount.User.Id));
     }
+
+    [TestMethod]
+    public async Task GetUserAccountIncludeDeleted_ReturnsUser_WhenHttpClientResponseIsOk()
+    {
+        // Arrange
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, _userAccount.ToJsonContent());
+
+        // Act
+        var result = await _systemUnderTest.GetUserAccountIncludeDeleted(_userAccount.User.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(_userAccount);
+
+        var expectedMethod = HttpMethod.Get;
+        var expectedRequestUri = new Uri($"https://example.com/users/user-organisations-include-deleted?userId={_userAccount.User.Id}");
+
+        _httpMessageHandlerMock.VerifyRequest(expectedMethod, expectedRequestUri, Times.Once());
+    }
+
+    [TestMethod]
+    public async Task GetUserAccountIncludeDeleted_LogsAndThrowsException_WhenHttpClientResponseIsNotFound()
+    {
+        // Arrange
+        _httpMessageHandlerMock.RespondWith(HttpStatusCode.NotFound, null);
+
+        // Act / Assert
+        await _systemUnderTest
+            .Invoking(x => x.GetUserAccountIncludeDeleted(_userAccount.User.Id))
+            .Should()
+            .ThrowAsync<HttpRequestException>();
+
+        _loggerMock.VerifyLog(x => x.LogError(It.IsAny<HttpRequestException>(), "An error occurred retrieving user by id: {userId}", _userAccount.User.Id));
+    }
 }

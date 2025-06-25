@@ -293,7 +293,7 @@ public class SubmissionStatusClient(
 
         foreach (var submitted in results.SubmittedEvents)
         {
-            var userDetails = await accountServiceClient.GetUserAccount(submitted.UserId);
+            var userDetails = await accountServiceClient.GetUserAccountIncludeDeleted(submitted.UserId);
 
             if (userDetails == null!)
             {

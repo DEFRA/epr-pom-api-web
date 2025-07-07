@@ -16,4 +16,6 @@ public enum SubmissionType
     RegistrationFeePayment = 5,
     [Display(Name = "registration application submitted")]
     RegistrationApplicationSubmitted = 6,
+    [Display(Name = "accreditation")]
+    Accreditation = 7,
 }

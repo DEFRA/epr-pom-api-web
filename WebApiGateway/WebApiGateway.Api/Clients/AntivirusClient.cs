@@ -16,8 +16,8 @@ public class AntivirusClient(
         {
             var formContent = new MultipartFormDataContent
             {
-                { new StringContent(JsonConvert.SerializeObject(fileDetails)), nameof(fileDetails) },
-                { new StreamContent(fileStream), nameof(fileStream), fileName }
+                 { new StringContent(JsonConvert.SerializeObject(fileDetails)), nameof(fileDetails) },
+                 { new StreamContent(fileStream), nameof(fileStream), fileName }
             };
 
             var boundary = formContent.Headers.ContentType.Parameters.First(o => o.Name == "boundary");

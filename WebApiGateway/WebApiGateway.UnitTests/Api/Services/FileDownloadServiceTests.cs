@@ -44,7 +44,9 @@ public class FileDownloadServiceTests
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_ShouldReturnStream_WhenFileDownloadSuccessful()
+    [DataRow(SubmissionType.Registration)]
+    [DataRow(SubmissionType.Accreditation)]
+    public async Task DownloadFileAsync_ShouldReturnStream_WhenFileDownloadSuccessful(SubmissionType submissionType)
     {
         // Arrange
         var stringContent = new StringContent(ContentScan.Clean);
@@ -60,7 +62,7 @@ public class FileDownloadServiceTests
             .ReturnsAsync(sendFileResponse);
 
         // Act
-        var result = await _systemUnderTest.DownloadFileAsync(_fileId, Filename, SubmissionType.Registration, _submissionId);
+        var result = await _systemUnderTest.DownloadFileAsync(_fileId, Filename, submissionType, _submissionId);
 
         // Assert
         result.Stream.Should().NotBeNull();

@@ -50,8 +50,10 @@ public class FileDownloadService(
         };
     }
 
-    private string GetContainerName(SubmissionType submissionType) =>
-            submissionType == SubmissionType.Producer
-                ? _options.PomContainer
-                : _options.RegistrationContainer;
+    private string GetContainerName(SubmissionType submissionType) => submissionType switch
+    {
+        SubmissionType.Producer => _options.PomContainer,
+        SubmissionType.Accreditation => _options.AccreditationContainer,
+        _ => _options.RegistrationContainer
+    };
 }

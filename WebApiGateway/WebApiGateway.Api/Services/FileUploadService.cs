@@ -53,4 +53,22 @@ public class FileUploadService(
 
         return submissionId;
     }
+
+    public async Task<Guid> UploadFileAccreditationAsync(
+        Stream fileStream,
+        SubmissionType submissionType,
+        string fileName,
+        Guid? originalSubmissionId)
+    {
+        var fileType = submissionType is SubmissionType.Accreditation
+            ? FileType.Accreditation
+            : (FileType)Enum.Parse(typeof(FileType), submissionType.ToString());
+
+        var submissionId = originalSubmissionId is null ? await submissionService.CreateSubmissionAsync(submissionType, "NA Accreditation File Upload", null, null) : originalSubmissionId.Value;
+        var truncatedFileName = FileHelpers.GetTruncatedFileName(fileName, FileConstants.FileNameTruncationLength);
+        var fileId = await submissionService.CreateAntivirusCheckEventAsync(truncatedFileName, fileType, submissionId, null);
+        await antivirusService.SendFileAsync(submissionType, fileId, truncatedFileName, fileStream);
+
+        return submissionId;
+    }
 }

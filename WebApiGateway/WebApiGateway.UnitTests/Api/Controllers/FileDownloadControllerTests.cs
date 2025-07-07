@@ -75,7 +75,9 @@ public class FileDownloadControllerTests
     }
 
     [TestMethod]
-    public async Task Get_ReturnsFileContentResult_WheFileDownloadWasSuccessful()
+    [DataRow(SubmissionType.Registration)]
+    [DataRow(SubmissionType.Accreditation)]
+    public async Task Get_ReturnsFileContentResult_WheFileDownloadWasSuccessful(SubmissionType submissionType)
     {
         // Arrange
         var data = new FileDownloadData
@@ -91,7 +93,7 @@ public class FileDownloadControllerTests
             .ReturnsAsync(data);
 
         // Act
-        var result = await _systemUnderTest.Get(Filename, _fileId, SubmissionType.Registration, _submissionId);
+        var result = await _systemUnderTest.Get(Filename, _fileId, submissionType, _submissionId);
 
         // Assert
         result.Should().BeOfType<FileContentResult>();

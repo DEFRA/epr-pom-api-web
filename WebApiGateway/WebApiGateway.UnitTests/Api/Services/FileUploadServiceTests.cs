@@ -163,4 +163,48 @@ public class FileUploadServiceTests
         // Assert
         _antivirusServiceMock.Verify(x => x.SendFileAsync(SubmissionType.Subsidiary, It.IsAny<Guid>(), Filename, fileStream), Times.Once);
     }
+
+    [TestMethod]
+    public async Task UploadAccreditationAsync_CreatesSubmission_WhenUploadingAccreditationFile()
+    {
+        // Arrange
+        const SubmissionType submissionType = SubmissionType.Accreditation;
+        var fileStream = new MemoryStream();
+        Guid? originalSubmissionId = null;
+
+        _submissionServiceMock
+            .Setup(x => x.CreateAntivirusCheckEventAsync(It.IsAny<string>(), It.IsAny<FileType>(), It.IsAny<Guid>(), It.IsAny<Guid?>()))
+            .ReturnsAsync(_fileId);
+
+        // Act
+        var result = await _systemUnderTest.UploadFileAccreditationAsync(fileStream, submissionType, Filename, originalSubmissionId);
+
+        // Assert
+        _submissionServiceMock.Verify(x => x.CreateSubmissionAsync(It.IsAny<SubmissionType>(), It.IsAny<string>(), It.IsAny<Guid?>(), It.IsAny<bool?>()), Times.Once);
+        _submissionServiceMock.Verify(x => x.CreateAntivirusCheckEventAsync(Filename, FileType.Accreditation, It.IsAny<Guid>(), It.IsAny<Guid?>()), Times.Once);
+        _antivirusServiceMock.Verify(x => x.SendFileAsync(submissionType, _fileId, Filename, fileStream), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task UploadFileAccreditationAsync_SendFile_WhenUploadingAccreditationFile()
+    {
+        // Arrange
+        const SubmissionType submissionType = SubmissionType.Accreditation;
+        var fileStream = new MemoryStream();
+        var originalSubmissionId = Guid.NewGuid();
+
+        _submissionServiceMock
+            .Setup(x => x.CreateAntivirusCheckEventAsync(It.IsAny<string>(), It.IsAny<FileType>(), It.IsAny<Guid>(), It.IsAny<Guid?>()))
+            .ReturnsAsync(_fileId);
+
+        // Act
+        var result = await _systemUnderTest.UploadFileAccreditationAsync(fileStream, submissionType, Filename, originalSubmissionId);
+
+        // Assert
+        result.Should().Be(originalSubmissionId);
+
+        _submissionServiceMock.Verify(x => x.CreateSubmissionAsync(It.IsAny<SubmissionType>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<bool?>()), Times.Never);
+        _submissionServiceMock.Verify(x => x.CreateAntivirusCheckEventAsync(Filename, FileType.Accreditation, originalSubmissionId, It.IsAny<Guid?>()), Times.Once);
+        _antivirusServiceMock.Verify(x => x.SendFileAsync(submissionType, _fileId, Filename, fileStream), Times.Once);
+    }
 }

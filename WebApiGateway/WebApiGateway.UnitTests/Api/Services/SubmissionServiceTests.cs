@@ -30,6 +30,7 @@ public class SubmissionServiceTests
     private const string RegistrationContainerName = "registration-container-name";
     private const string PomContainerName = "pom-container-name";
     private const string SubsidiaryContainerName = "subsidiary-container-name";
+    private const string AccreditationContainerName = "accreditation-container-name";
 
     private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
 
@@ -49,6 +50,7 @@ public class SubmissionServiceTests
                 RegistrationContainer = RegistrationContainerName,
                 PomContainer = PomContainerName,
                 SubsidiaryContainer = SubsidiaryContainerName,
+                AccreditationContainer = AccreditationContainerName,
             });
         _loggingServiceMock = new Mock<ILoggingService>();
         _loggerMock = new Mock<ILogger<SubmissionService>>();
@@ -81,6 +83,7 @@ public class SubmissionServiceTests
     [DataRow(FileType.Pom, PomContainerName)]
     [DataRow(FileType.Brands, RegistrationContainerName)]
     [DataRow(FileType.Subsidiaries, SubsidiaryContainerName)]
+    [DataRow(FileType.Accreditation, AccreditationContainerName)]
     public async Task CreateAntivirusCheckEventAsync_ReturnsFileId_WhenAntivirusCheckEventAndMonitoringEventAreCreatedSuccessfully(FileType fileType, string containerName)
     {
         // Arrange

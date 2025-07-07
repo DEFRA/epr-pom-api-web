@@ -20,4 +20,10 @@ public interface IFileUploadService
         SubmissionType submissionType,
         string fileName,
         Guid? complianceSchemeId);
+
+    Task<Guid> UploadFileAccreditationAsync(
+        Stream fileStream,
+        SubmissionType submissionType,
+        string fileName,
+        Guid? originalSubmissionId);
 }

@@ -14,4 +14,6 @@ public class StorageAccountOptions
     public string RegistrationContainer { get; set; } = string.Empty;
 
     public string SubsidiaryContainer { get; set; } = string.Empty;
+
+    public string AccreditationContainer { get; set; } = string.Empty;
 }

@@ -48,6 +48,7 @@ public class SubmissionService(
         {
             FileType.Pom => _options.PomContainer,
             FileType.Subsidiaries => _options.SubsidiaryContainer,
+            FileType.Accreditation => _options.AccreditationContainer,
             _ => _options.RegistrationContainer
         };
 

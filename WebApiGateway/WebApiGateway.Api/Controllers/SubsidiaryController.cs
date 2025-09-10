@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Constants;
+using WebApiGateway.Core.Models.Subsidiary;
 
 namespace WebApiGateway.Api.Controllers;
 
@@ -12,7 +13,7 @@ public class SubsidiaryController(ISubsidiaryService subsidiaryService, ILogger<
     : ControllerBase
 {
     [HttpGet("{userId:guid}/{organisationId:guid}", Name = nameof(GetNotificationErrors))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UploadFileErrorResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetNotificationErrors([FromRoute] Guid userId, [FromRoute] Guid organisationId)
     {

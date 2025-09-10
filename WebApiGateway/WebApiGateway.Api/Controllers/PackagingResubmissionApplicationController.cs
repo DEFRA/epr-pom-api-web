@@ -1,8 +1,10 @@
 ﻿using Asp.Versioning;
+using EPR.SubmissionMicroservice.Application.Features.Queries.Common;
 using EPR.SubmissionMicroservice.Data.Entities.SubmissionEvent;
 using Microsoft.AspNetCore.Mvc;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Models.Events;
+using WebApiGateway.Core.Models.PackagingResubmissionApplication;
 
 namespace WebApiGateway.Api.Controllers;
 
@@ -14,6 +16,7 @@ public class PackagingResubmissionApplicationController(
         : ControllerBase
 {
     [HttpGet("get-application-details")]
+    [ProducesResponseType(typeof(List<PackagingResubmissionApplicationDetails>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> GetPackagingResubmissionApplicationDetails()
     {
@@ -23,6 +26,7 @@ public class PackagingResubmissionApplicationController(
     }
 
     [HttpGet("get-resubmission-member-details/{submissionId:guid}")]
+    [ProducesResponseType(typeof(PackagingResubmissionMemberResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> GetPackagingResubmissionMemberDetails([FromRoute] Guid submissionId, [FromQuery] string? complianceSchemeId)
     {

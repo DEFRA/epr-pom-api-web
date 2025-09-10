@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApiGateway.Api.Extensions;
 using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Models.ProducerValidation;
+using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
+using WebApiGateway.Core.Models.SubmissionHistory;
 using WebApiGateway.Core.Models.Submissions;
 
 namespace WebApiGateway.Api.Controllers;
@@ -31,7 +34,7 @@ public class SubmissionController(
     }
 
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<AbstractSubmission>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSubmissions()
     {
         var submissions = await submissionService.GetSubmissionsAsync(Request.QueryString.Value);
@@ -39,7 +42,7 @@ public class SubmissionController(
     }
 
     [HttpGet("submission-history/{submissionId:guid}", Name = nameof(GetSubmissionHistory))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<SubmissionHistoryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSubmissionHistory([FromRoute] Guid submissionId)
     {
         var submissions = await submissionService.GetSubmissionPeriodHistory(submissionId, Request.QueryString.Value);
@@ -47,7 +50,7 @@ public class SubmissionController(
     }
 
     [HttpGet("submission-Ids/{organisationId:guid}", Name = nameof(GetSubmissionByFilter))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<SubmissionGetResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSubmissionByFilter([FromRoute] Guid organisationId, [FromQuery] SubmissionGetRequest request)
     {
         var submissions = await submissionService.GetSubmissionsByFilter(
@@ -65,7 +68,7 @@ public class SubmissionController(
     /// <param name="submissionId">submission id.</param>
     /// <returns>list of registeration validation issues i.e. errors & warnings.</returns>
     [HttpGet("{submissionId:guid}/organisation-details-errors", Name = nameof(GetRegistrationValidationErrors))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<RegistrationValidationError>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRegistrationValidationErrors([FromRoute] Guid submissionId)
     {
         var registrationValidationIssues = await submissionService.GetRegistrationValidationErrorsAsync(submissionId);
@@ -73,7 +76,7 @@ public class SubmissionController(
     }
 
     [HttpGet("{submissionId:guid}/producer-validations", Name = nameof(GetProducerValidationIssues))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<ProducerValidationIssueRow>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProducerValidationIssues([FromRoute] Guid submissionId)
     {
         var producerValidationIssues = await submissionService.GetProducerValidationIssuesAsync(submissionId);

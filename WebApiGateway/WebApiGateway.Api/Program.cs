@@ -53,6 +53,7 @@ builder.Services.AddSwaggerGen(options =>
             Scheme = Constants.Bearer
         });
     options.OperationFilter<AddAuthHeaderOperationFilter>();
+    options.CustomSchemaIds(schema => schema.FullName);
 });
 
 var app = builder.Build();

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApiGateway.Api.Services.Interfaces;
+using WebApiGateway.Core.Models.Decision;
 
 namespace WebApiGateway.Api.Controllers;
 
@@ -12,8 +13,7 @@ namespace WebApiGateway.Api.Controllers;
 public class DecisionController(IDecisionService decisionService) : ControllerBase
 {
     [HttpGet]
-
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RegulatorDecision), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDecision()
     {
         var decision = await decisionService.GetDecisionAsync(Request.QueryString.Value);

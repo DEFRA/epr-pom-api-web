@@ -14,6 +14,8 @@ using WebApiGateway.Core.Enumeration;
 public class FileDownloadController(IFileDownloadService fileDownloadService) : ControllerBase
 {
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Get([Required] string fileName, [Required] Guid fileId, [Required] SubmissionType submissionType, [Required] Guid submissionId)
     {
         var fileData = await fileDownloadService.DownloadFileAsync(fileId, fileName, submissionType, submissionId);

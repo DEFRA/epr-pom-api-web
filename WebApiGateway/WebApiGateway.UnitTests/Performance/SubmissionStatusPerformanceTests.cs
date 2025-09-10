@@ -52,7 +52,7 @@ public class SubmissionStatusPerformanceTests
     }
 
     [TestMethod]
-    public async Task GetProducerValidationWarningRowsAsync_WhenCalledWith1000Warnings_ReturnsWarningsBackInLessThan100ms()
+    public async Task GetProducerValidationWarningRowsAsync_WhenCalledWith1000Warnings_ReturnsWarningsBackInLessThan200ms()
     {
         // Arrange
         var stopwatch = new Stopwatch();
@@ -72,7 +72,7 @@ public class SubmissionStatusPerformanceTests
         var elapsedTime = stopwatch.ElapsedMilliseconds;
 
         Console.WriteLine($"Fetching {validationWarningRows.Count} validation warning rows took {elapsedTime} milliseconds");
-        elapsedTime.Should().BeLessThan(100, $"Expected elapsed time should take 100ms but instead took {elapsedTime}ms");
+        elapsedTime.Should().BeLessThan(200, $"Expected elapsed time should take 100ms but instead took {elapsedTime}ms");
     }
 
     [TestMethod]

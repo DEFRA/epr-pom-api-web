@@ -15,7 +15,7 @@ public class ClaimsPrincipalExtensionsTests
     private readonly Guid _userId = Guid.NewGuid();
 
     private Mock<ClaimsPrincipal> _claimsPrincipalMock;
-    private HttpContext _httpContext;
+    private DefaultHttpContext _httpContext;
 
     [TestInitialize]
     public void TestInitialize()

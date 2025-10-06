@@ -11,6 +11,7 @@ using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
+using WebApiGateway.Core.Models.PackagingResubmissionApplication;
 using WebApiGateway.Core.Models.ProducerValidation;
 using WebApiGateway.Core.Models.RegistrationValidation;
 using WebApiGateway.Core.Models.Submission;
@@ -25,13 +26,15 @@ public class SubmissionControllerTests
 {
     private static readonly IFixture Fixture = new Fixture().Customize(new AutoMoqCustomization());
     private Mock<ISubmissionService> _submissionServiceMock;
+    private Mock<IPackagingResubmissionApplicationService> _packagingResubmissionApplicationService;
     private SubmissionController _systemUnderTest;
 
     [TestInitialize]
     public void TestInitialize()
     {
         _submissionServiceMock = new Mock<ISubmissionService>();
-        _systemUnderTest = new SubmissionController(_submissionServiceMock.Object)
+        _packagingResubmissionApplicationService = new Mock<IPackagingResubmissionApplicationService>();
+        _systemUnderTest = new SubmissionController(_submissionServiceMock.Object, _packagingResubmissionApplicationService.Object)
         {
             ControllerContext = { HttpContext = new DefaultHttpContext() }
         };
@@ -76,6 +79,26 @@ public class SubmissionControllerTests
         // Assert
         result.Value.Should().BeEquivalentTo(submissions);
         _submissionServiceMock.Verify(x => x.GetSubmissionsAsync(QueryString), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetActualSubmissionPeriod_ReturnsOkObjectResult()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var submissionPeriod = "July to December 2025";
+        var actualSubmissionPeriod = "January to December 2025";
+
+        _packagingResubmissionApplicationService
+            .Setup(x => x.GetActualSubmissionPeriod(submissionId, submissionPeriod))
+            .ReturnsAsync(new PackagingResubmissionActualSubmissionPeriodResponse { ActualSubmissionPeriod = actualSubmissionPeriod });
+
+        // Act
+        var result = await _systemUnderTest.GetActualSubmissionPeriod(submissionId, submissionPeriod) as OkObjectResult;
+
+        // Assert
+        ((PackagingResubmissionActualSubmissionPeriodResponse)result.Value).ActualSubmissionPeriod.Should().BeEquivalentTo(actualSubmissionPeriod);
+        _packagingResubmissionApplicationService.Verify(x => x.GetActualSubmissionPeriod(submissionId, submissionPeriod), Times.Once);
     }
 
     [TestMethod]

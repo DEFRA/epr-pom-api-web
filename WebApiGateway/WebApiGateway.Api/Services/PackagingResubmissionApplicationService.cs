@@ -42,4 +42,9 @@ public class PackagingResubmissionApplicationService(
     {
         await submissionStatusClient.CreateEventAsync<T>(@event, submissionId);
     }
+
+    public async Task<PackagingResubmissionActualSubmissionPeriodResponse> GetActualSubmissionPeriod(Guid submissionId, string submissionPeriod)
+    {
+        return await commondataClient.GetActualSubmissionPeriod(submissionId, submissionPeriod);
+    }
 }

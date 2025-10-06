@@ -10,6 +10,8 @@ public interface IPackagingResubmissionApplicationService
 
     Task<PackagingResubmissionMemberResponse> GetPackagingResubmissionMemberDetails(Guid submissionId, string complianceSchemeId);
 
+    Task<PackagingResubmissionActualSubmissionPeriodResponse> GetActualSubmissionPeriod(Guid submissionId, string submissionPeriod);
+
     Task CreateEventAsync<T>(T @event, Guid submissionId)
         where T : AbstractEvent;
 }

@@ -1,5 +1,4 @@
 ﻿using EPR.SubmissionMicroservice.Application.Features.Queries.Common;
-using EPR.SubmissionMicroservice.Data.Entities.SubmissionEvent;
 using WebApiGateway.Core.Enumeration;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.ProducerValidation;

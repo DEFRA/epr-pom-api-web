@@ -14,7 +14,8 @@ namespace WebApiGateway.Api.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/submissions")]
 public class SubmissionController(
-    ISubmissionService submissionService) : ControllerBase
+    ISubmissionService submissionService,
+    IPackagingResubmissionApplicationService packagingResubmissionApplicationService) : ControllerBase
 {
     [HttpGet("{submissionId:guid}", Name = nameof(GetSubmission))]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -31,6 +32,16 @@ public class SubmissionController(
             Content = responseBody,
             ContentType = responseType,
         };
+    }
+
+    [HttpGet("actual-submission-period/{submissionId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetActualSubmissionPeriod([FromRoute] Guid submissionId, [FromQuery] string submissionPeriod)
+    {
+        var response = await packagingResubmissionApplicationService.GetActualSubmissionPeriod(submissionId, submissionPeriod);
+
+        return new OkObjectResult(response);
     }
 
     [HttpGet]

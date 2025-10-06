@@ -8,4 +8,6 @@ public interface ICommondataClient
     Task<SynapseResponse?> GetPackagingResubmissionFileDetailsFromSynapse(Guid fileId);
 
     Task<PackagingResubmissionMemberResponse?> GetPackagingResubmissionMemberDetails(Guid submissionId, string complianceSchemeId);
+
+    Task<PackagingResubmissionActualSubmissionPeriodResponse> GetActualSubmissionPeriod(Guid submissionId, string submissionPeriod);
 }

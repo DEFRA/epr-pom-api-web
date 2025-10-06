@@ -66,4 +66,21 @@ public class CommondataClient(
             throw;
         }
     }
+
+    public async Task<PackagingResubmissionActualSubmissionPeriodResponse> GetActualSubmissionPeriod(Guid submissionId, string submissionPeriod)
+    {
+        var endpoint = $"submissions/get_actual_submission_period/{submissionId}/?SubmissionPeriod={submissionPeriod}";
+
+        var response = await httpClient.GetAsync(endpoint);
+
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            logger.LogError("Error Getting actual submission period for submission, StatusCode : {StatusCode} ({ReasonPhrase}), SubmissionId: {SubmissionId}, Submission Period: {submissionPeriod}", response.StatusCode, response.ReasonPhrase, submissionId, submissionPeriod);
+            return new PackagingResubmissionActualSubmissionPeriodResponse { ActualSubmissionPeriod = submissionPeriod };
+        }
+
+        var content = await response.Content.ReadFromJsonAsync<PackagingResubmissionActualSubmissionPeriodResponse>();
+
+        return content;
+    }
 }

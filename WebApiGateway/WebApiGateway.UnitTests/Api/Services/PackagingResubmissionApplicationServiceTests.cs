@@ -198,4 +198,31 @@ public class PackagingResubmissionApplicationServiceTests
         result.Should().NotBeNull();
         _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>()), Times.Never);
     }
+
+    [TestMethod]
+    public async Task GetActualSubmissionPeriod_ShouldReturnCorrectObject()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var submissionPeriod = "July to December 2025";
+        var actualSubmissionPeriod = "January to December 2025";
+
+        var response = new PackagingResubmissionActualSubmissionPeriodResponse()
+        {
+            ActualSubmissionPeriod = actualSubmissionPeriod,
+        };
+
+        _commondataClientMock
+            .Setup(x => x.GetActualSubmissionPeriod(submissionId, submissionPeriod))
+            .ReturnsAsync(response);
+
+        // Act
+        var result = await _service.GetActualSubmissionPeriod(submissionId, submissionPeriod);
+
+        // Assert
+        result!.Should().BeEquivalentTo(response);
+        result.ActualSubmissionPeriod.Should().BeEquivalentTo(actualSubmissionPeriod);
+
+        _commondataClientMock.Verify(x => x.GetActualSubmissionPeriod(submissionId, submissionPeriod), Times.Once);
+    }
 }

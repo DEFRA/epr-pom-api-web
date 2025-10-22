@@ -10,9 +10,10 @@ public class RegistrationFeeCalculationDetailsClient(
     ILogger<IRegistrationFeeCalculationDetailsClient> logger)
     : IRegistrationFeeCalculationDetailsClient
 {
-    public async Task<RegistrationFeeCalculationDetails[]?> GetRegistrationFeeCalculationDetails(Guid fileId)
+    public async Task<RegistrationFeeCalculationDetails[]?> GetRegistrationFeeCalculationDetails(Guid fileId, DateTime? largeProducerLateFeeDeadLine, DateTime? smallProducerLateFeeDeadLine)
     {
-        var response = await httpClient.GetAsync($"registration-fee-calculation-details/get-registration-fee-calculation-details/{fileId}");
+        logger.LogInformation("Getting registration fee calculation details for fileId: {FileId}, LargeProducerLateFeeDeadLine: {LargeProducerLateFeeDeadLine}, SmallProducerLateFeeDeadLine: {SmallProducerLateFeeDeadLine}", fileId, largeProducerLateFeeDeadLine, smallProducerLateFeeDeadLine);
+        var response = await httpClient.GetAsync($"registration-fee-calculation-details/get-registration-fee-calculation-details/{fileId}/{largeProducerLateFeeDeadLine:o}/{smallProducerLateFeeDeadLine:o}");
 
         // response.StatusCode == HttpStatusCode.BadRequest
         // response.StatusCode == HttpStatusCode.NoContent

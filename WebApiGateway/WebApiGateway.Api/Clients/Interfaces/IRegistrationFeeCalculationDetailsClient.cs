@@ -4,5 +4,5 @@ namespace WebApiGateway.Api.Clients.Interfaces;
 
 public interface IRegistrationFeeCalculationDetailsClient
 {
-    Task<RegistrationFeeCalculationDetails[]?> GetRegistrationFeeCalculationDetails(Guid fileId);
+    Task<RegistrationFeeCalculationDetails[]?> GetRegistrationFeeCalculationDetails(Guid fileId, DateTime? largeProducerLateFeeDeadLine, DateTime? smallProducerLateFeeDeadLine);
 }

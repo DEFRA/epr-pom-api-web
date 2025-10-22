@@ -39,6 +39,8 @@ public class RegistrationFeeCalculationDetailsClientTests
     {
         // Arrange
         var fileId = Guid.NewGuid();
+        var largeProducerLateFeeDeadLine = new DateTime(2025, 10, 1);
+        var smallProducerLateFeeDeadLine = new DateTime(2026, 4, 1);
         var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(JsonConvert.SerializeObject(_fixture.Create<RegistrationFeeCalculationDetails[]>()))
@@ -48,13 +50,13 @@ public class RegistrationFeeCalculationDetailsClientTests
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == $"http://localhost/registration-fee-calculation-details/get-registration-fee-calculation-details/{fileId}"),
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == $"http://localhost/registration-fee-calculation-details/get-registration-fee-calculation-details/{fileId}/{largeProducerLateFeeDeadLine:o}/{smallProducerLateFeeDeadLine:o}"),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(responseMessage)
             .Verifiable("The URL in the request was not as expected.");
 
         // Act
-        await _client.GetRegistrationFeeCalculationDetails(fileId);
+        await _client.GetRegistrationFeeCalculationDetails(fileId, largeProducerLateFeeDeadLine, smallProducerLateFeeDeadLine);
 
         // Assert
         _httpMessageHandlerMock.Verify();
@@ -65,6 +67,8 @@ public class RegistrationFeeCalculationDetailsClientTests
     {
         // Arrange
         var fileId = Guid.NewGuid();
+        var largeProducerLateFeeDeadLine = new DateTime(2025, 10, 1);
+        var smallProducerLateFeeDeadLine = new DateTime(2026, 4, 1);
         var expectedResponse = _fixture.Create<RegistrationFeeCalculationDetails[]>();
         var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -80,7 +84,7 @@ public class RegistrationFeeCalculationDetailsClientTests
             .ReturnsAsync(responseMessage);
 
         // Act
-        var result = await _client.GetRegistrationFeeCalculationDetails(fileId);
+        var result = await _client.GetRegistrationFeeCalculationDetails(fileId, largeProducerLateFeeDeadLine, smallProducerLateFeeDeadLine);
 
         // Assert
         result.Should().BeEquivalentTo(expectedResponse);
@@ -91,6 +95,8 @@ public class RegistrationFeeCalculationDetailsClientTests
     {
         // Arrange
         var fileId = Guid.NewGuid();
+        var largeProducerLateFeeDeadLine = new DateTime(2025, 10, 1);
+        var smallProducerLateFeeDeadLine = new DateTime(2026, 4, 1);
         var responseMessage = new HttpResponseMessage(HttpStatusCode.BadRequest)
         {
             ReasonPhrase = "Bad Request"
@@ -105,7 +111,7 @@ public class RegistrationFeeCalculationDetailsClientTests
             .ReturnsAsync(responseMessage);
 
         // Act
-        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId);
+        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId, largeProducerLateFeeDeadLine, smallProducerLateFeeDeadLine);
 
         // Assert
         act.Should().ThrowAsync<HttpRequestException>()
@@ -126,6 +132,8 @@ public class RegistrationFeeCalculationDetailsClientTests
     {
         // Arrange
         var fileId = Guid.NewGuid();
+        var largeProducerLateFeeDeadLine = new DateTime(2025, 10, 1);
+        var smallProducerLateFeeDeadLine = new DateTime(2026, 4, 1);
         var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent)
         {
             ReasonPhrase = "No Content"
@@ -140,7 +148,7 @@ public class RegistrationFeeCalculationDetailsClientTests
             .ReturnsAsync(responseMessage);
 
         // Act
-        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId);
+        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId, largeProducerLateFeeDeadLine, smallProducerLateFeeDeadLine);
 
         // Assert
         act.Should().ThrowAsync<HttpRequestException>()
@@ -161,6 +169,8 @@ public class RegistrationFeeCalculationDetailsClientTests
     {
         // Arrange
         var fileId = Guid.NewGuid();
+        var largeProducerLateFeeDeadLine = new DateTime(2025, 10, 1);
+        var smallProducerLateFeeDeadLine = new DateTime(2026, 4, 1);
         var responseMessage = new HttpResponseMessage(HttpStatusCode.InternalServerError)
         {
             ReasonPhrase = "Internal Server Error"
@@ -175,7 +185,7 @@ public class RegistrationFeeCalculationDetailsClientTests
             .ReturnsAsync(responseMessage);
 
         // Act
-        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId);
+        Func<Task> act = async () => await _client.GetRegistrationFeeCalculationDetails(fileId, largeProducerLateFeeDeadLine, smallProducerLateFeeDeadLine);
 
         // Assert
         act.Should().ThrowAsync<HttpRequestException>()

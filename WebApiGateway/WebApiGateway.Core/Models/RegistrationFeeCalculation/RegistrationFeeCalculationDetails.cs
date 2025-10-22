@@ -8,6 +8,8 @@ public class RegistrationFeeCalculationDetails
 
     public int NumberOfSubsidiariesBeingOnlineMarketPlace { get; set; }
 
+    public int NumberOfLateSubsidiaries { get; set; }
+
     public string OrganisationSize { get; set; } = string.Empty;
 
     public bool IsOnlineMarketplace { get; set; }

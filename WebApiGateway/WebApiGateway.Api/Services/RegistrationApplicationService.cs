@@ -1,4 +1,5 @@
-﻿using WebApiGateway.Api.Clients.Interfaces;
+﻿using System.Globalization;
+using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Models.Submission;
 
@@ -15,7 +16,21 @@ public class RegistrationApplicationService(
 
         if (result?.LastSubmittedFile?.FileId is not null && result.IsSubmitted)
         {
-            result.RegistrationFeeCalculationDetails = await registrationFeeCalculationDetailsClient.GetRegistrationFeeCalculationDetails(result.LastSubmittedFile.FileId.Value);
+            var requestParams = System.Web.HttpUtility.ParseQueryString(request);
+
+            DateTime? largeProducerLateFeeDeadLine = null;
+            if (DateTime.TryParse(requestParams["LargeProducerLateFeeDeadLine"], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedLargeProducerLateFeeDeadLine))
+            {
+                largeProducerLateFeeDeadLine = parsedLargeProducerLateFeeDeadLine;
+            }
+
+            DateTime? smallProducerLateFeeDeadLine = null;
+            if (DateTime.TryParse(requestParams["SmallProducerLateFeeDeadLine"], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedSmallProducerLateFeeDeadLine))
+            {
+                smallProducerLateFeeDeadLine = parsedSmallProducerLateFeeDeadLine;
+            }
+
+            result.RegistrationFeeCalculationDetails = await registrationFeeCalculationDetailsClient.GetRegistrationFeeCalculationDetails(result.LastSubmittedFile.FileId.Value, largeProducerLateFeeDeadLine, smallProducerLateFeeDeadLine);
         }
 
         return result;

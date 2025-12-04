@@ -2,7 +2,7 @@
 
 namespace WebApiGateway.Api.Clients;
 
-public class SubmissionStatusQueryBuilder
+public static class SubmissionStatusQueryBuilder
 {
     public static string BuildSubmissionsEndpointQueryString(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType, string? registrationJourney)
     {

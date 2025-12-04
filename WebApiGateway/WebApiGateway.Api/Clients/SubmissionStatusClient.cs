@@ -21,6 +21,20 @@ public class SubmissionStatusClient(
     ILogger<SubmissionStatusClient> logger)
     : ISubmissionStatusClient
 {
+    public static Uri ValidateUrl(string endpointUrl)
+    {
+        var uri = new Uri(endpointUrl, UriKind.RelativeOrAbsolute);
+        string[] allowedSchemes = { "https", "http" };
+        string[] allowedDomains = { "localhost" };
+
+        if (uri.IsAbsoluteUri && !allowedDomains.Contains(uri.Host) && !allowedSchemes.Contains(uri.Scheme))
+        {
+            throw new InvalidOperationException();
+        }
+
+        return uri;
+    }
+
     public async Task CreateEventAsync(AntivirusCheckEvent @event, Guid submissionId)
     {
         var responseContent = string.Empty;
@@ -312,22 +326,7 @@ public class SubmissionStatusClient(
     {
         await ConfigureHttpClientAsync();
 
-        var endpoint = $"submissions/submissions?Type={submissionType}&OrganisationId={organisationId}";
-
-        if (complianceSchemeId is not null && complianceSchemeId != Guid.Empty)
-        {
-            endpoint += $"&ComplianceSchemeId={complianceSchemeId}";
-        }
-
-        if (year is not null)
-        {
-            endpoint += $"&Year={year}";
-        }
-
-        if (registrationJourney is not null)
-        {
-            endpoint += $"&RegistrationJourney={registrationJourney}";
-        }
+        var endpoint = SubmissionStatusQueryBuilder.BuildSubmissionsEndpointQueryString(organisationId, complianceSchemeId, year, submissionType, registrationJourney);
 
         var response = await httpClient.GetAsync(endpoint);
 
@@ -415,20 +414,6 @@ public class SubmissionStatusClient(
         var content = await response.Content.ReadAsStringAsync();
 
         return JsonConvert.DeserializeObject<List<PackagingResubmissionApplicationDetails>>(content);
-    }
-
-    private static Uri ValidateUrl(string endpointUrl)
-    {
-        var uri = new Uri(endpointUrl, UriKind.RelativeOrAbsolute);
-        string[] allowedSchemes = { "https", "http" };
-        string[] allowedDomains = { "localhost" };
-
-        if (uri.IsAbsoluteUri && !allowedDomains.Contains(uri.Host) && !allowedSchemes.Contains(uri.Scheme))
-        {
-            throw new InvalidOperationException();
-        }
-
-        return uri;
     }
 
     private async Task ConfigureHttpClientAsync()

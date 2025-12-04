@@ -36,4 +36,6 @@ public abstract class AbstractSubmission
     public bool HasWarnings { get; set; }
 
     public string? AppReferenceNumber { get; set; }
+
+    public string? RegistrationJourney { get; set; }
 }

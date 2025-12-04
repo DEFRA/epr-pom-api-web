@@ -11,4 +11,6 @@ public class SubmissionGetRequest
     public int? Year { get; set; }
 
     public SubmissionType Type { get; set; }
+
+    public string? RegistrationJourney { get; set; }
 }

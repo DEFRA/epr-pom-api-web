@@ -187,7 +187,8 @@ public class SubmissionControllerTests
             organisationId,
             complianceSchemaId,
             year,
-            submissionType))
+            submissionType,
+            null))
             .ReturnsAsync(submissions);
 
         // Act
@@ -206,7 +207,8 @@ public class SubmissionControllerTests
             organisationId,
             complianceSchemaId,
             year,
-            submissionType),
+            submissionType,
+            null),
             Times.Once);
     }
 

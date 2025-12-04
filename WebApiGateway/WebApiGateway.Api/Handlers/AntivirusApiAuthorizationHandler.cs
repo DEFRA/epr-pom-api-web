@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Web;
 using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.Api.Handlers;

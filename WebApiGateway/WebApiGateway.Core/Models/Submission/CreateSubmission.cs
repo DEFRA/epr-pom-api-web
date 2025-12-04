@@ -17,4 +17,6 @@ public class CreateSubmission
     public Guid? ComplianceSchemeId { get; set; }
 
     public bool? IsResubmission { get; set; }
+
+    public string? RegistrationJourney { get; set; }
 }

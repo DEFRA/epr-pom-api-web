@@ -308,7 +308,7 @@ public class SubmissionStatusClient(
         return results;
     }
 
-    public async Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType)
+    public async Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType, string? registrationJourney)
     {
         await ConfigureHttpClientAsync();
 
@@ -322,6 +322,11 @@ public class SubmissionStatusClient(
         if (year is not null)
         {
             endpoint += $"&Year={year}";
+        }
+
+        if (registrationJourney is not null)
+        {
+            endpoint += $"&RegistrationJourney={registrationJourney}";
         }
 
         var response = await httpClient.GetAsync(endpoint);

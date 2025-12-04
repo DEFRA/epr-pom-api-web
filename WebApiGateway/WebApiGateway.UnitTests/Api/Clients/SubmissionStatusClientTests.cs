@@ -627,7 +627,7 @@ public class SubmissionStatusClientTests
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType, null);
 
         // Assert
         result.Should().BeEquivalentTo(submissions);
@@ -668,7 +668,7 @@ public class SubmissionStatusClientTests
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType, null);
 
         // Assert
         result.Should().BeEquivalentTo(submissions);
@@ -709,7 +709,7 @@ public class SubmissionStatusClientTests
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType, null);
 
         // Assert
         result.Should().BeEquivalentTo(submissions);

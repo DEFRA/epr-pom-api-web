@@ -38,7 +38,7 @@ public interface ISubmissionStatusClient
 
     Task<SubmissionHistoryEventsResponse> GetSubmissionPeriodHistory(Guid submissionId, string queryString);
 
-    Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
+    Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType, string? registrationJourney);
 
     Task<RegistrationApplicationDetails?> GetRegistrationApplicationDetails(string queryString);
 

@@ -19,4 +19,6 @@ public class RegistrationFeePaymentEvent : AbstractEvent
     public string PaidAmount { get; set; }
 
     public bool? IsResubmission { get; set; }
+
+    public string? RegistrationJourney { get; set; }
 }

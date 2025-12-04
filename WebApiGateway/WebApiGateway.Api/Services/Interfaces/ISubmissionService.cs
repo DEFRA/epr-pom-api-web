@@ -32,7 +32,7 @@ public interface ISubmissionService
 
     Task<List<SubmissionHistoryResponse>> GetSubmissionPeriodHistory(Guid submissionId, string queryString);
 
-    Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
+    Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType, string? requestRegistrationJourney);
 
     Task<string> GetFileBlobNameAsync(Guid submissionId, Guid fileId);
 }

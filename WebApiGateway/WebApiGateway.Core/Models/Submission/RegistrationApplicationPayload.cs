@@ -21,4 +21,6 @@ public class RegistrationApplicationPayload
     public SubmissionType SubmissionType { get; set; }
 
     public bool? IsResubmission { get; set; }
+
+    public string? RegistrationJourney { get; set; }
 }

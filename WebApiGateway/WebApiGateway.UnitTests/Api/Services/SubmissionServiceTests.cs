@@ -528,11 +528,11 @@ public class SubmissionServiceTests
             .ToList();
 
         _submissionStatusClientMock
-            .Setup(x => x.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType))
+            .Setup(x => x.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType, null))
             .ReturnsAsync(submissionsResponse);
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType, null);
 
         // Assert
         result.Should().NotBeNull();
@@ -552,11 +552,11 @@ public class SubmissionServiceTests
             .ToList();
 
         _submissionStatusClientMock
-            .Setup(x => x.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType))
+            .Setup(x => x.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType, "Journey"))
             .ReturnsAsync(submissionsResponse);
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType, "Journey");
 
         // Assert
         result.Should().NotBeNull();
@@ -576,11 +576,11 @@ public class SubmissionServiceTests
             .ToList();
 
         _submissionStatusClientMock
-            .Setup(x => x.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType))
+            .Setup(x => x.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType, "testJourney"))
             .ReturnsAsync(submissionsResponse);
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType, "testJourney");
 
         // Assert
         result.Should().NotBeNull();

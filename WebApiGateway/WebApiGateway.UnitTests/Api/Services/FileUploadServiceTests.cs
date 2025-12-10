@@ -38,8 +38,9 @@ public class FileUploadServiceTests
         _submissionServiceMock
             .Setup(x => x.CreateAntivirusCheckEventAsync(It.IsAny<string>(), It.IsAny<FileType>(), It.IsAny<Guid>(), null))
             .ReturnsAsync(_fileId);
-        var fileUploadDetails = new FileUploadDetails(SubmissionType.Producer, null, Filename, SubmissionPeriod, null, null, null,
-            null, "journey");
+        var fileUploadDetails = new FileUploadDetails(SubmissionType.Producer, null, Filename, SubmissionPeriod, null, null, null);
+        fileUploadDetails.IsResubmission = null;
+        fileUploadDetails.RegistrationJourney = "journey";
 
         // Act
         var result = await _fileUploadService.UploadFileAsync(fileStream, fileUploadDetails);
@@ -65,7 +66,9 @@ public class FileUploadServiceTests
         _submissionServiceMock
             .Setup(x => x.CreateAntivirusCheckEventAsync(It.IsAny<string>(), It.IsAny<FileType>(), It.IsAny<Guid>(), null))
             .ReturnsAsync(_fileId);
-        var fileUploadDetails = new FileUploadDetails(SubmissionType.Registration, SubmissionSubType.CompanyDetails, Filename, SubmissionPeriod, null, null, null, true, "journey");
+        var fileUploadDetails = new FileUploadDetails(SubmissionType.Registration, SubmissionSubType.CompanyDetails, Filename, SubmissionPeriod, null, null, null);
+        fileUploadDetails.IsResubmission = true;
+        fileUploadDetails.RegistrationJourney = "journey";
         
         var result = await _fileUploadService.UploadFileAsync(fileStream, fileUploadDetails);
 
@@ -85,7 +88,9 @@ public class FileUploadServiceTests
         _submissionServiceMock
             .Setup(x => x.CreateAntivirusCheckEventAsync(It.IsAny<string>(), It.IsAny<FileType>(), It.IsAny<Guid>(), null))
             .ReturnsAsync(_fileId);
-        var fileUploadDetails = new FileUploadDetails(SubmissionType, null, Filename, SubmissionPeriod, originalSubmissionId, null, null, false, "journey");
+        var fileUploadDetails = new FileUploadDetails(SubmissionType, null, Filename, SubmissionPeriod, originalSubmissionId, null, null);
+        fileUploadDetails.IsResubmission = false;
+        fileUploadDetails.RegistrationJourney = "journey";
         
         var result = await _fileUploadService.UploadFileAsync(fileStream, fileUploadDetails);
 
@@ -107,7 +112,9 @@ public class FileUploadServiceTests
         _submissionServiceMock
             .Setup(x => x.CreateAntivirusCheckEventAsync(It.IsAny<string>(), It.IsAny<FileType>(), It.IsAny<Guid>(), It.IsAny<Guid>()))
             .ReturnsAsync(_fileId);
-        var fileUploadDetails = new FileUploadDetails(SubmissionType, SubmissionSubType, Filename, SubmissionPeriod, originalSubmissionId, registrationSetId, null, null, "journey");
+        var fileUploadDetails = new FileUploadDetails(SubmissionType, SubmissionSubType, Filename, SubmissionPeriod, originalSubmissionId, registrationSetId, null);
+        fileUploadDetails.IsResubmission = null;
+        fileUploadDetails.RegistrationJourney = "journey";
 
         var result = await _fileUploadService.UploadFileAsync(fileStream, fileUploadDetails);
 
@@ -132,7 +139,9 @@ public class FileUploadServiceTests
         _submissionServiceMock
             .Setup(x => x.CreateAntivirusCheckEventAsync(It.IsAny<string>(), It.IsAny<FileType>(), It.IsAny<Guid>(), It.IsAny<Guid>()))
             .ReturnsAsync(_fileId);
-        var fileUploadDetails = new FileUploadDetails(SubmissionType, submissionSubType, Filename, SubmissionPeriod, originalSubmissionId, registrationSetId, null, null, "journey");
+        var fileUploadDetails = new FileUploadDetails(SubmissionType, submissionSubType, Filename, SubmissionPeriod, originalSubmissionId, registrationSetId, null);
+        fileUploadDetails.IsResubmission = null;
+        fileUploadDetails.RegistrationJourney = "journey";
 
         var result = await _fileUploadService.UploadFileAsync(fileStream, fileUploadDetails);
 

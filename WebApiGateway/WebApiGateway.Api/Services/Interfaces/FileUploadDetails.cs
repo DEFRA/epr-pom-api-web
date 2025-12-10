@@ -11,9 +11,7 @@ public class FileUploadDetails
         string submissionPeriod,
         Guid? originalSubmissionId,
         Guid? registrationSetId,
-        Guid? complianceSchemeId,
-        bool? isResubmission,
-        string? registrationJourney)
+        Guid? complianceSchemeId)
     {
         FileName = fileName;
         SubmissionType = submissionType;
@@ -22,8 +20,6 @@ public class FileUploadDetails
         SubmissionPeriod = submissionPeriod;
         OriginalSubmissionId = originalSubmissionId;
         ComplianceSchemeId = complianceSchemeId;
-        IsResubmission = isResubmission;
-        RegistrationJourney = registrationJourney;
     }
 
     public FileUploadDetails()

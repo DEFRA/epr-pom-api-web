@@ -31,7 +31,8 @@ public class FileUploadAccreditationControllerTests
     public async Task FileUpload_ReturnsBadRequestResult_WhenFilenameHeaderIsMissing()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUploadAccreditation(string.Empty, SubmissionType.Accreditation, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUploadAccreditation(
+            string.Empty, SubmissionType.Accreditation, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -48,7 +49,8 @@ public class FileUploadAccreditationControllerTests
                 It.IsAny<Stream>(),
                 It.IsAny<SubmissionType>(),
                 It.IsAny<string>(),
-                null),
+                null,
+                "journey"),
             Times.Never);
     }
 
@@ -56,7 +58,7 @@ public class FileUploadAccreditationControllerTests
     public async Task FileUpload_ReturnsBadRequestResult_WhenSubmissionTypeIsWrong()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUploadAccreditation(Filename, SubmissionType.Producer, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUploadAccreditation(Filename, SubmissionType.Producer, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -73,7 +75,8 @@ public class FileUploadAccreditationControllerTests
                 It.IsAny<Stream>(),
                 It.IsAny<SubmissionType>(),
                 It.IsAny<string>(),
-                null),
+                null,
+                "journey"),
             Times.Never);
     }
 
@@ -88,11 +91,12 @@ public class FileUploadAccreditationControllerTests
             It.IsAny<Stream>(),
             It.IsAny<SubmissionType>(),
             It.IsAny<string>(),
-            null))
+            null,
+            "journey"))
             .ReturnsAsync(_submissionId);
 
         // Act
-        var result = await _systemUnderTest.FileUploadAccreditation(Filename, SubmissionType.Accreditation, null) as CreatedAtRouteResult;
+        var result = await _systemUnderTest.FileUploadAccreditation(Filename, SubmissionType.Accreditation, null, "journey") as CreatedAtRouteResult;
 
         // Assert
         result.RouteName.Should().Be(nameof(SubmissionController.GetSubmission));
@@ -110,7 +114,8 @@ public class FileUploadAccreditationControllerTests
                 filestream,
                 SubmissionType.Accreditation,
                 Filename,
-                null),
+                null,
+                "journey"),
             Times.Once);
     }
 
@@ -126,11 +131,12 @@ public class FileUploadAccreditationControllerTests
             It.IsAny<Stream>(),
             It.IsAny<SubmissionType>(),
             It.IsAny<string>(),
-            complianceSchemeId))
+            complianceSchemeId,
+            It.IsAny<string>()))
             .ReturnsAsync(_submissionId);
 
         // Act
-        var result = await _systemUnderTest.FileUploadAccreditation(Filename, SubmissionType.Accreditation, complianceSchemeId) as CreatedAtRouteResult;
+        var result = await _systemUnderTest.FileUploadAccreditation(Filename, SubmissionType.Accreditation, complianceSchemeId, "journey") as CreatedAtRouteResult;
 
         // Assert
         result.RouteName.Should().Be(nameof(SubmissionController.GetSubmission));
@@ -148,7 +154,8 @@ public class FileUploadAccreditationControllerTests
                 filestream,
                 SubmissionType.Accreditation,
                 Filename,
-                complianceSchemeId),
+                complianceSchemeId,
+                "journey"),
             Times.Once);
     }
 }

@@ -25,7 +25,12 @@ public class SubmissionService(
 {
     private readonly StorageAccountOptions _options = options.Value;
 
-    public async Task<Guid> CreateSubmissionAsync(SubmissionType submissionType, string submissionPeriod, Guid? complianceSchemeId, bool? isResubmission)
+    public async Task<Guid> CreateSubmissionAsync(
+        SubmissionType submissionType,
+        string submissionPeriod,
+        Guid? complianceSchemeId,
+        bool? isResubmission,
+        string? registrationJourney)
     {
         var submission = new CreateSubmission
         {
@@ -34,7 +39,8 @@ public class SubmissionService(
             SubmissionType = submissionType,
             SubmissionPeriod = submissionPeriod,
             ComplianceSchemeId = complianceSchemeId,
-            IsResubmission = isResubmission
+            IsResubmission = isResubmission,
+            RegistrationJourney = registrationJourney
         };
 
         await submissionStatusClient.CreateSubmissionAsync(submission);

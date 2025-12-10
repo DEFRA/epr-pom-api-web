@@ -33,7 +33,7 @@ public class FileUploadControllerTests
     public async Task FileUpload_ReturnsBadRequestObjectResult_WhenSubmissionSubTypeIsNull()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, null, _registrationSetId, SubmissionPeriod, null, null, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, null, _registrationSetId, SubmissionPeriod, null, null, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -55,7 +55,8 @@ public class FileUploadControllerTests
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
-                It.IsAny<bool?>()),
+                It.IsAny<bool?>(),
+                "journey"),
             Times.Never);
     }
 
@@ -65,7 +66,7 @@ public class FileUploadControllerTests
     public async Task FileUpload_ReturnsBadRequestObjectResult_WhenSubmissionIdHeaderIsMissing(SubmissionSubType submissionSubType)
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, submissionSubType, _registrationSetId, SubmissionPeriod, null, null, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, submissionSubType, _registrationSetId, SubmissionPeriod, null, null, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -87,7 +88,8 @@ public class FileUploadControllerTests
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
-                It.IsAny<bool?>()),
+                It.IsAny<bool?>(),
+                "journey"),
             Times.Never);
     }
 
@@ -95,7 +97,7 @@ public class FileUploadControllerTests
     public async Task FileUpload_ReturnsBadRequestObjectResult_WhenRegistrationSetIdIsNull()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, SubmissionSubType.CompanyDetails, null, SubmissionPeriod, null, null, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, SubmissionSubType.CompanyDetails, null, SubmissionPeriod, null, null, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -117,7 +119,8 @@ public class FileUploadControllerTests
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
-                It.IsAny<bool?>()),
+                It.IsAny<bool?>(),
+                "journey"),
             Times.Never);
     }
 
@@ -137,11 +140,12 @@ public class FileUploadControllerTests
             null,
             null,
             null,
-            true))
+            true,
+            It.IsAny<string>()))
             .ReturnsAsync(_submissionId);
 
         // Act
-        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Producer, null, null, SubmissionPeriod, null, null, true) as CreatedAtRouteResult;
+        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Producer, null, null, SubmissionPeriod, null, null, true, "journey") as CreatedAtRouteResult;
 
         // Assert
         result.RouteName.Should()
@@ -164,7 +168,8 @@ public class FileUploadControllerTests
                 null,
                 null,
                 null,
-                true),
+                true,
+                "journey"),
             Times.Once);
     }
 }

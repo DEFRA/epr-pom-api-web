@@ -20,7 +20,8 @@ public class FileUploadSubsidiaryController(IFileUploadService fileUploadService
     public async Task<IActionResult> FileUploadSubsidiary(
         [FromHeader][Required] string fileName,
         [FromHeader][Required] SubmissionType submissionType,
-        [FromHeader] Guid? complianceSchemeId)
+        [FromHeader] Guid? complianceSchemeId,
+        [FromHeader] string? registrationJourney)
     {
         ValidateUploadSubmission(fileName, submissionType);
 
@@ -35,7 +36,8 @@ public class FileUploadSubsidiaryController(IFileUploadService fileUploadService
             Request.Body,
             submissionType,
             fileName,
-            complianceSchemeId);
+            complianceSchemeId,
+            registrationJourney);
 
         return new CreatedAtRouteResult(nameof(SubmissionController.GetSubmission), new { submissionId = id }, null);
     }

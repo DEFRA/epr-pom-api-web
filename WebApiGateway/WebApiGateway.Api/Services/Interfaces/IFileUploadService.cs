@@ -13,17 +13,20 @@ public interface IFileUploadService
         Guid? originalSubmissionId,
         Guid? registrationSetId,
         Guid? complianceSchemeId,
-        bool? isResubmission);
+        bool? isResubmission,
+        string? registrationJourney);
 
     Task<Guid> UploadFileSubsidiaryAsync(
         Stream fileStream,
         SubmissionType submissionType,
         string fileName,
-        Guid? complianceSchemeId);
+        Guid? complianceSchemeId,
+        string? registrationJourney);
 
     Task<Guid> UploadFileAccreditationAsync(
         Stream fileStream,
         SubmissionType submissionType,
         string fileName,
-        Guid? originalSubmissionId);
+        Guid? originalSubmissionId,
+        string? registrationJourney);
 }

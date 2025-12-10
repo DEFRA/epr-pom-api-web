@@ -33,7 +33,7 @@ public class FileUploadSubsidiaryControllerTests
     public async Task FileUpload_ReturnsBadRequestResult_WhenFilenameHeaderIsMissing()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUploadSubsidiary(string.Empty, SubmissionType.Subsidiary, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUploadSubsidiary(string.Empty, SubmissionType.Subsidiary, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -50,7 +50,8 @@ public class FileUploadSubsidiaryControllerTests
                 It.IsAny<Stream>(),
                 It.IsAny<SubmissionType>(),
                 It.IsAny<string>(),
-                null),
+                null,
+                "journey"),
             Times.Never);
     }
 
@@ -58,7 +59,7 @@ public class FileUploadSubsidiaryControllerTests
     public async Task FileUpload_ReturnsBadRequestResult_WhenSubmissionTypeIsWrong()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Producer, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Producer, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -75,7 +76,8 @@ public class FileUploadSubsidiaryControllerTests
                 It.IsAny<Stream>(),
                 It.IsAny<SubmissionType>(),
                 It.IsAny<string>(),
-                null),
+                null,
+                "journey"),
             Times.Never);
     }
 
@@ -90,11 +92,12 @@ public class FileUploadSubsidiaryControllerTests
             It.IsAny<Stream>(),
             It.IsAny<SubmissionType>(),
             It.IsAny<string>(),
-            null))
+            null,
+            "journey"))
             .ReturnsAsync(_submissionId);
 
         // Act
-        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Subsidiary, null) as CreatedAtRouteResult;
+        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Subsidiary, null, "journey") as CreatedAtRouteResult;
 
         // Assert
         result.RouteName.Should()
@@ -112,7 +115,8 @@ public class FileUploadSubsidiaryControllerTests
                 filestream,
                 SubmissionType.Subsidiary,
                 Filename,
-                null),
+                null,
+                "journey"),
             Times.Once);
     }
 
@@ -128,11 +132,12 @@ public class FileUploadSubsidiaryControllerTests
             It.IsAny<Stream>(),
             It.IsAny<SubmissionType>(),
             It.IsAny<string>(),
-            complianceSchemeId))
+            complianceSchemeId,
+            "journey"))
             .ReturnsAsync(_submissionId);
 
         // Act
-        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Subsidiary, complianceSchemeId) as CreatedAtRouteResult;
+        var result = await _systemUnderTest.FileUploadSubsidiary(Filename, SubmissionType.Subsidiary, complianceSchemeId, "journey") as CreatedAtRouteResult;
 
         // Assert
         result.RouteName.Should()
@@ -150,7 +155,8 @@ public class FileUploadSubsidiaryControllerTests
                 filestream,
                 SubmissionType.Subsidiary,
                 Filename,
-                complianceSchemeId),
+                complianceSchemeId,
+                "journey"),
             Times.Once);
     }
 }

@@ -65,7 +65,7 @@ public class SubmissionServiceTests
         const string SubmissionPeriod = "Jan to Jun 23";
 
         // Act
-        await _systemUnderTest.CreateSubmissionAsync(SubmissionType, SubmissionPeriod, null, true);
+        await _systemUnderTest.CreateSubmissionAsync(SubmissionType, SubmissionPeriod, null, true, "journey");
 
         // Assert
         _submissionStatusClientMock.Verify(
@@ -75,7 +75,8 @@ public class SubmissionServiceTests
                     && m.SubmissionPeriod == SubmissionPeriod
                     && m.DataSourceType == DataSourceType.File
                     && m.Id != Guid.Empty
-                    && m.IsResubmission == true)),
+                    && m.IsResubmission == true
+                    && m.RegistrationJourney == "journey")),
             Times.Once);
     }
 

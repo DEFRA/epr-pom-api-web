@@ -17,11 +17,11 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> FileUpload(
-        [FromHeader][Required] string fileName,
-        [FromHeader][Required] SubmissionType submissionType,
+        [FromHeader] [Required] string fileName,
+        [FromHeader] [Required] SubmissionType submissionType,
         [FromHeader] SubmissionSubType? submissionSubType,
         [FromHeader] Guid? registrationSetId,
-        [FromHeader][Required] string submissionPeriod,
+        [FromHeader] [Required] string submissionPeriod,
         [FromHeader] Guid? submissionId,
         [FromHeader] Guid? complianceSchemeId,
         [FromHeader] bool? isResubmission,
@@ -37,22 +37,28 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
             return ValidationProblem(statusCode: 400);
         }
 
+        var fileDetails = new FileUploadDetails
+        {
+            FileName = fileName,
+            SubmissionType = submissionType,
+            SubmissionSubType = submissionSubType,
+            RegistrationSetId = registrationSetId,
+            SubmissionPeriod = submissionPeriod,
+            OriginalSubmissionId = submissionId,
+            ComplianceSchemeId = complianceSchemeId,
+            IsResubmission = isResubmission,
+            RegistrationJourney = registrationJourney
+        };
+
         var id = await fileUploadService.UploadFileAsync(
             Request.Body,
-            submissionType,
-            submissionSubType,
-            fileName,
-            submissionPeriod,
-            submissionId,
-            registrationSetId,
-            complianceSchemeId,
-            isResubmission,
-            registrationJourney);
+            fileDetails);
 
         return new CreatedAtRouteResult(nameof(SubmissionController.GetSubmission), new { submissionId = id }, null);
     }
 
-    private void ValidateRegistrationSubmission(SubmissionSubType? submissionSubType, Guid? submissionId, Guid? registrationSetId)
+    private void ValidateRegistrationSubmission(SubmissionSubType? submissionSubType, Guid? submissionId,
+        Guid? registrationSetId)
     {
         if (submissionSubType is null)
         {

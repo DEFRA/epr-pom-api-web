@@ -48,15 +48,7 @@ public class FileUploadControllerTests
         _fileUploadServiceMock.Verify(
             x => x.UploadFileAsync(
                 It.IsAny<Stream>(),
-                It.IsAny<SubmissionType>(),
-                It.IsAny<SubmissionSubType>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<bool?>(),
-                "journey"),
+                It.IsAny<FileUploadDetails>()),
             Times.Never);
     }
 
@@ -81,15 +73,7 @@ public class FileUploadControllerTests
         _fileUploadServiceMock.Verify(
             x => x.UploadFileAsync(
                 It.IsAny<Stream>(),
-                It.IsAny<SubmissionType>(),
-                It.IsAny<SubmissionSubType>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<bool?>(),
-                "journey"),
+                It.IsAny<FileUploadDetails>()),
             Times.Never);
     }
 
@@ -112,15 +96,7 @@ public class FileUploadControllerTests
         _fileUploadServiceMock.Verify(
             x => x.UploadFileAsync(
                 It.IsAny<Stream>(),
-                It.IsAny<SubmissionType>(),
-                It.IsAny<SubmissionSubType>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<bool?>(),
-                "journey"),
+                It.IsAny<FileUploadDetails>()),
             Times.Never);
     }
 
@@ -133,15 +109,7 @@ public class FileUploadControllerTests
 
         _fileUploadServiceMock.Setup(x => x.UploadFileAsync(
             It.IsAny<Stream>(),
-            It.IsAny<SubmissionType>(),
-            null,
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            null,
-            null,
-            null,
-            true,
-            It.IsAny<string>()))
+            It.IsAny<FileUploadDetails>()))
             .ReturnsAsync(_submissionId);
 
         // Act
@@ -161,15 +129,7 @@ public class FileUploadControllerTests
         _fileUploadServiceMock.Verify(
             x => x.UploadFileAsync(
                 filestream,
-                SubmissionType.Producer,
-                null,
-                Filename,
-                SubmissionPeriod,
-                null,
-                null,
-                null,
-                true,
-                "journey"),
+                It.IsAny<FileUploadDetails>()),
             Times.Once);
     }
 }

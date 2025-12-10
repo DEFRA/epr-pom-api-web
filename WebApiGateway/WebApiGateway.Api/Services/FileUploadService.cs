@@ -12,28 +12,22 @@ public class FileUploadService(
 {
     public async Task<Guid> UploadFileAsync(
         Stream fileStream,
-        SubmissionType submissionType,
-        SubmissionSubType? submissionSubType,
-        string fileName,
-        string submissionPeriod,
-        Guid? originalSubmissionId,
-        Guid? registrationSetId,
-        Guid? complianceSchemeId,
-        bool? isResubmission,
-        string? registrationJourney)
+        FileUploadDetails fileUploadDetails)
     {
-        var fileType = submissionType is SubmissionType.Producer
+        var fileType = fileUploadDetails.SubmissionType is SubmissionType.Producer
             ? FileType.Pom
-            : (FileType)Enum.Parse(typeof(FileType), submissionSubType.ToString());
+            : (FileType)Enum.Parse(typeof(FileType), fileUploadDetails.SubmissionSubType.ToString());
 
-        var submissionId = fileType is FileType.Pom or FileType.CompanyDetails && originalSubmissionId is null
+        var submissionId = fileType is FileType.Pom or FileType.CompanyDetails && fileUploadDetails.OriginalSubmissionId is null
             ? await submissionService.CreateSubmissionAsync(
-                submissionType, submissionPeriod, complianceSchemeId, isResubmission, registrationJourney)
-            : originalSubmissionId.Value;
+                fileUploadDetails.SubmissionType, fileUploadDetails.SubmissionPeriod, fileUploadDetails.ComplianceSchemeId,
+                fileUploadDetails.IsResubmission, fileUploadDetails.RegistrationJourney)
+            : fileUploadDetails.OriginalSubmissionId.Value;
 
-        var truncatedFileName = FileHelpers.GetTruncatedFileName(fileName, FileConstants.FileNameTruncationLength);
-        var fileId = await submissionService.CreateAntivirusCheckEventAsync(truncatedFileName, fileType, submissionId, registrationSetId);
-        await antivirusService.SendFileAsync(submissionType, fileId, truncatedFileName, fileStream);
+        var truncatedFileName = FileHelpers.GetTruncatedFileName(fileUploadDetails.FileName, FileConstants.FileNameTruncationLength);
+        var fileId = await submissionService.CreateAntivirusCheckEventAsync(
+            truncatedFileName, fileType, submissionId, fileUploadDetails.RegistrationSetId);
+        await antivirusService.SendFileAsync(fileUploadDetails.SubmissionType, fileId, truncatedFileName, fileStream);
 
         return submissionId;
     }

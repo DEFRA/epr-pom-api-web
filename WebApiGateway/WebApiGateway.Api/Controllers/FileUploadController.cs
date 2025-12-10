@@ -37,7 +37,7 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
             return ValidationProblem(statusCode: 400);
         }
 
-        var fileDetails = new FileUploadDetails
+        var fileUploadDetails = new FileUploadDetails
         {
             FileName = fileName,
             SubmissionType = submissionType,
@@ -52,7 +52,7 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
 
         var id = await fileUploadService.UploadFileAsync(
             Request.Body,
-            fileDetails);
+            fileUploadDetails);
 
         return new CreatedAtRouteResult(nameof(SubmissionController.GetSubmission), new { submissionId = id }, null);
     }

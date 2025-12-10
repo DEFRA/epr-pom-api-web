@@ -6,7 +6,7 @@ public interface IFileUploadService
 {
     Task<Guid> UploadFileAsync(
         Stream fileStream,
-        FileUploadDetails fileDetails);
+        FileUploadDetails fileUploadDetails);
 
     Task<Guid> UploadFileSubsidiaryAsync(
         Stream fileStream,

@@ -51,6 +51,8 @@ public class RegistrationApplicationDetails
 
     public RegistrationFeeCalculationDetails[]? RegistrationFeeCalculationDetails { get; set; }
 
+    public string? RegistrationJourney { get; set; }
+    
     public class LastSubmittedFileDetails
     {
         public Guid? FileId { get; set; }

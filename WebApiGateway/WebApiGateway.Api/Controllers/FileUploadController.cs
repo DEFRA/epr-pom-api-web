@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
-using WebApiGateway.Api.Controllers.Requests;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
@@ -17,11 +17,24 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
     [RequestSizeLimit(FileConstants.MaxFileSizeInBytes)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> FileUpload(FileUploadRequest request)
+    [SuppressMessage(
+        "Major Code Smell",
+        "S107: A long parameter list can indicate that a new structure should be created to wrap the numerous parameters or that the function is doing too many",
+        Justification = "This is an inherited code base. Reducing the dependency count will be done as part of a major rewrite")]
+    public async Task<IActionResult> FileUpload(
+        [FromHeader] [Required] string fileName,
+        [FromHeader] [Required] SubmissionType submissionType,
+        [FromHeader] SubmissionSubType? submissionSubType,
+        [FromHeader] Guid? registrationSetId,
+        [FromHeader] [Required] string submissionPeriod,
+        [FromHeader] Guid? submissionId,
+        [FromHeader] Guid? complianceSchemeId,
+        [FromHeader] bool? isResubmission,
+        [FromHeader] string? registrationJourney)
     {
-        if (request.SubmissionType is SubmissionType.Registration)
+        if (submissionType is SubmissionType.Registration)
         {
-            ValidateRegistrationSubmission(request.SubmissionSubType, request.SubmissionId, request.RegistrationSetId);
+            ValidateRegistrationSubmission(submissionSubType, submissionId, registrationSetId);
         }
 
         if (!ModelState.IsValid)
@@ -31,15 +44,15 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
 
         var fileUploadDetails = new FileUploadDetails
         {
-            FileName = request.FileName,
-            SubmissionType = request.SubmissionType,
-            SubmissionSubType = request.SubmissionSubType,
-            RegistrationSetId = request.RegistrationSetId,
-            SubmissionPeriod = request.SubmissionPeriod,
-            OriginalSubmissionId = request.SubmissionId,
-            ComplianceSchemeId = request.ComplianceSchemeId,
-            IsResubmission = request.IsResubmission,
-            RegistrationJourney = request.RegistrationJourney
+            FileName = fileName,
+            SubmissionType = submissionType,
+            SubmissionSubType = submissionSubType,
+            RegistrationSetId = registrationSetId,
+            SubmissionPeriod = submissionPeriod,
+            OriginalSubmissionId = submissionId,
+            ComplianceSchemeId = complianceSchemeId,
+            IsResubmission = isResubmission,
+            RegistrationJourney = registrationJourney
         };
 
         var id = await fileUploadService.UploadFileAsync(

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using WebApiGateway.Api.Services.Interfaces;
@@ -16,15 +17,20 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
     [RequestSizeLimit(FileConstants.MaxFileSizeInBytes)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [SuppressMessage(
+        "Major Code Smell",
+        "S107: A long parameter list can indicate that a new structure should be created to wrap the numerous parameters or that the function is doing too many",
+        Justification = "This is an inherited code base. Reducing the dependency count will be done as part of a major rewrite")]
     public async Task<IActionResult> FileUpload(
-        [FromHeader][Required] string fileName,
-        [FromHeader][Required] SubmissionType submissionType,
+        [FromHeader] [Required] string fileName,
+        [FromHeader] [Required] SubmissionType submissionType,
         [FromHeader] SubmissionSubType? submissionSubType,
         [FromHeader] Guid? registrationSetId,
-        [FromHeader][Required] string submissionPeriod,
+        [FromHeader] [Required] string submissionPeriod,
         [FromHeader] Guid? submissionId,
         [FromHeader] Guid? complianceSchemeId,
-        [FromHeader] bool? isResubmission)
+        [FromHeader] bool? isResubmission,
+        [FromHeader] string? registrationJourney)
     {
         if (submissionType is SubmissionType.Registration)
         {
@@ -36,21 +42,28 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
             return ValidationProblem(statusCode: 400);
         }
 
+        var fileUploadDetails = new FileUploadDetails
+        {
+            FileName = fileName,
+            SubmissionType = submissionType,
+            SubmissionSubType = submissionSubType,
+            RegistrationSetId = registrationSetId,
+            SubmissionPeriod = submissionPeriod,
+            OriginalSubmissionId = submissionId,
+            ComplianceSchemeId = complianceSchemeId,
+            IsResubmission = isResubmission,
+            RegistrationJourney = registrationJourney
+        };
+
         var id = await fileUploadService.UploadFileAsync(
             Request.Body,
-            submissionType,
-            submissionSubType,
-            fileName,
-            submissionPeriod,
-            submissionId,
-            registrationSetId,
-            complianceSchemeId,
-            isResubmission);
+            fileUploadDetails);
 
         return new CreatedAtRouteResult(nameof(SubmissionController.GetSubmission), new { submissionId = id }, null);
     }
 
-    private void ValidateRegistrationSubmission(SubmissionSubType? submissionSubType, Guid? submissionId, Guid? registrationSetId)
+    private void ValidateRegistrationSubmission(SubmissionSubType? submissionSubType, Guid? submissionId,
+        Guid? registrationSetId)
     {
         if (submissionSubType is null)
         {

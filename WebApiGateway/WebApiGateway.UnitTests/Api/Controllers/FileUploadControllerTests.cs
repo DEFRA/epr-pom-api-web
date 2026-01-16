@@ -33,7 +33,7 @@ public class FileUploadControllerTests
     public async Task FileUpload_ReturnsBadRequestObjectResult_WhenSubmissionSubTypeIsNull()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, null, _registrationSetId, SubmissionPeriod, null, null, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, null, _registrationSetId, SubmissionPeriod, null, null, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -48,14 +48,7 @@ public class FileUploadControllerTests
         _fileUploadServiceMock.Verify(
             x => x.UploadFileAsync(
                 It.IsAny<Stream>(),
-                It.IsAny<SubmissionType>(),
-                It.IsAny<SubmissionSubType>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<bool?>()),
+                It.IsAny<FileUploadDetails>()),
             Times.Never);
     }
 
@@ -65,7 +58,7 @@ public class FileUploadControllerTests
     public async Task FileUpload_ReturnsBadRequestObjectResult_WhenSubmissionIdHeaderIsMissing(SubmissionSubType submissionSubType)
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, submissionSubType, _registrationSetId, SubmissionPeriod, null, null, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, submissionSubType, _registrationSetId, SubmissionPeriod, null, null, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -80,14 +73,7 @@ public class FileUploadControllerTests
         _fileUploadServiceMock.Verify(
             x => x.UploadFileAsync(
                 It.IsAny<Stream>(),
-                It.IsAny<SubmissionType>(),
-                It.IsAny<SubmissionSubType>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<bool?>()),
+                It.IsAny<FileUploadDetails>()),
             Times.Never);
     }
 
@@ -95,7 +81,7 @@ public class FileUploadControllerTests
     public async Task FileUpload_ReturnsBadRequestObjectResult_WhenRegistrationSetIdIsNull()
     {
         // Arrange / Act
-        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, SubmissionSubType.CompanyDetails, null, SubmissionPeriod, null, null, null) as BadRequestObjectResult;
+        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Registration, SubmissionSubType.CompanyDetails, null, SubmissionPeriod, null, null, null, "journey") as BadRequestObjectResult;
 
         // Assert
         result.Value.As<ValidationProblemDetails>().Errors
@@ -110,14 +96,7 @@ public class FileUploadControllerTests
         _fileUploadServiceMock.Verify(
             x => x.UploadFileAsync(
                 It.IsAny<Stream>(),
-                It.IsAny<SubmissionType>(),
-                It.IsAny<SubmissionSubType>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<bool?>()),
+                It.IsAny<FileUploadDetails>()),
             Times.Never);
     }
 
@@ -130,18 +109,11 @@ public class FileUploadControllerTests
 
         _fileUploadServiceMock.Setup(x => x.UploadFileAsync(
             It.IsAny<Stream>(),
-            It.IsAny<SubmissionType>(),
-            null,
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            null,
-            null,
-            null,
-            true))
+            It.IsAny<FileUploadDetails>()))
             .ReturnsAsync(_submissionId);
 
         // Act
-        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Producer, null, null, SubmissionPeriod, null, null, true) as CreatedAtRouteResult;
+        var result = await _systemUnderTest.FileUpload(Filename, SubmissionType.Producer, null, null, SubmissionPeriod, null, null, true, "journey") as CreatedAtRouteResult;
 
         // Assert
         result.RouteName.Should()
@@ -157,14 +129,7 @@ public class FileUploadControllerTests
         _fileUploadServiceMock.Verify(
             x => x.UploadFileAsync(
                 filestream,
-                SubmissionType.Producer,
-                null,
-                Filename,
-                SubmissionPeriod,
-                null,
-                null,
-                null,
-                true),
+                It.IsAny<FileUploadDetails>()),
             Times.Once);
     }
 }

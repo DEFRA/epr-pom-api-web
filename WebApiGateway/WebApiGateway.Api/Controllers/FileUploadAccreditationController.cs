@@ -19,7 +19,8 @@ public class FileUploadAccreditationController(IFileUploadService fileUploadServ
     public async Task<IActionResult> FileUploadAccreditation(
         [FromHeader][Required] string fileName,
         [FromHeader][Required] SubmissionType submissionType,
-        [FromHeader] Guid? submissionId)
+        [FromHeader] Guid? submissionId,
+        [FromHeader] string? registrationJourney)
     {
         ValidateUploadSubmission(fileName, submissionType);
 
@@ -32,7 +33,8 @@ public class FileUploadAccreditationController(IFileUploadService fileUploadServ
             Request.Body,
             submissionType,
             fileName,
-            submissionId);
+            submissionId,
+            registrationJourney);
 
         return new CreatedAtRouteResult(nameof(SubmissionController.GetSubmission), new { submissionId = id }, null);
     }

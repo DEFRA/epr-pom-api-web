@@ -10,7 +10,12 @@ namespace WebApiGateway.Api.Services.Interfaces;
 
 public interface ISubmissionService
 {
-    Task<Guid> CreateSubmissionAsync(SubmissionType submissionType, string submissionPeriod, Guid? complianceSchemeId, bool? isResubmission);
+    Task<Guid> CreateSubmissionAsync(
+        SubmissionType submissionType,
+        string submissionPeriod,
+        Guid? complianceSchemeId,
+        bool? isResubmission,
+        string? registrationJourney);
 
     Task<Guid> CreateAntivirusCheckEventAsync(string fileName, FileType fileType, Guid submissionId, Guid? registrationSetId);
 
@@ -32,7 +37,7 @@ public interface ISubmissionService
 
     Task<List<SubmissionHistoryResponse>> GetSubmissionPeriodHistory(Guid submissionId, string queryString);
 
-    Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType);
+    Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType, string? registrationJourney);
 
     Task<string> GetFileBlobNameAsync(Guid submissionId, Guid fileId);
 }

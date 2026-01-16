@@ -25,7 +25,12 @@ public class SubmissionService(
 {
     private readonly StorageAccountOptions _options = options.Value;
 
-    public async Task<Guid> CreateSubmissionAsync(SubmissionType submissionType, string submissionPeriod, Guid? complianceSchemeId, bool? isResubmission)
+    public async Task<Guid> CreateSubmissionAsync(
+        SubmissionType submissionType,
+        string submissionPeriod,
+        Guid? complianceSchemeId,
+        bool? isResubmission,
+        string? registrationJourney)
     {
         var submission = new CreateSubmission
         {
@@ -34,7 +39,8 @@ public class SubmissionService(
             SubmissionType = submissionType,
             SubmissionPeriod = submissionPeriod,
             ComplianceSchemeId = complianceSchemeId,
-            IsResubmission = isResubmission
+            IsResubmission = isResubmission,
+            RegistrationJourney = registrationJourney
         };
 
         await submissionStatusClient.CreateSubmissionAsync(submission);
@@ -93,7 +99,8 @@ public class SubmissionService(
                 PaidAmount = applicationPayload.PaidAmount,
                 PaymentMethod = applicationPayload.PaymentMethod,
                 PaymentStatus = applicationPayload.PaymentStatus,
-                IsResubmission = applicationPayload.IsResubmission
+                IsResubmission = applicationPayload.IsResubmission,
+                RegistrationJourney = applicationPayload.RegistrationJourney,
             };
 
             await submissionStatusClient.CreateRegistrationFeePaymentEventAsync(feePaymentEvent, submissionId);
@@ -107,7 +114,8 @@ public class SubmissionService(
                 ApplicationReferenceNumber = applicationPayload.ApplicationReferenceNumber,
                 ComplianceSchemeId = applicationPayload.ComplianceSchemeId,
                 SubmissionDate = DateTime.UtcNow,
-                IsResubmission = applicationPayload.IsResubmission
+                IsResubmission = applicationPayload.IsResubmission,
+                RegistrationJourney = applicationPayload.RegistrationJourney,
             };
 
             await submissionStatusClient.CreateApplicationSubmittedEventAsync(submittedEvent, submissionId);
@@ -131,9 +139,9 @@ public class SubmissionService(
         return FormatSubmissionHistoryData(submissionHistory);
     }
 
-    public async Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType)
+    public async Task<List<SubmissionGetResponse>> GetSubmissionsByFilter(Guid organisationId, Guid? complianceSchemeId, int? year, SubmissionType submissionType, string? registrationJourney)
     {
-        return await submissionStatusClient.GetSubmissionsByFilter(organisationId, complianceSchemeId, year, submissionType);
+        return await submissionStatusClient.GetSubmissionsByFilter(organisationId, complianceSchemeId, year, submissionType, registrationJourney);
     }
 
     /// <summary>

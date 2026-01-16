@@ -68,7 +68,8 @@ public class SubmissionController(
             organisationId,
             request.ComplianceSchemeId,
             request.Year,
-            request.Type);
+            request.Type,
+            request.RegistrationJourney);
 
         return new OkObjectResult(submissions);
     }

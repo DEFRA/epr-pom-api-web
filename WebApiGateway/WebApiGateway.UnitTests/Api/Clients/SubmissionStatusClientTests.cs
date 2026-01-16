@@ -65,6 +65,26 @@ public class SubmissionStatusClientTests
     }
 
     [TestMethod]
+    public async Task ValidateAbsoluteUrlTest()
+    {
+        var uri = SubmissionStatusClient.ValidateUrl("https://example.com");
+        Assert.IsTrue(uri.IsAbsoluteUri);
+    }
+
+    [TestMethod]
+    public async Task ValidateRelativeUrlTest()
+    {
+        var uri = SubmissionStatusClient.ValidateUrl("/foo/bar/baz.html");
+        Assert.IsFalse(uri.IsAbsoluteUri);
+    }
+
+    [TestMethod]
+    public async Task ValidateInvalidUrlTests()
+    {
+        Assert.ThrowsException<InvalidOperationException>(() => SubmissionStatusClient.ValidateUrl("ftp://example.com"));
+    }
+
+    [TestMethod]
     public async Task CreateEventAsync_DoesNotThrowException_WhenHttpClientResponseIsCreated()
     {
         // Arrange
@@ -627,7 +647,7 @@ public class SubmissionStatusClientTests
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, year, submissionType, null);
 
         // Assert
         result.Should().BeEquivalentTo(submissions);
@@ -668,7 +688,7 @@ public class SubmissionStatusClientTests
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, Guid.Empty, year, submissionType, null);
 
         // Assert
         result.Should().BeEquivalentTo(submissions);
@@ -683,6 +703,7 @@ public class SubmissionStatusClientTests
         var organisationId = Guid.NewGuid();
         var complianceSchemaId = Guid.NewGuid();
         var submissionType = SubmissionType.Producer;
+        var registrationJourney = "TestMcRegistrationFace";
 
         var submissions = new List<SubmissionGetResponse>
         {
@@ -709,11 +730,21 @@ public class SubmissionStatusClientTests
         _httpMessageHandlerMock.RespondWith(HttpStatusCode.OK, submissions.ToJsonContent());
 
         // Act
-        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType);
+        var result = await _systemUnderTest.GetSubmissionsByFilter(organisationId, complianceSchemaId, null, submissionType, registrationJourney);
 
         // Assert
         result.Should().BeEquivalentTo(submissions);
         result.Should().HaveCount(3);
+    }
+
+    [TestMethod]
+    public void CanBuildExpectedSubmissionsEndpointQueryString()
+    {
+        var organisationId = Guid.NewGuid();
+        var complianceSchemaId = Guid.NewGuid();
+        var submissionType = SubmissionType.Producer;
+        var x = SubmissionStatusQueryBuilder.BuildSubmissionsEndpointQueryString(organisationId, complianceSchemaId, 2025, submissionType, "registr4tionJourney");
+        x.Should().BeEquivalentTo($"submissions/submissions?Type=Producer&OrganisationId={organisationId}&ComplianceSchemeId={complianceSchemaId}&Year=2025&RegistrationJourney=registr4tionJourney");
     }
 
     [TestMethod]

@@ -14,4 +14,6 @@ public class SubmissionGetResponse
 
     [JsonPropertyName("Year")]
     public int Year { get; set; }
+
+    public string? RegistrationJourney { get; set; }
 }

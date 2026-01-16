@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
+using WebApiGateway.Api.Controllers.Requests;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Constants;
 using WebApiGateway.Core.Enumeration;
@@ -16,20 +17,11 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
     [RequestSizeLimit(FileConstants.MaxFileSizeInBytes)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> FileUpload(
-        [FromHeader] [Required] string fileName,
-        [FromHeader] [Required] SubmissionType submissionType,
-        [FromHeader] SubmissionSubType? submissionSubType,
-        [FromHeader] Guid? registrationSetId,
-        [FromHeader] [Required] string submissionPeriod,
-        [FromHeader] Guid? submissionId,
-        [FromHeader] Guid? complianceSchemeId,
-        [FromHeader] bool? isResubmission,
-        [FromHeader] string? registrationJourney)
+    public async Task<IActionResult> FileUpload(FileUploadRequest request)
     {
-        if (submissionType is SubmissionType.Registration)
+        if (request.SubmissionType is SubmissionType.Registration)
         {
-            ValidateRegistrationSubmission(submissionSubType, submissionId, registrationSetId);
+            ValidateRegistrationSubmission(request.SubmissionSubType, request.SubmissionId, request.RegistrationSetId);
         }
 
         if (!ModelState.IsValid)
@@ -39,15 +31,15 @@ public class FileUploadController(IFileUploadService fileUploadService) : Contro
 
         var fileUploadDetails = new FileUploadDetails
         {
-            FileName = fileName,
-            SubmissionType = submissionType,
-            SubmissionSubType = submissionSubType,
-            RegistrationSetId = registrationSetId,
-            SubmissionPeriod = submissionPeriod,
-            OriginalSubmissionId = submissionId,
-            ComplianceSchemeId = complianceSchemeId,
-            IsResubmission = isResubmission,
-            RegistrationJourney = registrationJourney
+            FileName = request.FileName,
+            SubmissionType = request.SubmissionType,
+            SubmissionSubType = request.SubmissionSubType,
+            RegistrationSetId = request.RegistrationSetId,
+            SubmissionPeriod = request.SubmissionPeriod,
+            OriginalSubmissionId = request.SubmissionId,
+            ComplianceSchemeId = request.ComplianceSchemeId,
+            IsResubmission = request.IsResubmission,
+            RegistrationJourney = request.RegistrationJourney
         };
 
         var id = await fileUploadService.UploadFileAsync(

@@ -112,6 +112,8 @@ The structure of the appsettings can be found in the repository. Example configu
 
 [ADR-012.A: EPR Phase 1 - Compliance Scheme PoM Data Upload](https://eaflood.atlassian.net/wiki/spaces/MWR/pages/4251418625/ADR-012.A+EPR+Phase+1+-+Compliance+Scheme+PoM+Data+Upload)
 
+[DEFRA Trade Anti Virus API - secret renewal](https://eaflood.atlassian.net/wiki/spaces/EDIA/pages/6447759417/DEFRA+Trade+Anti+Virus+API+-+secret+renewal)
+
 ### Logging into Azure
 
 N/A

@@ -38,4 +38,6 @@ public abstract class AbstractSubmission
     public string? AppReferenceNumber { get; set; }
 
     public string? RegistrationJourney { get; set; }
+    
+    public int? RegistrationYear { get; set; }
 }

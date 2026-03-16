@@ -16,4 +16,6 @@ public class SubmissionGetResponse
     public int Year { get; set; }
 
     public string? RegistrationJourney { get; set; }
+    
+    public int? RegistrationYear { get; set; }
 }

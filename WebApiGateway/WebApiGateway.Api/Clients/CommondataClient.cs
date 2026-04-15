@@ -27,7 +27,7 @@ public class CommondataClient(
             return result;
         }
 
-        logger.LogError("Invalid response from common data endpoint when assessing the resubmission file sync status {content}", content);
+        logger.LogError("Invalid response from common data endpoint when assessing the resubmission file sync status: {content} was returned", content);
         return false;
     }
     
@@ -48,7 +48,7 @@ public class CommondataClient(
             return result;
         }
 
-        logger.LogError("Invalid response from common data endpoint when assessing the resubmission sync status {content}", content);
+        logger.LogError("Invalid response from common data endpoint when assessing the resubmission sync status: {content} was returned", content);
         return false;
     }
 

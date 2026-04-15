@@ -163,6 +163,40 @@ namespace WebApiGateway.UnitTests.Api.Clients
         }
 
         [TestMethod]
+        public async Task GetPackagingResubmissionFileSyncStatusFromSynapse_ShouldLogInvalidContent_AndReturnFalse_WhenResponseContainsAnUnexpectedValue()
+        {
+            // Arrange
+            const string UnexpectedValue = "An unexpected value";
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(UnexpectedValue))
+            };
+
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(responseMessage);
+
+            // Act
+            var result = await _client.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>());
+            result.Should().BeFalse();
+            
+            // Assert
+            _loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()
+                        .Contains($"Invalid response from common data endpoint when assessing the resubmission file sync status: \"{UnexpectedValue}\" was returned")),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        [TestMethod]
         public void GetPackagingResubmissionFileSyncStatusFromSynapse_ShouldLogAndThrowHttpRequestException_WhenResponseIsInternalServerError()
         {
             // Arrange
@@ -283,6 +317,40 @@ namespace WebApiGateway.UnitTests.Api.Clients
                     LogLevel.Error,
                     It.IsAny<EventId>(),
                     It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error getting resubmission sync status from Synapse, StatusCode : ")),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+        
+        [TestMethod]
+        public async Task GetPackagingResubmissionSyncStatusFromSynapse_ShouldLogInvalidContent_AndReturnFalse_WhenResponseContainsAnUnexpectedValue()
+        {
+            // Arrange
+            const string UnexpectedValue = "An unexpected value";
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(UnexpectedValue))
+            };
+
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(responseMessage);
+
+            // Act
+            var result = await _client.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>());
+            result.Should().BeFalse();
+            
+            // Assert
+            _loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()
+                        .Contains($"Invalid response from common data endpoint when assessing the resubmission sync status: \"{UnexpectedValue}\" was returned")),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);

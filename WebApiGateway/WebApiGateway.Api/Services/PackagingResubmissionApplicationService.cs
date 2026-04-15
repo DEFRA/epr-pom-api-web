@@ -23,7 +23,14 @@ public class PackagingResubmissionApplicationService(
         {
             if (applicationDetail?.LastSubmittedFile?.FileId is not null && applicationDetail.IsSubmitted)
             {
-                applicationDetail.SynapseResponse = await commondataClient.GetPackagingResubmissionFileDetailsFromSynapse(applicationDetail.LastSubmittedFile.FileId.Value);
+                var fileId = applicationDetail.LastSubmittedFile.FileId.Value;
+                var fileSyncTask = commondataClient.GetPackagingResubmissionFileSyncStatusFromSynapse(fileId);
+                var dataSyncTask = commondataClient.GetPackagingResubmissionSyncStatusFromSynapse(fileId);
+                
+                await Task.WhenAll(fileSyncTask, dataSyncTask);
+                
+                applicationDetail.SynapseResponse.IsFileSynced = fileSyncTask.Result;
+                applicationDetail.SynapseResponse.IsResubmissionDataSynced = dataSyncTask.Result;
             }
         }
 

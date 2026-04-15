@@ -5,7 +5,9 @@ namespace WebApiGateway.Api.Clients.Interfaces;
 
 public interface ICommondataClient
 {
-    Task<SynapseResponse?> GetPackagingResubmissionFileDetailsFromSynapse(Guid fileId);
+    Task<bool> GetPackagingResubmissionFileSyncStatusFromSynapse(Guid fileId);
+
+    Task<bool> GetPackagingResubmissionSyncStatusFromSynapse(Guid fileId);
 
     Task<PackagingResubmissionMemberResponse?> GetPackagingResubmissionMemberDetails(Guid submissionId, string complianceSchemeId);
 

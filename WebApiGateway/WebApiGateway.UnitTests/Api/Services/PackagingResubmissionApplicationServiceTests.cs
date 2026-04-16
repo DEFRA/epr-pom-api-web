@@ -3,15 +3,15 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Clients.Interfaces;
+using WebApiGateway.Api.Services;
 using WebApiGateway.Core.Models.Events;
 using WebApiGateway.Core.Models.PackagingResubmissionApplication;
 
-namespace WebApiGateway.Api.Services;
+namespace WebApiGateway.UnitTests.Api.Services;
 
 [TestClass]
 public class PackagingResubmissionApplicationServiceTests
 {
-    private readonly Guid _fileId = Guid.NewGuid();
     private Mock<ISubmissionStatusClient> _submissionStatusClientMock;
     private PackagingResubmissionApplicationService _service;
     private Mock<ICommondataClient> _commondataClientMock;
@@ -44,22 +44,59 @@ public class PackagingResubmissionApplicationServiceTests
     {
         // Arrange
         _submissionStatusClientMock.Setup(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new List<PackagingResubmissionApplicationDetails>
-            {
+            .ReturnsAsync([
                 new PackagingResubmissionApplicationDetails
                 {
-                    IsSubmitted = true, LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails { FileId = new Guid() }
+                    IsSubmitted = true,
+                    LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails
+                        { FileId = Guid.NewGuid() }
                 }
-            });
+            ]);
 
-        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>())).ReturnsAsync(new Core.Models.Commondata.SynapseResponse());
+        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(It.IsAny<bool>());
+        _commondataClientMock.Setup(x => x.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(It.IsAny<bool>());
 
         // Act
         var result = await _service.GetPackagingResubmissionApplicationDetails("test");
 
         // Assert
         result.Should().NotBeNull();
-        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>()), Times.Once);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Once);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Once);
+    }
+    
+    [DataTestMethod]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public async Task GetPackagingResubmissionApplicationDetails_ShouldReturnExpectedSyncStatusResults_WhenSubmissionStatusClientReturnsNotNull(bool fileSyncStatus, bool dataSyncStatus)
+    {
+        // Arrange
+        _submissionStatusClientMock.Setup(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync([
+                new PackagingResubmissionApplicationDetails
+                {
+                    IsSubmitted = true,
+                    LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails
+                        { FileId = Guid.NewGuid() }
+                }
+            ]);
+
+        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(fileSyncStatus);
+        _commondataClientMock.Setup(x => x.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(dataSyncStatus);
+
+        // Act
+        var result = await _service.GetPackagingResubmissionApplicationDetails("test");
+
+        // Assert
+        result.Should().NotBeNull();
+        result[0].Should().NotBeNull();
+        result[0]?.SynapseResponse.Should().NotBeNull();
+        result[0]?.SynapseResponse.IsFileSynced.Should().Be(fileSyncStatus);
+        result[0]?.SynapseResponse.IsResubmissionDataSynced.Should().Be(dataSyncStatus);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Once);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Once);
     }
 
     [TestMethod]
@@ -130,73 +167,53 @@ public class PackagingResubmissionApplicationServiceTests
     }
 
     [TestMethod]
-    public async Task GetPackagingResubmissionApplicationDetails_ShouldReturnSynapseIsNull_WhenLastSubmittedFileIsNull()
+    public async Task GetPackagingResubmissionApplicationDetails_ShouldNotAssessSynapseSyncStatuses_WhenLastSubmittedFileIdIsNull()
     {
         // Arrange
         _submissionStatusClientMock.Setup(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new List<PackagingResubmissionApplicationDetails>
-            {
+            .ReturnsAsync([
                 new PackagingResubmissionApplicationDetails
                 {
                     IsSubmitted = true,
-                    LastSubmittedFile = null
+                    LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails
+                        { FileId = null }
                 }
-            });
+            ]);
 
-        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>())).ReturnsAsync(new Core.Models.Commondata.SynapseResponse());
+        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(false);
 
         // Act
         var result = await _service.GetPackagingResubmissionApplicationDetails("test");
 
         // Assert
         result.Should().NotBeNull();
-        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>()), Times.Never);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Never);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Never);
     }
 
     [TestMethod]
-    public async Task GetPackagingResubmissionApplicationDetails_ShouldReturnSynapseIsNull_WhenLastSubmittedFileIdIsNull()
+    public async Task GetPackagingResubmissionApplicationDetails_ShouldNotAssessSynapseSyncStatuses_WhenIsSubmittedIsFalse()
     {
         // Arrange
         _submissionStatusClientMock.Setup(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new List<PackagingResubmissionApplicationDetails>
-            {
+            .ReturnsAsync([
                 new PackagingResubmissionApplicationDetails
                 {
-                    IsSubmitted = true, LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails { FileId = null }
+                    IsSubmitted = false,
+                    LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails
+                        { FileId = Guid.NewGuid() }
                 }
-            });
+            ]);
 
-        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>())).ReturnsAsync(new Core.Models.Commondata.SynapseResponse());
+        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(false);
 
         // Act
         var result = await _service.GetPackagingResubmissionApplicationDetails("test");
 
         // Assert
         result.Should().NotBeNull();
-        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>()), Times.Never);
-    }
-
-    [TestMethod]
-    public async Task GetPackagingResubmissionApplicationDetails_ShouldReturnSynapseIsNull_WhenIsSubmittedIsFalse()
-    {
-        // Arrange
-        _submissionStatusClientMock.Setup(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new List<PackagingResubmissionApplicationDetails>
-            {
-                new PackagingResubmissionApplicationDetails
-                {
-                    IsSubmitted = false, LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails { FileId = new Guid() }
-                }
-            });
-
-        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>())).ReturnsAsync(new Core.Models.Commondata.SynapseResponse());
-
-        // Act
-        var result = await _service.GetPackagingResubmissionApplicationDetails("test");
-
-        // Assert
-        result.Should().NotBeNull();
-        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileDetailsFromSynapse(It.IsAny<Guid>()), Times.Never);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Never);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Never);
     }
 
     [TestMethod]
@@ -204,25 +221,25 @@ public class PackagingResubmissionApplicationServiceTests
     {
         // Arrange
         var submissionId = Guid.NewGuid();
-        var submissionPeriod = "July to December 2025";
-        var actualSubmissionPeriod = "January to December 2025";
+        const string SubmissionPeriod = "July to December 2025";
+        const string ActualSubmissionPeriod = "January to December 2025";
 
         var response = new PackagingResubmissionActualSubmissionPeriodResponse()
         {
-            ActualSubmissionPeriod = actualSubmissionPeriod,
+            ActualSubmissionPeriod = ActualSubmissionPeriod,
         };
 
         _commondataClientMock
-            .Setup(x => x.GetActualSubmissionPeriod(submissionId, submissionPeriod))
+            .Setup(x => x.GetActualSubmissionPeriod(submissionId, SubmissionPeriod))
             .ReturnsAsync(response);
 
         // Act
-        var result = await _service.GetActualSubmissionPeriod(submissionId, submissionPeriod);
+        var result = await _service.GetActualSubmissionPeriod(submissionId, SubmissionPeriod);
 
         // Assert
         result!.Should().BeEquivalentTo(response);
-        result.ActualSubmissionPeriod.Should().BeEquivalentTo(actualSubmissionPeriod);
+        result.ActualSubmissionPeriod.Should().BeEquivalentTo(ActualSubmissionPeriod);
 
-        _commondataClientMock.Verify(x => x.GetActualSubmissionPeriod(submissionId, submissionPeriod), Times.Once);
+        _commondataClientMock.Verify(x => x.GetActualSubmissionPeriod(submissionId, SubmissionPeriod), Times.Once);
     }
 }

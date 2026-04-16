@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using Newtonsoft.Json;
 using WebApiGateway.Api.Clients.Interfaces;
-using WebApiGateway.Core.Models.Commondata;
 using WebApiGateway.Core.Models.PackagingResubmissionApplication;
 
 namespace WebApiGateway.Api.Clients;
@@ -11,27 +10,46 @@ public class CommondataClient(
     ILogger<ICommondataClient> logger)
     : ICommondataClient
 {
-    public async Task<SynapseResponse?> GetPackagingResubmissionFileDetailsFromSynapse(Guid fileId)
+    public async Task<bool> GetPackagingResubmissionFileSyncStatusFromSynapse(Guid fileId)
     {
         var response = await httpClient.GetAsync($"submissions/is_file_synced_with_cosmos/{fileId}");
 
         if (response.StatusCode != HttpStatusCode.OK)
         {
-            logger.LogError("Error Getting file status from synapse, StatusCode : {StatusCode} ({ReasonPhrase})", response.StatusCode, response.ReasonPhrase);
-            return new SynapseResponse();
+            logger.LogError("Error getting resubmission file sync status from Synapse, StatusCode : {StatusCode} ({ReasonPhrase})", response.StatusCode, response.ReasonPhrase);
+            return false;
         }
 
         var content = await response.Content.ReadAsStringAsync();
 
-        if (bool.TryParse(content, out bool result))
+        if (bool.TryParse(content, out var result))
         {
-            return new SynapseResponse() { IsFileSynced = result };
+            return result;
         }
-        else
+
+        logger.LogError("Invalid response from common data endpoint when assessing the resubmission file sync status: {content} was returned", content);
+        return false;
+    }
+    
+    public async Task<bool> GetPackagingResubmissionSyncStatusFromSynapse(Guid fileId)
+    {
+        var response = await httpClient.GetAsync($"submissions/is_pom_resubmission_synchronised/{fileId}");
+
+        if (response.StatusCode != HttpStatusCode.OK)
         {
-            logger.LogError("Invalid response from common data endpoint {content}", content);
-            return new SynapseResponse();
+            logger.LogError("Error getting resubmission sync status from Synapse, StatusCode : {StatusCode} ({ReasonPhrase})", response.StatusCode, response.ReasonPhrase);
+            return false;
         }
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (bool.TryParse(content, out var result))
+        {
+            return result;
+        }
+
+        logger.LogError("Invalid response from common data endpoint when assessing the resubmission sync status: {content} was returned", content);
+        return false;
     }
 
     public async Task<PackagingResubmissionMemberResponse?> GetPackagingResubmissionMemberDetails(Guid submissionId, string complianceSchemeId)

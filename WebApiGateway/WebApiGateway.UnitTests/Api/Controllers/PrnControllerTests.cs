@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Models.Pagination;
@@ -19,6 +20,7 @@ public class PrnControllerTests
     private Mock<ILogger<PrnController>> _loggerMock;
     private Mock<IPrnService> _prnService;
     private Mock<IConfiguration> _configuration;
+    private Mock<IWasteObligationsProxy> _wasteObligationsProxy;
     private PrnController _systemUnderTest;
 
     [TestInitialize]
@@ -27,7 +29,8 @@ public class PrnControllerTests
         _loggerMock = new Mock<ILogger<PrnController>>();
         _prnService = new Mock<IPrnService>();
         _configuration = new Mock<IConfiguration>();
-        _systemUnderTest = new PrnController(_prnService.Object, _loggerMock.Object, _configuration.Object);
+        _wasteObligationsProxy = new Mock<IWasteObligationsProxy>();
+        _systemUnderTest = new PrnController(_prnService.Object, _loggerMock.Object, _configuration.Object, _wasteObligationsProxy.Object);
     }
 
     [TestMethod]

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WebApiGateway.Api.Attributes;
+using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Models.Pagination;
 using WebApiGateway.Core.Models.Prns;
@@ -12,7 +13,7 @@ namespace WebApiGateway.Api.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}")]
 [ComplianceSchemeIdFilter]
-public class PrnController(IPrnService prnService, ILogger<PrnController> logger, IConfiguration config) : ControllerBase
+public class PrnController(IPrnService prnService, ILogger<PrnController> logger, IConfiguration config, IWasteObligationsProxy wasteObligationsProxy) : ControllerBase
 {
     private readonly string logPrefix = config["LogPrefix"];
 
@@ -55,5 +56,16 @@ public class PrnController(IPrnService prnService, ILogger<PrnController> logger
         logger.LogInformation("{Logprefix}: PrnController - UpdatePrnStatusToAccepted: Update Prn Satus for given Prns {Prns}", logPrefix, JsonConvert.SerializeObject(updatePrns));
         await prnService.UpdatePrnStatus(updatePrns);
         return NoContent();
+    }
+
+    [HttpGet("prn/compliance-declarations")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetComplianceDeclarations(int? obligationYear, CancellationToken cancellationToken)
+    {
+        var content = await wasteObligationsProxy.Get(
+            "/organisations/{organisationId}/compliance-declarations?obligationYear=" + obligationYear,
+            cancellationToken);
+        
+        return Content(content, "application/json");
     }
 }

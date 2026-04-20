@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
@@ -80,10 +81,58 @@ public static class HttpClientServiceCollectionExtensions
             })
             .AddPolicyHandler(GetRetryPolicy());
 
+        services.AddWasteObligationsProxy();
+
         return services;
     }
 
     private static AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
         .HandleTransientHttpError()
         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt)));
+
+    private static IServiceCollection AddWasteObligationsProxy(this IServiceCollection services)
+    {
+        const string Name = WasteObligationsOptions.SectionName;
+
+        services.AddOptions<WasteObligationsOptions>().BindConfiguration(Name);
+        services.AddOptions<HttpStandardResilienceOptions>(Name).BindConfiguration(Name);
+
+        services.AddHttpClient(nameof(OAuth2TokenCache));
+        services.AddKeyedSingleton<OAuth2TokenCache>(Name, (sp, _) =>
+            new OAuth2TokenCache(
+                sp.GetRequiredService<IHttpClientFactory>(),
+                sp.GetRequiredService<IOptions<WasteObligationsOptions>>().Value));
+        services.AddKeyedTransient<OAuth2Handler>(Name, (sp, _) =>
+            new OAuth2Handler(sp.GetRequiredKeyedService<OAuth2TokenCache>(Name)));
+        services.AddTransient<WasteObligationsAuthorisationHandler>();
+
+        var httpClientBuilder = services
+            .AddHttpClient<IWasteObligationsProxy, WasteObligationsProxy>()
+            .AddHttpMessageHandler(sp => sp.GetRequiredKeyedService<OAuth2Handler>(Name))
+            .AddHttpMessageHandler<WasteObligationsAuthorisationHandler>()
+            .ConfigureHttpClient(
+                (sp, httpClient) =>
+                {
+                    sp.GetRequiredService<IOptions<WasteObligationsOptions>>().Value.Configure(httpClient);
+
+                    // See resilience handler below for timeout control
+                    httpClient.Timeout = Timeout.InfiniteTimeSpan;
+                });
+
+        httpClientBuilder.AddResilienceHandler(
+            nameof(WasteObligationsOptions),
+            (builder, context) =>
+            {
+                var options = context
+                    .ServiceProvider.GetRequiredService<IOptionsMonitor<HttpStandardResilienceOptions>>()
+                    .Get(Name);
+
+                builder
+                    .AddTimeout(options.TotalRequestTimeout)
+                    .AddRetry(options.Retry)
+                    .AddTimeout(options.AttemptTimeout);
+            });
+
+        return services;
+    }
 }

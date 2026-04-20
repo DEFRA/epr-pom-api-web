@@ -10,11 +10,11 @@ public class WasteObligationsAuthorisationHandler(IHttpContextAccessor httpConte
     {
         var organisationId = GetComplianceSchemeId() ?? await GetOrganisationIdFromUserFallback();
         
-        if (request.RequestUri.AbsolutePath.Contains("{organisationId}"))
+        if (request.RequestUri.AbsolutePath.Contains(":organisationId"))
         {
             var uriBuilder = new UriBuilder(request.RequestUri)
             {
-                Path = request.RequestUri.AbsolutePath.Replace("{organisationId}", organisationId.ToString("D"))
+                Path = request.RequestUri.AbsolutePath.Replace(":organisationId", organisationId.ToString("D"))
             };
             
             request.RequestUri = uriBuilder.Uri;

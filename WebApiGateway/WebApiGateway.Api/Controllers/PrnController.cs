@@ -63,7 +63,7 @@ public class PrnController(IPrnService prnService, ILogger<PrnController> logger
     public async Task<IActionResult> GetComplianceDeclarations(int? obligationYear, CancellationToken cancellationToken)
     {
         var content = await wasteObligationsProxy.Get(
-            "/organisations/{organisationId}/compliance-declarations?obligationYear=" + obligationYear,
+            "/organisations/:organisationId/compliance-declarations?obligationYear=" + obligationYear,
             cancellationToken);
         
         return Content(content, "application/json");

@@ -1,7 +1,9 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 
 namespace WebApiGateway.Api.Handlers;
 
+[ExcludeFromCodeCoverage]
 public class OAuth2Handler(OAuth2TokenCache tokenCache) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(

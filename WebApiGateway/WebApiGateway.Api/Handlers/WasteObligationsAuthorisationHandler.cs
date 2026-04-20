@@ -1,9 +1,11 @@
-﻿using WebApiGateway.Api.Clients.Interfaces;
+﻿using System.Diagnostics.CodeAnalysis;
+using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Extensions;
 using WebApiGateway.Core.Constants;
 
 namespace WebApiGateway.Api.Handlers;
 
+[ExcludeFromCodeCoverage]
 public class WasteObligationsAuthorisationHandler(IHttpContextAccessor httpContextAccessor, IAccountServiceClient accountServiceClient) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

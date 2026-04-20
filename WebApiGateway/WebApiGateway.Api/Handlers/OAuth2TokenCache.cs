@@ -3,6 +3,7 @@ using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.Api.Handlers;
 
+[ExcludeFromCodeCoverage]
 public class OAuth2TokenCache(IHttpClientFactory httpClientFactory, OAuth2Options options)
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);

@@ -119,4 +119,17 @@ public class PrnControllerTests
         Func<Task> act = async () => await _systemUnderTest.UpdatePrnStatusToAccepted(updatePrns);
         await act.Should().ThrowAsync<Exception>().WithMessage("Update failed");
     }
+
+    [TestMethod]
+    public async Task GetComplianceDeclarations_ReturnsOk()
+    {
+        _wasteObligationsProxy.Setup(x => x.Get(
+            "/organisations/:organisationId/compliance-declarations?obligationYear=2026",
+            CancellationToken.None)).ReturnsAsync("{}");
+
+        var result = await _systemUnderTest.GetComplianceDeclarations(2026, CancellationToken.None);
+
+        result.Should().BeOfType<ContentResult>().Which.Content.Should().Be("{}");
+        result.Should().BeOfType<ContentResult>().Which.ContentType.Should().Be("application/json");
+    }
 }

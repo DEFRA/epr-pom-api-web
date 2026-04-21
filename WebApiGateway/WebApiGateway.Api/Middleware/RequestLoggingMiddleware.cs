@@ -3,7 +3,7 @@
 namespace WebApiGateway.Api.Middleware;
 
 [ExcludeFromCodeCoverage]
-public class AuthLoggingMiddleware(RequestDelegate next, ILogger<AuthLoggingMiddleware> logger)
+public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
 {
     public async Task Invoke(HttpContext context)
     {

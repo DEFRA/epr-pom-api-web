@@ -64,9 +64,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseMiddleware<RequestLoggingMiddleware>();
 }
 
-app.UseMiddleware<AuthLoggingMiddleware>();
 app.UseAuthentication();
 app.UseHttpsRedirection();
 app.UseAuthorization();

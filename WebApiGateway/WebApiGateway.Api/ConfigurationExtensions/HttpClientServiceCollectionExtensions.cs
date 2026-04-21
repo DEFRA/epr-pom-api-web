@@ -86,11 +86,7 @@ public static class HttpClientServiceCollectionExtensions
         return services;
     }
 
-    private static AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
-        .HandleTransientHttpError()
-        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt)));
-
-    private static IServiceCollection AddWasteObligationsProxy(this IServiceCollection services)
+    public static IServiceCollection AddWasteObligationsProxy(this IServiceCollection services)
     {
         const string Name = WasteObligationsOptions.SectionName;
 
@@ -135,4 +131,8 @@ public static class HttpClientServiceCollectionExtensions
 
         return services;
     }
+
+    private static AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt)));
 }

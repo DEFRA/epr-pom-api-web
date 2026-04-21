@@ -1,15 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using WebApiGateway.Api.Clients.Interfaces;
+﻿using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Extensions;
 using WebApiGateway.Core.Constants;
 
 namespace WebApiGateway.Api.Handlers;
 
-[ExcludeFromCodeCoverage]
 public class WasteObligationsAuthorisationHandler(IHttpContextAccessor httpContextAccessor, IAccountServiceClient accountServiceClient) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        // Logic taken from PrnServiceClient.ConfigureHttpClientAsync
         var organisationId = GetComplianceSchemeId() ?? await GetOrganisationIdFromUserFallback();
         
         if (request.RequestUri.AbsolutePath.Contains(":organisationId"))

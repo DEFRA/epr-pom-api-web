@@ -23,20 +23,17 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="coverlet.msbuild" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="WireMock.Net" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\WebApiGateway.Api\WebApiGateway.Api.csproj" />
     <ProjectReference Include="..\WebApiGateway.Core\WebApiGateway.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Support\" />
   </ItemGroup>
 
 </Project>

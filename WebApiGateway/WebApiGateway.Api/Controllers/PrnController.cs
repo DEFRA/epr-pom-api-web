@@ -60,12 +60,15 @@ public class PrnController(IPrnService prnService, ILogger<PrnController> logger
 
     [HttpGet("prn/compliance-declarations")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetComplianceDeclarations(int? obligationYear, CancellationToken cancellationToken)
     {
-        var content = await wasteObligationsProxy.Get(
-            "/organisations/:organisationId/compliance-declarations?obligationYear=" + obligationYear,
-            cancellationToken);
-        
-        return Content(content, "application/json");
+        var content = await wasteObligationsProxy.GetComplianceDeclarations(obligationYear, cancellationToken);
+        if (content is not null)
+        {
+            return Content(content, "application/json");
+        }
+
+        return NotFound();
     }
 }

@@ -1,4 +1,5 @@
-﻿using WebApiGateway.Api.Clients.Interfaces;
+﻿using System.Net;
+using WebApiGateway.Api.Clients.Interfaces;
 
 namespace WebApiGateway.Api.Clients;
 
@@ -12,6 +13,14 @@ public class WasteObligationsProxy(HttpClient httpClient) : IWasteObligationsPro
             cancellationToken);
     }
 
-    private async Task<string?> Get(string requestUri, CancellationToken cancellationToken) =>
-        await httpClient.GetStringAsync(requestUri, cancellationToken);
+    private async Task<string?> Get(string requestUri, CancellationToken cancellationToken)
+    {
+        var response = await httpClient.GetAsync(requestUri, cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadAsStringAsync(cancellationToken);
+    }
 }

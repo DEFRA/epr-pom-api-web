@@ -94,6 +94,23 @@ public class WasteObligationsProxyTests
     }
     
     [TestMethod]
+    public async Task GetComplianceDeclarations_WhenComplianceDeclarationsNotFound_ShouldReturnNull()
+    {
+        HttpContext.Items.Add(ComplianceScheme.ComplianceSchemeId, ComplianceSchemeId);
+        await using var sp = Services.BuildServiceProvider();
+
+        var service = sp.GetRequiredService<IWasteObligationsProxy>();
+        const int ObligationYear = 2026;
+        const string AccessToken = "access_token";
+
+        WireMock.StubTokenRequest(accessToken: AccessToken);
+
+        var result = await service.GetComplianceDeclarations(ObligationYear, CancellationToken.None);
+
+        result.Should().BeNull();
+    }
+    
+    [TestMethod]
     public async Task GetComplianceDeclarations_WhenFallingBackToAccountService_ShouldReturnData()
     {
         HttpContext.Items.Add(ComplianceScheme.ComplianceSchemeId, string.Empty);

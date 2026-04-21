@@ -25,12 +25,15 @@ public class PackagingResubmissionApplicationService(
             {
                 var fileId = applicationDetail.LastSubmittedFile.FileId.Value;
                 var fileSyncTask = commondataClient.GetPackagingResubmissionFileSyncStatusFromSynapse(fileId);
-                var dataSyncTask = commondataClient.GetPackagingResubmissionSyncStatusFromSynapse(fileId);
+                var dataSyncTask = commondataClient.GetPackagingResubmissionMemberDetails((Guid)applicationDetail.SubmissionId, null); // SUB-39: ComplianceSchemeId not need for this check for the presence of data.
                 
                 await Task.WhenAll(fileSyncTask, dataSyncTask);
                 
                 applicationDetail.SynapseResponse.IsFileSynced = fileSyncTask.Result;
-                applicationDetail.SynapseResponse.IsResubmissionDataSynced = dataSyncTask.Result;
+                
+                // SUB-39: Underlying stored procedure checks for an entry in the "apps.SubmissionsSummaries" table. This is populated towards the end of the pip_recyclers stage in
+                // the pip_wrapper import pipeline. This indicates that the sync process has completed as far as this check is concerned; otherwise an error message is returned by the Common Data API.
+                applicationDetail.SynapseResponse.IsResubmissionDataSynced = string.IsNullOrEmpty(dataSyncTask.Result.ErrorMessage); 
             }
         }
 

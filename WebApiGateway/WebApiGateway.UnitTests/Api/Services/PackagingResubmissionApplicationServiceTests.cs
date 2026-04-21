@@ -39,38 +39,16 @@ public class PackagingResubmissionApplicationServiceTests
         _submissionStatusClientMock.Verify(client => client.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()), Times.Once);
     }
 
-    [TestMethod]
-    public async Task GetPackagingResubmissionApplicationDetails_ShouldReturnResult_WhenSubmissionStatusClientReturnsNotNull()
-    {
-        // Arrange
-        _submissionStatusClientMock.Setup(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync([
-                new PackagingResubmissionApplicationDetails
-                {
-                    IsSubmitted = true,
-                    LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails
-                        { FileId = Guid.NewGuid() }
-                }
-            ]);
-
-        _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(It.IsAny<bool>());
-        _commondataClientMock.Setup(x => x.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(It.IsAny<bool>());
-
-        // Act
-        var result = await _service.GetPackagingResubmissionApplicationDetails("test");
-
-        // Assert
-        result.Should().NotBeNull();
-        _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Once);
-        _commondataClientMock.Verify(client => client.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Once);
-    }
-    
     [DataTestMethod]
-    [DataRow(false, false)]
-    [DataRow(true, false)]
-    [DataRow(false, true)]
-    [DataRow(true, true)]
-    public async Task GetPackagingResubmissionApplicationDetails_ShouldReturnExpectedSyncStatusResults_WhenSubmissionStatusClientReturnsNotNull(bool fileSyncStatus, bool dataSyncStatus)
+    [DataRow(false, "", true)]
+    [DataRow(true, "", true)]
+    [DataRow(false, " ", false)]
+    [DataRow(true, " ", false)]
+    [DataRow(false, null, true)]
+    [DataRow(true, null, true)]
+    [DataRow(false, "Error", false)]
+    [DataRow(true, "Error", false)]
+    public async Task GetPackagingResubmissionApplicationDetails_ShouldReturnExpectedSyncStatusResults_WhenSubmissionStatusClientReturnsAValidResponse(bool fileSyncStatus, string errorMessage, bool syncComplete)
     {
         // Arrange
         _submissionStatusClientMock.Setup(x => x.GetPackagingResubmissionApplicationDetails(It.IsAny<string>()))
@@ -79,12 +57,17 @@ public class PackagingResubmissionApplicationServiceTests
                 {
                     IsSubmitted = true,
                     LastSubmittedFile = new PackagingResubmissionApplicationDetails.LastSubmittedFileDetails
-                        { FileId = Guid.NewGuid() }
+                        { FileId = Guid.NewGuid() },
+                    SubmissionId = Guid.NewGuid()
                 }
             ]);
+
+        var testResponse = new PackagingResubmissionMemberResponse { MemberCount = 1, ErrorMessage = errorMessage, ReferenceNumber = "124356" };
+        _commondataClientMock
+            .Setup(x => x.GetPackagingResubmissionMemberDetails(It.IsAny<Guid>(), null))
+            .ReturnsAsync(testResponse);
 
         _commondataClientMock.Setup(x => x.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(fileSyncStatus);
-        _commondataClientMock.Setup(x => x.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>())).ReturnsAsync(dataSyncStatus);
 
         // Act
         var result = await _service.GetPackagingResubmissionApplicationDetails("test");
@@ -94,9 +77,9 @@ public class PackagingResubmissionApplicationServiceTests
         result[0].Should().NotBeNull();
         result[0]?.SynapseResponse.Should().NotBeNull();
         result[0]?.SynapseResponse.IsFileSynced.Should().Be(fileSyncStatus);
-        result[0]?.SynapseResponse.IsResubmissionDataSynced.Should().Be(dataSyncStatus);
+        result[0]?.SynapseResponse.IsResubmissionDataSynced.Should().Be(syncComplete);
         _commondataClientMock.Verify(client => client.GetPackagingResubmissionFileSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Once);
-        _commondataClientMock.Verify(client => client.GetPackagingResubmissionSyncStatusFromSynapse(It.IsAny<Guid>()), Times.Once);
+        _commondataClientMock.Verify(client => client.GetPackagingResubmissionMemberDetails(It.IsAny<Guid>(), null), Times.Once);
     }
 
     [TestMethod]

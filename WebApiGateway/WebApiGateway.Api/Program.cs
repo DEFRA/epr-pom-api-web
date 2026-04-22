@@ -5,6 +5,7 @@ using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using WebApiGateway.Api.ConfigurationExtensions;
 using WebApiGateway.Api.HealthChecks;
+using WebApiGateway.Api.Middleware;
 using WebApiGateway.Api.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -63,6 +64,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseMiddleware<RequestLoggingMiddleware>();
 }
 
 app.UseAuthentication();

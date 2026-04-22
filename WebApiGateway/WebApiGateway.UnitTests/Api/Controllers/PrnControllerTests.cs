@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Controllers;
 using WebApiGateway.Api.Services.Interfaces;
 using WebApiGateway.Core.Models.Pagination;
@@ -19,6 +20,7 @@ public class PrnControllerTests
     private Mock<ILogger<PrnController>> _loggerMock;
     private Mock<IPrnService> _prnService;
     private Mock<IConfiguration> _configuration;
+    private Mock<IWasteObligationsProxy> _wasteObligationsProxy;
     private PrnController _systemUnderTest;
 
     [TestInitialize]
@@ -27,7 +29,8 @@ public class PrnControllerTests
         _loggerMock = new Mock<ILogger<PrnController>>();
         _prnService = new Mock<IPrnService>();
         _configuration = new Mock<IConfiguration>();
-        _systemUnderTest = new PrnController(_prnService.Object, _loggerMock.Object, _configuration.Object);
+        _wasteObligationsProxy = new Mock<IWasteObligationsProxy>();
+        _systemUnderTest = new PrnController(_prnService.Object, _loggerMock.Object, _configuration.Object, _wasteObligationsProxy.Object);
     }
 
     [TestMethod]
@@ -115,5 +118,26 @@ public class PrnControllerTests
         _prnService.Setup(x => x.UpdatePrnStatus(updatePrns)).ThrowsAsync(new Exception("Update failed"));
         Func<Task> act = async () => await _systemUnderTest.UpdatePrnStatusToAccepted(updatePrns);
         await act.Should().ThrowAsync<Exception>().WithMessage("Update failed");
+    }
+    
+    [TestMethod]
+    public async Task GetComplianceDeclarations_ReturnsNotFound_WhenContentIsNull()
+    {
+        _wasteObligationsProxy.Setup(x => x.GetComplianceDeclarations(2026, CancellationToken.None)).ReturnsAsync((string?)null);
+
+        var result = await _systemUnderTest.GetComplianceDeclarations(2026, CancellationToken.None);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+    
+    [TestMethod]
+    public async Task GetComplianceDeclarations_ReturnsOk_WhenContentIsNotNull()
+    {
+        _wasteObligationsProxy.Setup(x => x.GetComplianceDeclarations(2026, CancellationToken.None)).ReturnsAsync("{}");
+
+        var result = await _systemUnderTest.GetComplianceDeclarations(2026, CancellationToken.None);
+
+        result.Should().BeOfType<ContentResult>().Which.Content.Should().Be("{}");
+        result.Should().BeOfType<ContentResult>().Which.ContentType.Should().Be("application/json");
     }
 }

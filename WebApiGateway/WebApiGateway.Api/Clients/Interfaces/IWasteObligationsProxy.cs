@@ -2,5 +2,5 @@
 
 public interface IWasteObligationsProxy
 {
-    Task<string?> GetComplianceDeclarations(int? obligationYear, CancellationToken cancellationToken);
+    Task<string?> GetComplianceDeclarations(int obligationYear, CancellationToken cancellationToken);
 }

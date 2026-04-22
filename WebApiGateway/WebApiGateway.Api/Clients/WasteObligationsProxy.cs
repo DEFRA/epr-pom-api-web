@@ -5,7 +5,7 @@ namespace WebApiGateway.Api.Clients;
 
 public class WasteObligationsProxy(HttpClient httpClient) : IWasteObligationsProxy
 {
-    public async Task<string?> GetComplianceDeclarations(int? obligationYear, CancellationToken cancellationToken)
+    public async Task<string?> GetComplianceDeclarations(int obligationYear, CancellationToken cancellationToken)
     {
         // See WasteObligationsAuthorisationHandler for :organisationId replacement 
         return await Get(

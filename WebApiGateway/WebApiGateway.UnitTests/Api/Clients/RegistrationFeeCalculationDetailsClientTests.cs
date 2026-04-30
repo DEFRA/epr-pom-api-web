@@ -87,6 +87,47 @@ public class RegistrationFeeCalculationDetailsClientTests
     }
 
     [TestMethod]
+    public async Task GetFeeCalculationDetails_ShouldDeserializeClosedLoopRecyclingProperties()
+    {
+        // Arrange
+        var fileId = Guid.NewGuid();
+        const string json = """
+            [{
+              "organisationId": "12345",
+              "numberOfSubsidiaries": 5,
+              "numberOfSubsidiariesBeingOnlineMarketPlace": 1,
+              "numberOfSubsidiariesBeingClosedLoopRecycling": 3,
+              "organisationSize": "Large",
+              "isOnlineMarketplace": false,
+              "isClosedLoopRecycling": true,
+              "isNewJoiner": false,
+              "nationId": 1
+            }]
+            """;
+
+        var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(json)
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(responseMessage);
+
+        // Act
+        var result = await _client.GetRegistrationFeeCalculationDetails(fileId);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result![0].IsClosedLoopRecycling.Should().BeTrue();
+        result[0].NumberOfSubsidiariesBeingClosedLoopRecycling.Should().Be(3);
+    }
+
+    [TestMethod]
     public void GetFeeCalculationDetails_ShouldLogAndThrowHttpRequestException_WhenResponseIsBadRequest()
     {
         // Arrange

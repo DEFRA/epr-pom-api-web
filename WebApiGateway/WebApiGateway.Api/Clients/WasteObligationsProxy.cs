@@ -21,6 +21,8 @@ public class WasteObligationsProxy(HttpClient httpClient) : IWasteObligationsPro
             return null;
         }
 
+        response.EnsureSuccessStatusCode();
+
         return await response.Content.ReadAsStringAsync(cancellationToken);
     }
 }

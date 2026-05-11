@@ -11,7 +11,8 @@ public static class WasteObligationsExtensions
         this WireMockServer wireMock,
         Guid organisationId,
         int obligationYear = 2026,
-        string? accessToken = null)
+        string? accessToken = null,
+        HttpStatusCode? statusCode = null)
     {
         var request = Request.Create().UsingGet()
             .WithPath($"/organisations/{organisationId:D}/compliance-declarations")
@@ -27,7 +28,7 @@ public static class WasteObligationsExtensions
             .RespondWith(
                 Response
                     .Create()
-                    .WithStatusCode(HttpStatusCode.OK)
+                    .WithStatusCode(statusCode ?? HttpStatusCode.OK)
                     .WithBodyAsJson(new
                     {
                     }));

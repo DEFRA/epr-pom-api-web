@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Net;
+using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -108,6 +109,24 @@ public class WasteObligationsProxyTests
         var result = await service.GetComplianceDeclarations(ObligationYear, CancellationToken.None);
 
         result.Should().BeNull();
+    }
+    
+    [TestMethod]
+    public async Task GetComplianceDeclarations_WhenUnsuccessful_ShouldThrow()
+    {
+        HttpContext.Items.Add(ComplianceScheme.ComplianceSchemeId, ComplianceSchemeId);
+        await using var sp = Services.BuildServiceProvider();
+
+        var service = sp.GetRequiredService<IWasteObligationsProxy>();
+        const int ObligationYear = 2026;
+        const string AccessToken = "access_token";
+
+        WireMock.StubTokenRequest(accessToken: AccessToken);
+        WireMock.StubWasteObligationsComplianceDeclarationsRequest(ComplianceSchemeId, ObligationYear, AccessToken, HttpStatusCode.Forbidden);
+
+        var act = () => service.GetComplianceDeclarations(ObligationYear, CancellationToken.None);
+
+        act.Should().ThrowAsync<HttpRequestException>();
     }
     
     [TestMethod]

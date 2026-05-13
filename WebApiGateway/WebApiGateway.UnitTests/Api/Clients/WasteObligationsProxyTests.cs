@@ -126,7 +126,7 @@ public class WasteObligationsProxyTests
 
         var act = () => service.GetComplianceDeclarations(ObligationYear, CancellationToken.None);
 
-        act.Should().ThrowAsync<HttpRequestException>();
+        await act.Should().ThrowAsync<HttpRequestException>();
     }
     
     [TestMethod]

@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Services;
+using WebApiGateway.Core.Models.RegistrationFeeCalculation;
 using WebApiGateway.Core.Models.Submission;
 
 namespace WebApiGateway.UnitTests.Api.Services;
@@ -159,6 +160,37 @@ public class RegistrationApplicationServiceTests
 
         // Assert
         await act.Should().ThrowAsync<HttpRequestException>().WithMessage(expectedException.Message);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_PassesThroughClosedLoopRecyclingFields()
+    {
+        // Arrange
+        var feeDetails = new RegistrationFeeCalculationDetails
+        {
+            IsClosedLoopRecycling = true,
+            NumberOfSubsidiariesBeingClosedLoopRecycling = 4
+        };
+
+        _submissionStatusClientMock
+            .Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
+            });
+
+        _feeCalculationDetailsClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_fileId))
+            .ReturnsAsync([feeDetails]);
+
+        // Act
+        var result = await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        result!.RegistrationFeeCalculationDetails.Should().ContainSingle();
+        result.RegistrationFeeCalculationDetails![0].IsClosedLoopRecycling.Should().BeTrue();
+        result.RegistrationFeeCalculationDetails[0].NumberOfSubsidiariesBeingClosedLoopRecycling.Should().Be(4);
     }
 
     [TestMethod]

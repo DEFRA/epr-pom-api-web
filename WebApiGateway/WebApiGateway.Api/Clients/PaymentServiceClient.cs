@@ -22,7 +22,16 @@ public class PaymentServiceClient(
         // anything other than 200 or 404 is unexpected
         if (response.StatusCode != HttpStatusCode.OK)
         {
-            response.EnsureSuccessStatusCode();
+            // once we have proven the flow in prod, we should get rid of the try-catch and allow EnsureSuccessStatusCode to throw up the stack
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException exception)
+            {
+                logger.LogError(exception, "An error occurred retrieving fee calculation details for submission id {submissionId}", submissionId);
+                return null;
+            }
         }
 
         var content = await response.Content.ReadAsStringAsync();

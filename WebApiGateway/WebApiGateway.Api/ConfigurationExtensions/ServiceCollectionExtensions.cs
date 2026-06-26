@@ -53,6 +53,7 @@ public static class ServiceCollectionExtensions
         services.Configure<RedisOptions>(configuration.GetSection(RedisOptions.SectionName));
         services.Configure<PrnServiceApiOptions>(configuration.GetSection(PrnServiceApiOptions.Section));
         services.Configure<CommonDataApiOptions>(configuration.GetSection(CommonDataApiOptions.Section));
+        services.Configure<PaymentServiceOptions>(configuration.GetSection(PaymentServiceOptions.Section));
 
         return services;
     }

@@ -3,6 +3,7 @@ using EPR.Common.Logging.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using WebApiGateway.Api.ConfigurationExtensions;
 using WebApiGateway.Api.HealthChecks;
 using WebApiGateway.Api.Middleware;
@@ -11,15 +12,28 @@ using WebApiGateway.Api.Swagger;
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
+var buildNumber = configuration.GetValue<string>("BUILD_NUMBER");
+var gitSha = configuration.GetValue<string>("GIT_SHA");
+
+builder.Logging.ClearProviders();
+builder.Host.UseSerilog((context, config) =>
+{
+    config.ReadFrom.Configuration(context.Configuration);
+    config.Enrich.WithProperty("Application", context.HostingEnvironment.ApplicationName);
+    config.Enrich.WithProperty("BuildNumber", buildNumber ?? "NOT_SET");
+    config.Enrich.WithProperty("GitSha", gitSha ?? "NOT_SET");
+});
+
+builder.Services
+    .AddApplicationInsightsTelemetry()
+    .AddHealthChecks();
+
 builder.Services
     .AddCommonServices()
     .AddEprAccessControl()
-    .AddApplicationInsightsTelemetry()
     .ConfigureOptions(configuration)
     .RegisterServices()
     .RegisterHttpClients()
-    .AddApplicationInsightsTelemetry()
-    .AddLogging()
     .AddHttpContextAccessor()
     .ConfigureLogging();
 
@@ -42,7 +56,6 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddApiVersioning();
 builder.Services.AddControllers().AddNewtonsoftJson();
-builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -64,12 +77,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseMiddleware<RequestLoggingMiddleware>();
 }
-
-app.UseAuthentication();
 app.UseHttpsRedirection();
+app.UseSerilogRequestLogging();
+
 app.UseAuthorization();
+app.UseAuthentication();
 app.MapControllers();
 app.MapHealthChecks("/admin/health", HealthCheckOptionsBuilder.Build()).AllowAnonymous();
 app.Run();

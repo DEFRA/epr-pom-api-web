@@ -16,7 +16,9 @@
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:7265;http://localhost:5291",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "GIT_SHA": "git-local-build",
+        "BUILD_NUMBER": "00000000.0"
       }
     },
     "IIS Express": {

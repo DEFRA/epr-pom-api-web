@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Clients;
@@ -17,6 +18,7 @@ public class RegistrationApplicationServiceTests
     private Mock<IRegistrationFeeCalculationDetailsClient> _feeCalculationDetailsClientMock;
     private Mock<ISubmissionStatusClient> _submissionStatusClientMock;
     private Mock<IPaymentServiceClient> _paymentServiceClientMock;
+    private Mock<ILogger<RegistrationApplicationService>> _loggerMock;
     private RegistrationApplicationService _service;
 
     [TestInitialize]
@@ -25,10 +27,12 @@ public class RegistrationApplicationServiceTests
         _feeCalculationDetailsClientMock = new Mock<IRegistrationFeeCalculationDetailsClient>();
         _submissionStatusClientMock = new Mock<ISubmissionStatusClient>();
         _paymentServiceClientMock = new Mock<IPaymentServiceClient>();
+        _loggerMock = new Mock<ILogger<RegistrationApplicationService>>();
         _service = new RegistrationApplicationService(
             _submissionStatusClientMock.Object,
             _feeCalculationDetailsClientMock.Object,
-            _paymentServiceClientMock.Object);
+            _paymentServiceClientMock.Object,
+            _loggerMock.Object);
     }
 
     [TestMethod]

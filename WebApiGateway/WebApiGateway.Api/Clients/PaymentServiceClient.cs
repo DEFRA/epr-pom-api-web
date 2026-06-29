@@ -10,6 +10,8 @@ public class PaymentServiceClient(
 {
     public async Task<RegistrationFeeCalculationDetails[]?> GetRegistrationFeeCalculationDetails(Guid submissionId)
     {
+        logger.LogInformation("Retrieving registration fees from payment service...");
+
         var response =
             await httpClient.GetAsync($"v1/registration-submission-data/{submissionId}/fee-calculation-details");
 
@@ -33,6 +35,8 @@ public class PaymentServiceClient(
                 return null;
             }
         }
+
+        logger.LogInformation("Registration fees found.");
 
         var content = await response.Content.ReadAsStringAsync();
 

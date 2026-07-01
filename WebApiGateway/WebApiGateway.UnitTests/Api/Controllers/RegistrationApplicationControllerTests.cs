@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WebApiGateway.Api.Controllers;
@@ -14,13 +15,15 @@ namespace WebApiGateway.UnitTests.Api.Controllers;
 public class RegistrationApplicationControllerTests
 {
     private Mock<IRegistrationApplicationService> _registrationApplicationService;
+    private Mock<ILogger<RegistrationApplicationController>> _loggerMock;
     private RegistrationApplicationController _systemUnderTest;
-
+    
     [TestInitialize]
     public void TestInitialize()
     {
         _registrationApplicationService = new Mock<IRegistrationApplicationService>();
-        _systemUnderTest = new RegistrationApplicationController(_registrationApplicationService.Object)
+        _loggerMock = new Mock<ILogger<RegistrationApplicationController>>();
+        _systemUnderTest = new RegistrationApplicationController(_registrationApplicationService.Object, _loggerMock.Object)
         {
             ControllerContext = { HttpContext = new DefaultHttpContext() }
         };

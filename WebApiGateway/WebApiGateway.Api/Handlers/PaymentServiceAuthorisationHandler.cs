@@ -5,5 +5,5 @@ using WebApiGateway.Core.Options;
 namespace WebApiGateway.Api.Handlers;
 
 [ExcludeFromCodeCoverage]
-public class PrnServiceAuthorisationHandler(IOptions<PrnServiceApiOptions> options)
+public class PaymentServiceAuthorisationHandler(IOptions<PaymentServiceOptions> options)
     : AzureTokenAuthorisationHandler(options.Value.ClientId);

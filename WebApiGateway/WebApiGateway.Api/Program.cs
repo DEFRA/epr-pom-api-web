@@ -6,7 +6,6 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using WebApiGateway.Api.ConfigurationExtensions;
 using WebApiGateway.Api.HealthChecks;
-using WebApiGateway.Api.Middleware;
 using WebApiGateway.Api.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);

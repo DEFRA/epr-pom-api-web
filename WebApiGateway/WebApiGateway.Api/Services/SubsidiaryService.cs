@@ -38,7 +38,7 @@ public class SubsidiaryService(
 
         logger.LogInformation("Redis errors response key: {Key} errors: {Value}", key, value);
 
-        return JsonSerializer.Deserialize<UploadFileErrorResponse>(value, _caseInsensitiveJsonSerializerOptions);
+        return JsonSerializer.Deserialize<UploadFileErrorResponse>((string)value!, _caseInsensitiveJsonSerializerOptions);
     }
 
     public async Task<string> GetNotificationStatusAsync(string key)

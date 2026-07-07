@@ -27,6 +27,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="WireMock.Net" Version="2.11.0" />
+    <!-- Override transitive Scriban.Signed 7.2.0 pulled by WireMock.Net (CVE GHSA-6q7j-xr26-3h2c, GHSA-q6rr-fm2g-g5x8). -->
+    <PackageReference Include="Scriban.Signed" Version="7.2.5" />
   </ItemGroup>
 
   <ItemGroup>

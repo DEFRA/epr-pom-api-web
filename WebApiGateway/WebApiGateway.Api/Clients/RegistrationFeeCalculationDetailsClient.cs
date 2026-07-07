@@ -12,6 +12,7 @@ public class RegistrationFeeCalculationDetailsClient(
 {
     public async Task<RegistrationFeeCalculationDetails[]?> GetRegistrationFeeCalculationDetails(Guid fileId)
     {
+        logger.LogInformation("Retrieving registration fees from the common data api...");
         var response = await httpClient.GetAsync($"registration-fee-calculation-details/get-registration-fee-calculation-details/{fileId}");
 
         // response.StatusCode == HttpStatusCode.BadRequest
@@ -22,6 +23,8 @@ public class RegistrationFeeCalculationDetailsClient(
             logger.LogError("Error Getting registration fee calculation details, StatusCode : {StatusCode} ({ReasonPhrase})", response.StatusCode, response.ReasonPhrase);
             return null;
         }
+
+        logger.LogInformation("Registration fees found.");
 
         var content = await response.Content.ReadAsStringAsync();
 

@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Services;
 using WebApiGateway.Core.Models.RegistrationFeeCalculation;
@@ -12,8 +14,11 @@ namespace WebApiGateway.UnitTests.Api.Services;
 public class RegistrationApplicationServiceTests
 {
     private readonly Guid _fileId = Guid.NewGuid();
+    private readonly Guid _submissionId = Guid.NewGuid();
     private Mock<IRegistrationFeeCalculationDetailsClient> _feeCalculationDetailsClientMock;
     private Mock<ISubmissionStatusClient> _submissionStatusClientMock;
+    private Mock<IPaymentServiceClient> _paymentServiceClientMock;
+    private Mock<ILogger<RegistrationApplicationService>> _loggerMock;
     private RegistrationApplicationService _service;
 
     [TestInitialize]
@@ -21,112 +26,13 @@ public class RegistrationApplicationServiceTests
     {
         _feeCalculationDetailsClientMock = new Mock<IRegistrationFeeCalculationDetailsClient>();
         _submissionStatusClientMock = new Mock<ISubmissionStatusClient>();
-        _service = new RegistrationApplicationService(_submissionStatusClientMock.Object, _feeCalculationDetailsClientMock.Object);
-    }
-
-    [TestMethod]
-    public async Task GetRegistrationApplicationDetails_ShouldCallFeeCalculationDetailsClientWithCorrectFileId()
-    {
-        // Arrange
-        _feeCalculationDetailsClientMock
-            .Setup(client => client.GetRegistrationFeeCalculationDetails(_fileId))
-            .ReturnsAsync([]);
-
-        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new RegistrationApplicationDetails
-            {
-                IsSubmitted = true,
-                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails
-                {
-                    FileId = _fileId
-                }
-            });
-
-        // Act
-        var result = await _service.GetRegistrationApplicationDetails("test");
-
-        // Assert
-        result.Should().NotBeNull();
-        _submissionStatusClientMock.Verify(client => client.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
-        _feeCalculationDetailsClientMock.Verify(client => client.GetRegistrationFeeCalculationDetails(_fileId), Times.Once);
-    }
-
-    [TestMethod]
-    public async Task GetRegistrationApplicationDetails_ShouldNotCallFeeCalculationDetailsClientWhenLastSubmittedFileIsNull()
-    {
-        // Arrange
-        _feeCalculationDetailsClientMock
-            .Setup(client => client.GetRegistrationFeeCalculationDetails(_fileId))
-            .ReturnsAsync([]);
-
-        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new RegistrationApplicationDetails
-            {
-                IsSubmitted = true,
-                LastSubmittedFile = null
-            });
-
-        // Act
-        var result = await _service.GetRegistrationApplicationDetails("test");
-
-        // Assert
-        result.Should().NotBeNull();
-        _submissionStatusClientMock.Verify(client => client.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
-        _feeCalculationDetailsClientMock.Verify(client => client.GetRegistrationFeeCalculationDetails(_fileId), Times.Never);
-    }
-
-    [TestMethod]
-    public async Task GetRegistrationApplicationDetails_ShouldNotCallFeeCalculationDetailsClientWhenFileIdIsNull()
-    {
-        // Arrange
-        _feeCalculationDetailsClientMock
-            .Setup(client => client.GetRegistrationFeeCalculationDetails(_fileId))
-            .ReturnsAsync([]);
-
-        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new RegistrationApplicationDetails
-            {
-                IsSubmitted = true,
-                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails
-                {
-                    FileId = null
-                }
-            });
-
-        // Act
-        var result = await _service.GetRegistrationApplicationDetails("test");
-
-        // Assert
-        result.Should().NotBeNull();
-        _submissionStatusClientMock.Verify(client => client.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
-        _feeCalculationDetailsClientMock.Verify(client => client.GetRegistrationFeeCalculationDetails(_fileId), Times.Never);
-    }
-
-    [TestMethod]
-    public async Task GetRegistrationApplicationDetails_ShouldNotCallFeeCalculationDetailsClientWhenIsSubmittedIsFalse()
-    {
-        // Arrange
-        _feeCalculationDetailsClientMock
-            .Setup(client => client.GetRegistrationFeeCalculationDetails(_fileId))
-            .ReturnsAsync([]);
-
-        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new RegistrationApplicationDetails
-            {
-                IsSubmitted = false,
-                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails
-                {
-                    FileId = _fileId
-                }
-            });
-
-        // Act
-        var result = await _service.GetRegistrationApplicationDetails("test");
-
-        // Assert
-        result.Should().NotBeNull();
-        _submissionStatusClientMock.Verify(client => client.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
-        _feeCalculationDetailsClientMock.Verify(client => client.GetRegistrationFeeCalculationDetails(_fileId), Times.Never);
+        _paymentServiceClientMock = new Mock<IPaymentServiceClient>();
+        _loggerMock = new Mock<ILogger<RegistrationApplicationService>>();
+        _service = new RegistrationApplicationService(
+            _submissionStatusClientMock.Object,
+            _feeCalculationDetailsClientMock.Object,
+            _paymentServiceClientMock.Object,
+            _loggerMock.Object);
     }
 
     [TestMethod]
@@ -141,8 +47,234 @@ public class RegistrationApplicationServiceTests
 
         // Assert
         result.Should().BeNull();
-        _submissionStatusClientMock.Verify(client => client.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
-        _feeCalculationDetailsClientMock.Verify(client => client.GetRegistrationFeeCalculationDetails(_fileId), Times.Never);
+        _submissionStatusClientMock.Verify(c => c.GetRegistrationApplicationDetails(It.IsAny<string>()), Times.Once);
+        _paymentServiceClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldNotCallFeeClientsWhenLastSubmittedFileIsNull()
+    {
+        // Arrange
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = null
+            });
+
+        // Act
+        var result = await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        result.Should().NotBeNull();
+        _paymentServiceClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldNotCallFeeClientsWhenFileIdIsNull()
+    {
+        // Arrange
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails
+                {
+                    FileId = null
+                }
+            });
+
+        // Act
+        var result = await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        result.Should().NotBeNull();
+        _paymentServiceClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldNotCallFeeClientsWhenIsSubmittedIsFalse()
+    {
+        // Arrange
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = false,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails
+                {
+                    FileId = _fileId
+                }
+            });
+
+        // Act
+        var result = await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        result.Should().NotBeNull();
+        _paymentServiceClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldNotCallFeeClientsWhenSubmissionIdIsNull()
+    {
+        // Arrange
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = null,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails
+                {
+                    FileId = _fileId
+                }
+            });
+
+        // Act
+        var result = await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        result.Should().NotBeNull();
+        _paymentServiceClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldCallPaymentServiceWithSubmissionId()
+    {
+        // Arrange
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
+            });
+
+        _paymentServiceClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_submissionId))
+            .ReturnsAsync([]);
+
+        // Act
+        var result = await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        result.Should().NotBeNull();
+        _paymentServiceClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(_submissionId), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldUsePaymentServiceResult_WhenItReturnsData()
+    {
+        // Arrange
+        var paymentFeeDetails = new RegistrationFeeCalculationDetails { OrganisationSize = "Large" };
+
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
+            });
+
+        _paymentServiceClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_submissionId))
+            .ReturnsAsync([paymentFeeDetails]);
+
+        // Act
+        var result = await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        result!.RegistrationFeeCalculationDetails.Should().ContainSingle()
+            .Which.OrganisationSize.Should().Be("Large");
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldNotCallLegacyClient_WhenPaymentServiceReturnsData()
+    {
+        // Arrange
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
+            });
+
+        _paymentServiceClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_submissionId))
+            .ReturnsAsync([new RegistrationFeeCalculationDetails()]);
+
+        // Act
+        await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldFallBackToLegacyClient_WhenPaymentServiceReturnsNull()
+    {
+        // Arrange
+        var legacyFeeDetails = new RegistrationFeeCalculationDetails { OrganisationSize = "Small" };
+
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
+            });
+
+        _paymentServiceClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_submissionId))
+            .ReturnsAsync((RegistrationFeeCalculationDetails[]?)null);
+
+        _feeCalculationDetailsClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_fileId))
+            .ReturnsAsync([legacyFeeDetails]);
+
+        // Act
+        var result = await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        result!.RegistrationFeeCalculationDetails.Should().ContainSingle()
+            .Which.OrganisationSize.Should().Be("Small");
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(_fileId), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldCallLegacyClientWithFileId_WhenPaymentServiceReturnsNull()
+    {
+        // Arrange
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
+            });
+
+        _paymentServiceClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_submissionId))
+            .ReturnsAsync((RegistrationFeeCalculationDetails[]?)null);
+
+        _feeCalculationDetailsClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_fileId))
+            .ReturnsAsync([]);
+
+        // Act
+        await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        _feeCalculationDetailsClientMock.Verify(c => c.GetRegistrationFeeCalculationDetails(_fileId), Times.Once);
     }
 
     [TestMethod]
@@ -163,6 +295,60 @@ public class RegistrationApplicationServiceTests
     }
 
     [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldThrowException_WhenPaymentServiceClientThrowsException()
+    {
+        // Arrange
+        var expectedException = new HttpRequestException("An error occurred while fetching data.");
+
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
+            });
+
+        _paymentServiceClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_submissionId))
+            .ThrowsAsync(expectedException);
+
+        // Act
+        Func<Task> act = async () => await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        await act.Should().ThrowAsync<HttpRequestException>().WithMessage(expectedException.Message);
+    }
+
+    [TestMethod]
+    public async Task GetRegistrationApplicationDetails_ShouldThrowException_WhenLegacyFeeClientThrowsException()
+    {
+        // Arrange
+        var expectedException = new HttpRequestException("An error occurred while fetching data.");
+
+        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
+            .ReturnsAsync(new RegistrationApplicationDetails
+            {
+                SubmissionId = _submissionId,
+                IsSubmitted = true,
+                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
+            });
+
+        _paymentServiceClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_submissionId))
+            .ReturnsAsync((RegistrationFeeCalculationDetails[]?)null);
+
+        _feeCalculationDetailsClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_fileId))
+            .ThrowsAsync(expectedException);
+
+        // Act
+        Func<Task> act = async () => await _service.GetRegistrationApplicationDetails("test");
+
+        // Assert
+        await act.Should().ThrowAsync<HttpRequestException>().WithMessage(expectedException.Message);
+    }
+
+    [TestMethod]
     public async Task GetRegistrationApplicationDetails_PassesThroughClosedLoopRecyclingFields()
     {
         // Arrange
@@ -176,12 +362,13 @@ public class RegistrationApplicationServiceTests
             .Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
             .ReturnsAsync(new RegistrationApplicationDetails
             {
+                SubmissionId = _submissionId,
                 IsSubmitted = true,
                 LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails { FileId = _fileId }
             });
 
-        _feeCalculationDetailsClientMock
-            .Setup(c => c.GetRegistrationFeeCalculationDetails(_fileId))
+        _paymentServiceClientMock
+            .Setup(c => c.GetRegistrationFeeCalculationDetails(_submissionId))
             .ReturnsAsync([feeDetails]);
 
         // Act
@@ -191,32 +378,5 @@ public class RegistrationApplicationServiceTests
         result!.RegistrationFeeCalculationDetails.Should().ContainSingle();
         result.RegistrationFeeCalculationDetails![0].IsClosedLoopRecycling.Should().BeTrue();
         result.RegistrationFeeCalculationDetails[0].NumberOfSubsidiariesBeingClosedLoopRecycling.Should().Be(4);
-    }
-
-    [TestMethod]
-    public async Task GetRegistrationApplicationDetails_ShouldThrowException_WhenFeeCalculationDetailsClientThrowsException()
-    {
-        // Arrange
-        var expectedException = new HttpRequestException("An error occurred while fetching data.");
-
-        _submissionStatusClientMock.Setup(x => x.GetRegistrationApplicationDetails(It.IsAny<string>()))
-            .ReturnsAsync(new RegistrationApplicationDetails
-            {
-                IsSubmitted = true,
-                LastSubmittedFile = new RegistrationApplicationDetails.LastSubmittedFileDetails
-                {
-                    FileId = _fileId
-                }
-            });
-
-        _feeCalculationDetailsClientMock
-            .Setup(x => x.GetRegistrationFeeCalculationDetails(_fileId))
-            .ThrowsAsync(expectedException);
-
-        // Act
-        Func<Task> act = async () => await _service.GetRegistrationApplicationDetails("Test");
-
-        // Assert
-        await act.Should().ThrowAsync<HttpRequestException>().WithMessage(expectedException.Message);
     }
 }

@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAntivirusService, AntivirusService>();
         services.AddScoped<ISubmissionService, SubmissionService>();
         services.AddScoped<AccountServiceAuthorisationHandler>();
+        services.AddScoped<PaymentServiceAuthorisationHandler>();
         services.AddScoped<AntivirusApiAuthorizationHandler>();
         services.AddScoped<IDecisionService, DecisionService>();
         services.AddScoped<ISubsidiaryService, SubsidiaryService>();

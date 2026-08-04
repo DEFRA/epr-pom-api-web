@@ -57,7 +57,7 @@ public static class HttpClientServiceCollectionExtensions
                 var options = sp.GetRequiredService<IOptions<PaymentServiceOptions>>().Value;
                 client.BaseAddress = new Uri($"{options.BaseUrl}/api/");
             })
-            .AddHttpMessageHandler<AccountServiceAuthorisationHandler>()
+            .AddHttpMessageHandler<PaymentServiceAuthorisationHandler>()
             .AddPolicyHandler(GetRetryPolicy());
 
         services.AddHttpClient<IDecisionClient, DecisionClient>((sp, client) =>

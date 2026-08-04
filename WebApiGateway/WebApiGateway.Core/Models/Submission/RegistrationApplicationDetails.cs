@@ -53,8 +53,6 @@ public class RegistrationApplicationDetails
 
     public string? RegistrationJourney { get; set; }
 
-    public string? LastUploadedFileBlobName { get; set; }
-
     public class LastSubmittedFileDetails
     {
         public Guid? FileId { get; set; }

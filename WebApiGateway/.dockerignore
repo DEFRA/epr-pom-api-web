@@ -1,0 +1,19 @@
+# Build output — must never enter the context. Stale obj/project.assets.json
+# carries host-absolute paths and can cause restore to be skipped entirely.
+**/bin/
+**/obj/
+**/out/
+
+# IDE / tooling
+**/.vs/
+**/.idea/
+**/.claude/
+**/*.user
+**/*.DotSettings.user
+
+# Test artefacts
+**/TestResults/
+
+# Docker itself
+**/Dockerfile*
+**/.dockerignore

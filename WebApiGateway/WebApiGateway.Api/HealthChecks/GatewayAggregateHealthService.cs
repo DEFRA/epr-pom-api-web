@@ -22,23 +22,24 @@ public sealed class GatewayAggregateHealthService(
     private const string Healthy = "Healthy";
     private const string Unhealthy = "Unhealthy";
 
-    public async Task<AggregateHealthReport> CheckAsync(bool deep, CancellationToken cancellationToken)
+    public async Task<AggregateHealthReport> CheckAsync(bool deep, int hop, CancellationToken cancellationToken)
     {
+        var effectiveDeep = deep && hop < aggregateHealthOptions.Value.MaximumDeepHealthHops;
         var checks = new[]
         {
-            CheckAsync("AccountApi", DownstreamHealthClientNames.AccountApi, () => AdminHealth(accountApiOptions.Value.BaseUrl, "api/"), false, cancellationToken),
-            CheckAsync("SubmissionStatusApi", DownstreamHealthClientNames.SubmissionStatusApi, () => AdminHealth(submissionStatusApiOptions.Value.BaseUrl, "v1/"), false, cancellationToken),
-            CheckAsync("PaymentService", DownstreamHealthClientNames.PaymentService, () => AdminHealth(paymentServiceOptions.Value.BaseUrl, "api/"), false, cancellationToken),
-            CheckAsync("PrnServiceApi", DownstreamHealthClientNames.PrnServiceApi, () => AdminHealth(prnServiceApiOptions.Value.BaseUrl, "api/"), false, cancellationToken),
-            CheckAsync("CommonDataApi", DownstreamHealthClientNames.CommonDataApi, () => AdminHealth(commonDataApiOptions.Value.BaseUrl, "api/"), false, cancellationToken),
-            CheckAsync("WasteObligations", DownstreamHealthClientNames.WasteObligations, () => WasteObligationsHealth(wasteObligationsOptions.Value.BaseAddress, deep), deep, cancellationToken),
+            CheckAsync("AccountApi", DownstreamHealthClientNames.AccountApi, () => AdminHealth(accountApiOptions.Value.BaseUrl, "api/"), false, null, cancellationToken),
+            CheckAsync("SubmissionStatusApi", DownstreamHealthClientNames.SubmissionStatusApi, () => AdminHealth(submissionStatusApiOptions.Value.BaseUrl, "v1/"), false, null, cancellationToken),
+            CheckAsync("PaymentService", DownstreamHealthClientNames.PaymentService, () => AdminHealth(paymentServiceOptions.Value.BaseUrl, "api/"), false, null, cancellationToken),
+            CheckAsync("PrnServiceApi", DownstreamHealthClientNames.PrnServiceApi, () => AdminHealth(prnServiceApiOptions.Value.BaseUrl, "api/"), false, null, cancellationToken),
+            CheckAsync("CommonDataApi", DownstreamHealthClientNames.CommonDataApi, () => AdminHealth(commonDataApiOptions.Value.BaseUrl, "api/"), false, null, cancellationToken),
+            CheckAsync("WasteObligations", DownstreamHealthClientNames.WasteObligations, () => WasteObligationsHealth(wasteObligationsOptions.Value.BaseAddress, effectiveDeep), effectiveDeep, effectiveDeep ? hop : null, cancellationToken),
         };
 
         var results = await Task.WhenAll(checks);
         var resultMap = results.ToDictionary(result => result.Name, result => result.Result, StringComparer.Ordinal);
         var status = resultMap.Values.All(result => result.Status == Healthy) ? Healthy : Unhealthy;
 
-        return new AggregateHealthReport(status, resultMap);
+        return new AggregateHealthReport(status, resultMap, deep && !effectiveDeep);
     }
 
     private static Uri AdminHealth(string baseUrl, string apiPath) =>
@@ -60,6 +61,7 @@ public sealed class GatewayAggregateHealthService(
         string clientName,
         Func<Uri> endpointFactory,
         bool includeResponse,
+        int? hop,
         CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -71,7 +73,13 @@ public sealed class GatewayAggregateHealthService(
         {
             endpoint = endpointFactory();
             using var client = httpClientFactory.CreateClient(clientName);
-            using var response = await client.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
+            using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            if (hop.HasValue)
+            {
+                AggregateHealthHop.AddTo(request, hop.Value);
+            }
+
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
             var body = includeResponse ? await ReadJsonResponseAsync(response, timeout.Token) : null;
             var failure = response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
                 ? "authentication"

@@ -20,7 +20,7 @@ public partial class GatewayAggregateHealthServiceTests
         var handler = new RecordingHandler();
         var service = CreateService(handler);
 
-        var report = await service.CheckAsync(false, CancellationToken.None);
+        var report = await service.CheckAsync(false, 0, CancellationToken.None);
 
         report.Status.Should().Be("Healthy");
         handler.RequestUris.Should().BeEquivalentTo(
@@ -50,15 +50,43 @@ public partial class GatewayAggregateHealthServiceTests
         var handler = new RecordingHandler();
         var service = CreateService(handler);
 
-        var report = await service.CheckAsync(true, CancellationToken.None);
+        var report = await service.CheckAsync(true, 0, CancellationToken.None);
 
         handler.RequestUris.Should().Contain("https://waste.test/waste/health/all");
         handler.RequestUris.Should().NotContain("https://waste.test/waste/health");
         handler.RequestUris.Should().Contain("https://account.test/account/admin/health");
         handler.RequestUris.Should().Contain("https://submission.test/submission/admin/health");
+        handler.Requests.Single(request => request.Uri.EndsWith("/health/all", StringComparison.Ordinal)).Hop.Should().Be("1");
         await VerifyJson(JsonSerializer.Serialize(report, new JsonSerializerOptions(JsonSerializerDefaults.Web)))
             .UseStrictJson()
             .ScrubMember("durationMs");
+    }
+
+    [TestMethod]
+    public async Task CheckAsync_WhenDeep_AddsTheNextHopOnlyToWasteObligations()
+    {
+        var handler = new RecordingHandler();
+        var service = CreateService(handler);
+
+        await service.CheckAsync(true, 1, CancellationToken.None);
+
+        handler.Requests.Single(request => request.Uri.EndsWith("/health/all", StringComparison.Ordinal)).Hop.Should().Be("2");
+        handler.Requests.Where(request => !request.Uri.EndsWith("/health/all", StringComparison.Ordinal)).Should().AllSatisfy(request => request.Hop.Should().BeNull());
+    }
+
+    [TestMethod]
+    public async Task CheckAsync_WhenMaximumHopReached_UsesWasteObligationsShallowHealth()
+    {
+        var handler = new RecordingHandler();
+        var service = CreateService(handler);
+
+        var report = await service.CheckAsync(true, 2, CancellationToken.None);
+
+        report.DeepLimited.Should().BeTrue();
+        handler.RequestUris.Should().Contain("https://waste.test/waste/health");
+        handler.RequestUris.Should().NotContain("https://waste.test/waste/health/all");
+        handler.Requests.Single(request => request.Uri == "https://waste.test/waste/health").Hop.Should().BeNull();
+        report.Results["WasteObligations"].Response.Should().BeNull();
     }
 
     private static GatewayAggregateHealthService CreateService(RecordingHandler handler) => new(
@@ -86,9 +114,14 @@ public partial class GatewayAggregateHealthServiceTests
 
         public ConcurrentBag<string> ClientNames { get; } = [];
 
+        public ConcurrentBag<RecordedRequest> Requests { get; } = [];
+
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             RequestUris.Add(request.RequestUri!.ToString());
+            Requests.Add(new RecordedRequest(
+                request.RequestUri.ToString(),
+                request.Headers.TryGetValues(AggregateHealthHop.HeaderName, out var values) ? values.Single() : null));
             var body = request.RequestUri.AbsolutePath.EndsWith("/health/all", StringComparison.Ordinal)
                 ? "{\"status\":\"Healthy\",\"results\":{}}"
                 : "Healthy";
@@ -98,5 +131,7 @@ public partial class GatewayAggregateHealthServiceTests
                 Content = new StringContent(body, Encoding.UTF8, "application/json"),
             });
         }
+
+        public sealed record RecordedRequest(string Uri, string? Hop);
     }
 }

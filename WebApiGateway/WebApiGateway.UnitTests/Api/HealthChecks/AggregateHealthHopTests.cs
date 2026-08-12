@@ -21,6 +21,20 @@ public class AggregateHealthHopTests
     }
 
     [DataTestMethod]
+    [DataRow("0", 0)]
+    [DataRow("2", 2)]
+    public void TryRead_WhenHeaderIsValid_ReturnsTheCurrentHop(string headerValue, int expectedHop)
+    {
+        var request = new DefaultHttpContext().Request;
+        request.Headers[AggregateHealthHop.HeaderName] = headerValue;
+
+        var isValid = AggregateHealthHop.TryRead(request, 2, out var hop);
+
+        isValid.Should().BeTrue();
+        hop.Should().Be(expectedHop);
+    }
+
+    [DataTestMethod]
     [DataRow("-1")]
     [DataRow("3")]
     [DataRow("invalid")]

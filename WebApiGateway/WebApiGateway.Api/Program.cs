@@ -88,6 +88,7 @@ app.UseAuthorization();
 app.UseAuthentication();
 app.MapControllers();
 app.MapHealthChecks("/admin/health", HealthCheckOptionsBuilder.Build()).AllowAnonymous();
+// Access is restricted by the deployed service boundary; this endpoint must remain anonymous for health probes.
 app.MapGet(
         "/admin/health/all",
         async (bool? deep, HttpContext context, IOptions<AggregateHealthOptions> options, GatewayAggregateHealthService healthService) =>

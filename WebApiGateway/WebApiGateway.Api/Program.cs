@@ -29,6 +29,7 @@ builder.Services
     .AddHealthChecks();
 
 builder.Services.Configure<AggregateHealthOptions>(configuration.GetSection(AggregateHealthOptions.SectionName));
+builder.Services.AddSingleton<GatewayAggregateHealthEndpoints>();
 builder.Services.AddSingleton<GatewayAggregateHealthService>();
 
 builder.Services

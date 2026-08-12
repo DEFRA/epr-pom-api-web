@@ -14,6 +14,8 @@ namespace WebApiGateway.UnitTests.Api.HealthChecks;
 [TestClass]
 public partial class GatewayAggregateHealthServiceTests
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+
     [TestMethod]
     public async Task CheckAsync_WhenNotDeep_CallsShallowHealthEndpoints()
     {
@@ -57,7 +59,7 @@ public partial class GatewayAggregateHealthServiceTests
         handler.RequestUris.Should().Contain("https://account.test/account/admin/health");
         handler.RequestUris.Should().Contain("https://submission.test/submission/admin/health");
         handler.Requests.Single(request => request.Uri.EndsWith("/health/all", StringComparison.Ordinal)).Hop.Should().Be("1");
-        await VerifyJson(JsonSerializer.Serialize(report, new JsonSerializerOptions(JsonSerializerDefaults.Web)))
+        await VerifyJson(JsonSerializer.Serialize(report, SerializerOptions))
             .UseStrictJson()
             .ScrubMember("durationMs");
     }
@@ -91,12 +93,13 @@ public partial class GatewayAggregateHealthServiceTests
 
     private static GatewayAggregateHealthService CreateService(RecordingHandler handler) => new(
         new TestHttpClientFactory(handler),
-        Options.Create(new AccountApiOptions { BaseUrl = "https://account.test/account" }),
-        Options.Create(new SubmissionStatusApiOptions { BaseUrl = "https://submission.test/submission" }),
-        Options.Create(new PaymentServiceOptions { BaseUrl = "https://payment.test/payment" }),
-        Options.Create(new PrnServiceApiOptions { BaseUrl = "https://prn.test/prn" }),
-        Options.Create(new CommonDataApiOptions { BaseUrl = "https://common.test/common" }),
-        Options.Create(new WasteObligationsOptions { BaseAddress = "https://waste.test/waste/" }),
+        new GatewayAggregateHealthEndpoints(
+            Options.Create(new AccountApiOptions { BaseUrl = "https://account.test/account" }),
+            Options.Create(new SubmissionStatusApiOptions { BaseUrl = "https://submission.test/submission" }),
+            Options.Create(new PaymentServiceOptions { BaseUrl = "https://payment.test/payment" }),
+            Options.Create(new PrnServiceApiOptions { BaseUrl = "https://prn.test/prn" }),
+            Options.Create(new CommonDataApiOptions { BaseUrl = "https://common.test/common" }),
+            Options.Create(new WasteObligationsOptions { BaseAddress = "https://waste.test/waste/" })),
         Options.Create(new AggregateHealthOptions()));
 
     private sealed class TestHttpClientFactory(RecordingHandler handler) : IHttpClientFactory

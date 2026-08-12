@@ -5,18 +5,12 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Identity;
 using Microsoft.Extensions.Options;
-using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.Api.HealthChecks;
 
 public sealed class GatewayAggregateHealthService(
     IHttpClientFactory httpClientFactory,
-    IOptions<AccountApiOptions> accountApiOptions,
-    IOptions<SubmissionStatusApiOptions> submissionStatusApiOptions,
-    IOptions<PaymentServiceOptions> paymentServiceOptions,
-    IOptions<PrnServiceApiOptions> prnServiceApiOptions,
-    IOptions<CommonDataApiOptions> commonDataApiOptions,
-    IOptions<WasteObligationsOptions> wasteObligationsOptions,
+    GatewayAggregateHealthEndpoints endpoints,
     IOptions<AggregateHealthOptions> aggregateHealthOptions)
 {
     private const string Healthy = "Healthy";
@@ -27,12 +21,12 @@ public sealed class GatewayAggregateHealthService(
         var effectiveDeep = deep && hop < aggregateHealthOptions.Value.MaximumDeepHealthHops;
         var checks = new[]
         {
-            CheckAsync("AccountApi", DownstreamHealthClientNames.AccountApi, () => AdminHealth(accountApiOptions.Value.BaseUrl, "api/"), false, null, cancellationToken),
-            CheckAsync("SubmissionStatusApi", DownstreamHealthClientNames.SubmissionStatusApi, () => AdminHealth(submissionStatusApiOptions.Value.BaseUrl, "v1/"), false, null, cancellationToken),
-            CheckAsync("PaymentService", DownstreamHealthClientNames.PaymentService, () => AdminHealth(paymentServiceOptions.Value.BaseUrl, "api/"), false, null, cancellationToken),
-            CheckAsync("PrnServiceApi", DownstreamHealthClientNames.PrnServiceApi, () => AdminHealth(prnServiceApiOptions.Value.BaseUrl, "api/"), false, null, cancellationToken),
-            CheckAsync("CommonDataApi", DownstreamHealthClientNames.CommonDataApi, () => AdminHealth(commonDataApiOptions.Value.BaseUrl, "api/"), false, null, cancellationToken),
-            CheckAsync("WasteObligations", DownstreamHealthClientNames.WasteObligations, () => WasteObligationsHealth(wasteObligationsOptions.Value.BaseAddress, effectiveDeep), effectiveDeep, effectiveDeep ? hop : null, cancellationToken),
+            CheckAsync("AccountApi", DownstreamHealthClientNames.AccountApi, () => AdminHealth(endpoints.AccountApiBaseUrl, "api/"), false, null, cancellationToken),
+            CheckAsync("SubmissionStatusApi", DownstreamHealthClientNames.SubmissionStatusApi, () => AdminHealth(endpoints.SubmissionStatusApiBaseUrl, "v1/"), false, null, cancellationToken),
+            CheckAsync("PaymentService", DownstreamHealthClientNames.PaymentService, () => AdminHealth(endpoints.PaymentServiceBaseUrl, "api/"), false, null, cancellationToken),
+            CheckAsync("PrnServiceApi", DownstreamHealthClientNames.PrnServiceApi, () => AdminHealth(endpoints.PrnServiceApiBaseUrl, "api/"), false, null, cancellationToken),
+            CheckAsync("CommonDataApi", DownstreamHealthClientNames.CommonDataApi, () => AdminHealth(endpoints.CommonDataApiBaseUrl, "api/"), false, null, cancellationToken),
+            CheckAsync("WasteObligations", DownstreamHealthClientNames.WasteObligations, () => WasteObligationsHealth(endpoints.WasteObligationsBaseAddress, effectiveDeep), effectiveDeep, effectiveDeep ? hop : null, cancellationToken),
         };
 
         var results = await Task.WhenAll(checks);
@@ -55,6 +49,38 @@ public sealed class GatewayAggregateHealthService(
         var builder = new UriBuilder(endpoint) { UserName = string.Empty, Password = string.Empty, Query = string.Empty };
         return builder.Uri.ToString();
     }
+
+    private static string? GetFailure(HttpResponseMessage response, bool includeResponse, JsonNode? body)
+    {
+        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            return "authentication";
+        }
+
+        if (includeResponse && body is null)
+        {
+            return "invalid_response";
+        }
+
+        return null;
+    }
+
+    private static DownstreamHealthResult CreateFailureResult(Exception exception, Uri? endpoint, long durationMs)
+    {
+        if (exception is UriFormatException || endpoint is null)
+        {
+            return new DownstreamHealthResult(Unhealthy, "not configured", null, durationMs, Failure: "configuration");
+        }
+
+        return new DownstreamHealthResult(Unhealthy, SafeEndpoint(endpoint), null, durationMs, Failure: FailureFor(exception));
+    }
+
+    private static string FailureFor(Exception exception) => exception switch
+    {
+        OperationCanceledException => "timeout",
+        AuthenticationFailedException => "authentication",
+        _ => "unavailable",
+    };
 
     private async Task<(string Name, DownstreamHealthResult Result)> CheckAsync(
         string name,
@@ -81,9 +107,7 @@ public sealed class GatewayAggregateHealthService(
 
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
             var body = includeResponse ? await ReadJsonResponseAsync(response, timeout.Token) : null;
-            var failure = response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
-                ? "authentication"
-                : includeResponse && body is null ? "invalid_response" : null;
+            var failure = GetFailure(response, includeResponse, body);
             var isHealthy = response.IsSuccessStatusCode && failure is null;
 
             return (name, new DownstreamHealthResult(
@@ -94,29 +118,13 @@ public sealed class GatewayAggregateHealthService(
                 body,
                 failure));
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return (name, new DownstreamHealthResult(Unhealthy, SafeEndpoint(endpoint!), null, stopwatch.ElapsedMilliseconds, Failure: "timeout"));
-        }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
-        catch (AuthenticationFailedException)
+        catch (Exception exception)
         {
-            return (name, new DownstreamHealthResult(Unhealthy, SafeEndpoint(endpoint!), null, stopwatch.ElapsedMilliseconds, Failure: "authentication"));
-        }
-        catch (HttpRequestException)
-        {
-            return (name, new DownstreamHealthResult(Unhealthy, SafeEndpoint(endpoint!), null, stopwatch.ElapsedMilliseconds, Failure: "unavailable"));
-        }
-        catch (UriFormatException)
-        {
-            return (name, new DownstreamHealthResult(Unhealthy, "not configured", null, stopwatch.ElapsedMilliseconds, Failure: "configuration"));
-        }
-        catch (Exception)
-        {
-            return (name, new DownstreamHealthResult(Unhealthy, endpoint is null ? "not configured" : SafeEndpoint(endpoint), null, stopwatch.ElapsedMilliseconds, Failure: endpoint is null ? "configuration" : "unavailable"));
+            return (name, CreateFailureResult(exception, endpoint, stopwatch.ElapsedMilliseconds));
         }
     }
 

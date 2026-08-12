@@ -32,6 +32,15 @@ public partial class GatewayAggregateHealthServiceTests
                 "https://common.test/common/admin/health",
                 "https://waste.test/waste/health",
             ]);
+        handler.ClientNames.Should().BeEquivalentTo(
+            [
+                DownstreamHealthClientNames.AccountApi,
+                DownstreamHealthClientNames.SubmissionStatusApi,
+                DownstreamHealthClientNames.PaymentService,
+                DownstreamHealthClientNames.PrnServiceApi,
+                DownstreamHealthClientNames.CommonDataApi,
+                DownstreamHealthClientNames.WasteObligations,
+            ]);
         report.Results["WasteObligations"].Response.Should().BeNull();
     }
 
@@ -62,14 +71,20 @@ public partial class GatewayAggregateHealthServiceTests
         Options.Create(new WasteObligationsOptions { BaseAddress = "https://waste.test/waste/" }),
         Options.Create(new AggregateHealthOptions()));
 
-    private sealed class TestHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    private sealed class TestHttpClientFactory(RecordingHandler handler) : IHttpClientFactory
     {
-        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
+        public HttpClient CreateClient(string name)
+        {
+            handler.ClientNames.Add(name);
+            return new HttpClient(handler, disposeHandler: false);
+        }
     }
 
     private sealed class RecordingHandler : HttpMessageHandler
     {
         public ConcurrentBag<string> RequestUris { get; } = [];
+
+        public ConcurrentBag<string> ClientNames { get; } = [];
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {

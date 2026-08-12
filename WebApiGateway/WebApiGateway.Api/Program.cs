@@ -27,6 +27,9 @@ builder.Services
     .AddApplicationInsightsTelemetry()
     .AddHealthChecks();
 
+builder.Services.Configure<AggregateHealthOptions>(configuration.GetSection(AggregateHealthOptions.SectionName));
+builder.Services.AddSingleton<GatewayAggregateHealthService>();
+
 builder.Services
     .AddCommonServices()
     .AddEprAccessControl()
@@ -84,4 +87,14 @@ app.UseAuthorization();
 app.UseAuthentication();
 app.MapControllers();
 app.MapHealthChecks("/admin/health", HealthCheckOptionsBuilder.Build()).AllowAnonymous();
+app.MapGet(
+        "/admin/health/all",
+        async (bool deep, HttpContext context, GatewayAggregateHealthService healthService) =>
+        {
+            var report = await healthService.CheckAsync(deep, context.RequestAborted);
+            context.Response.Headers.CacheControl = "no-store";
+
+            return Results.Json(report, statusCode: report.Status == "Healthy" ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+        })
+    .AllowAnonymous();
 app.Run();

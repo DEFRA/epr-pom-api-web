@@ -34,7 +34,9 @@ ARG GIT_SHA
 ENV BUILD_NUMBER=$BUILD_NUMBER
 ENV GIT_SHA=$GIT_SHA
 
-COPY --from=build-env --chown=dotnet:dotnet /home/dotnet/WebApiGateway.Api/out .
+# No --chown: files stay root-owned so the dotnet runtime user can read and
+# execute them but not modify them (Sonar docker:S6504)
+COPY --from=build-env /home/dotnet/WebApiGateway.Api/out .
 
 # Expose the app on a defined port, configurable via a build argument
 ARG PORT=3000

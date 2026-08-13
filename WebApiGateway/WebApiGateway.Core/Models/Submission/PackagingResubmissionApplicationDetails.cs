@@ -43,6 +43,19 @@ public class PackagingResubmissionApplicationDetails
 
     public string? ResubmissionReferenceNumber { get; set; }
 
+    /// <summary>
+    /// SUB-345: Gets or sets the most recent resubmission cycle the regulator has ruled on, or null if there is none.
+    /// </summary>
+    /// <remarks>
+    /// Every field above describes the cycle that is open now, so the submission API stops reporting all of
+    /// them at the decision that closed a cycle. Forwarded separately, this is what lets the frontend tell a
+    /// completed resubmission from one that was never started.
+    /// </remarks>
+    /// <value>
+    /// The most recent resubmission cycle the regulator has ruled on, or null if there is none.
+    /// </value>
+    public CompletedResubmissionDetails? LastCompletedResubmission { get; set; }
+
     public SynapseResponse SynapseResponse { get; set; } = new();
 
     public class LastSubmittedFileDetails
@@ -52,5 +65,32 @@ public class PackagingResubmissionApplicationDetails
       public string? SubmittedByName { get; set; } = string.Empty;
 
       public DateTime? SubmittedDateTime { get; set; }
+    }
+
+    public class CompletedResubmissionDetails
+    {
+      public string? ApplicationReferenceNumber { get; set; }
+
+      public string? ResubmissionReferenceNumber { get; set; }
+
+      public DateTime? DeclarationDate { get; set; }
+
+      public string? DeclarationComment { get; set; }
+
+      public string? DeclaredByName { get; set; }
+
+      public bool? IsResubmissionFeeViewed { get; set; }
+
+      public string? ResubmissionFeePaymentMethod { get; set; }
+
+      public string? Decision { get; set; }
+
+      public string? RegulatorComments { get; set; }
+
+      public DateTime? DecisionDate { get; set; }
+
+      public string? FileName { get; set; }
+
+      public LastSubmittedFileDetails? SubmittedFile { get; set; }
     }
 }

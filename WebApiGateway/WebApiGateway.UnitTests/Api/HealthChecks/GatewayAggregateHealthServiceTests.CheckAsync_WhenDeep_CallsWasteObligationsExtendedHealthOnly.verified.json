@@ -1,0 +1,44 @@
+﻿{
+  "status": "Healthy",
+  "results": {
+    "AccountApi": {
+      "status": "Healthy",
+      "endpoint": "https://account.test/account/admin/health",
+      "statusCode": 200,
+      "durationMs": "{Scrubbed}"
+    },
+    "SubmissionStatusApi": {
+      "status": "Healthy",
+      "endpoint": "https://submission.test/submission/admin/health",
+      "statusCode": 200,
+      "durationMs": "{Scrubbed}"
+    },
+    "PaymentService": {
+      "status": "Healthy",
+      "endpoint": "https://payment.test/payment/admin/health",
+      "statusCode": 200,
+      "durationMs": "{Scrubbed}"
+    },
+    "PrnServiceApi": {
+      "status": "Healthy",
+      "endpoint": "https://prn.test/prn/admin/health",
+      "statusCode": 200,
+      "durationMs": "{Scrubbed}"
+    },
+    "CommonDataApi": {
+      "status": "Healthy",
+      "endpoint": "https://common.test/common/admin/health",
+      "statusCode": 200,
+      "durationMs": "{Scrubbed}"
+    },
+    "WasteObligations": {
+      "status": "Healthy",
+      "endpoint": "https://waste.test/waste/health/all",
+      "statusCode": 200,
+      "durationMs": "{Scrubbed}",
+      "response": {
+        "status": "Healthy"
+      }
+    }
+  }
+}

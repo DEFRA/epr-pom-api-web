@@ -67,7 +67,7 @@ public static class HttpClientServiceCollectionExtensions
 
         services
             .AddHttpClient(DownstreamHealthClientNames.PaymentService)
-            .AddHttpMessageHandler<PaymentServiceAuthorisationHandler>();
+            .AddHttpMessageHandler<AccountServiceAuthorisationHandler>();
 
         services.AddHttpClient<IDecisionClient, DecisionClient>((sp, client) =>
             {

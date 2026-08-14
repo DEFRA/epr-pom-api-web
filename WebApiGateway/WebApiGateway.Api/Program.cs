@@ -1,6 +1,7 @@
 ﻿using EPR.Common.Functions.Extensions;
 using EPR.Common.Logging.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -26,6 +27,10 @@ builder.Host.UseSerilog((context, config) =>
 builder.Services
     .AddApplicationInsightsTelemetry()
     .AddHealthChecks();
+
+builder.Services.Configure<AggregateHealthOptions>(configuration.GetSection(AggregateHealthOptions.SectionName));
+builder.Services.AddSingleton<GatewayAggregateHealthEndpoints>();
+builder.Services.AddSingleton<GatewayAggregateHealthService>();
 
 builder.Services
     .AddCommonServices()
@@ -84,4 +89,20 @@ app.UseAuthorization();
 app.UseAuthentication();
 app.MapControllers();
 app.MapHealthChecks("/admin/health", HealthCheckOptionsBuilder.Build()).AllowAnonymous();
+// Access is restricted by the deployed service boundary; this endpoint must remain anonymous for health probes.
+app.MapGet(
+        "/admin/health/all",
+        async (bool? deep, HttpContext context, IOptions<AggregateHealthOptions> options, GatewayAggregateHealthService healthService) =>
+        {
+            if (!AggregateHealthHop.TryRead(context.Request, options.Value.MaximumDeepHealthHops, out var hop))
+            {
+                return Results.BadRequest();
+            }
+
+            var report = await healthService.CheckAsync(deep is true, hop, context.RequestAborted);
+            context.Response.Headers.CacheControl = "no-store";
+
+            return Results.Json(report, statusCode: report.Status == "Healthy" ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+        })
+    .AllowAnonymous();
 app.Run();

@@ -7,6 +7,7 @@ using Polly.Retry;
 using WebApiGateway.Api.Clients;
 using WebApiGateway.Api.Clients.Interfaces;
 using WebApiGateway.Api.Handlers;
+using WebApiGateway.Api.HealthChecks;
 using WebApiGateway.Core.Options;
 
 namespace WebApiGateway.Api.ConfigurationExtensions;
@@ -52,13 +53,21 @@ public static class HttpClientServiceCollectionExtensions
             .AddHttpMessageHandler<AccountServiceAuthorisationHandler>()
             .AddPolicyHandler(GetRetryPolicy());
 
+        services
+            .AddHttpClient(DownstreamHealthClientNames.AccountApi)
+            .AddHttpMessageHandler<AccountServiceAuthorisationHandler>();
+
         services.AddHttpClient<IPaymentServiceClient, PaymentServiceClient>((sp, client) =>
             {
                 var options = sp.GetRequiredService<IOptions<PaymentServiceOptions>>().Value;
                 client.BaseAddress = new Uri($"{options.BaseUrl}/api/");
             })
-            .AddHttpMessageHandler<AccountServiceAuthorisationHandler>()
+            .AddHttpMessageHandler<PaymentServiceAuthorisationHandler>()
             .AddPolicyHandler(GetRetryPolicy());
+
+        services
+            .AddHttpClient(DownstreamHealthClientNames.PaymentService)
+            .AddHttpMessageHandler<AccountServiceAuthorisationHandler>();
 
         services.AddHttpClient<IDecisionClient, DecisionClient>((sp, client) =>
             {
@@ -75,6 +84,10 @@ public static class HttpClientServiceCollectionExtensions
             .AddHttpMessageHandler<PrnServiceAuthorisationHandler>()
             .AddPolicyHandler(GetRetryPolicy());
 
+        services
+            .AddHttpClient(DownstreamHealthClientNames.PrnServiceApi)
+            .AddHttpMessageHandler<PrnServiceAuthorisationHandler>();
+
         services.AddHttpClient<IRegistrationFeeCalculationDetailsClient, RegistrationFeeCalculationDetailsClient>((sp, client) =>
             {
                 var options = sp.GetRequiredService<IOptions<CommonDataApiOptions>>().Value;
@@ -88,6 +101,12 @@ public static class HttpClientServiceCollectionExtensions
                 client.BaseAddress = new Uri($"{options.BaseUrl}/api/");
             })
             .AddPolicyHandler(GetRetryPolicy());
+
+        services
+            .AddHttpClient(DownstreamHealthClientNames.SubmissionStatusApi);
+
+        services
+            .AddHttpClient(DownstreamHealthClientNames.CommonDataApi);
 
         services.AddWasteObligationsProxy();
 
@@ -136,6 +155,13 @@ public static class HttpClientServiceCollectionExtensions
                     .AddRetry(options.Retry)
                     .AddTimeout(options.AttemptTimeout);
             });
+
+        services
+            .AddHttpClient(DownstreamHealthClientNames.WasteObligations)
+            .AddHttpMessageHandler(sp => sp.GetRequiredKeyedService<OAuth2Handler>(Name))
+            .ConfigureHttpClient(
+                (sp, httpClient) =>
+                    sp.GetRequiredService<IOptions<WasteObligationsOptions>>().Value.Configure(httpClient));
 
         return services;
     }

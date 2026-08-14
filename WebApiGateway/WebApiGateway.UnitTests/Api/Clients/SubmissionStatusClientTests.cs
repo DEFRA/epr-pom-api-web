@@ -437,6 +437,39 @@ public class SubmissionStatusClientTests
     }
 
     [TestMethod]
+    public async Task SubmitAsync_ForwardsRegulatorNation_InRequestBody()
+    {
+        // Arrange
+        var submissionId = Guid.NewGuid();
+        var submissionPayload = new SubmissionPayload
+        {
+            SubmittedBy = "Test Name",
+            FileId = Guid.NewGuid(),
+            RegulatorNation = "GB-ENG"
+        };
+
+        string? capturedBody = null;
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .Callback<HttpRequestMessage, CancellationToken>(async (req, _) =>
+            {
+                capturedBody = await req.Content!.ReadAsStringAsync();
+            })
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent });
+
+        // Act
+        await _systemUnderTest.SubmitAsync(submissionId, submissionPayload);
+
+        // Assert
+        capturedBody.Should().NotBeNull();
+        var deserialised = JsonConvert.DeserializeObject<SubmissionPayload>(capturedBody!);
+        deserialised!.RegulatorNation.Should().Be("GB-ENG");
+    }
+
+    [TestMethod]
     public async Task GetRegistrationValidationErrorsAsync_ReturnsSubmissions_WhenHttpClientResponseIsOk()
     {
         // Arrange

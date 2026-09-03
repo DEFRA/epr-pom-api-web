@@ -1097,6 +1097,65 @@ public class SubmissionStatusClientTests
         result.First().Should().BeEquivalentTo(expectedResponse.First());
     }
 
+    // SUB-345: the gateway keeps its own copy of the response class, so a field added to the submission
+    // microservice and forgotten here is dropped in silence. The test above cannot catch that - it serialises
+    // the gateway's own class and compares the result against itself, so a missing property is missing from
+    // both sides and still matches. Deserialise the microservice's wire shape instead.
+    [TestMethod]
+    public async Task GetPackagingResubmissionApplicationDetails_Should_Carry_TheResubmissionCycleFields_FromTheSubmissionApi()
+    {
+        // Arrange
+        var queryString = "?id=123";
+        var submissionId = Guid.NewGuid();
+
+        var body = $$"""
+            [
+              {
+                "submissionId": "{{submissionId}}",
+                "isSubmitted": true,
+                "applicationReferenceNumber": "PEPR12345S01",
+                "applicationStatus": "NotStarted",
+                "isResubmissionCycleClosed": true,
+                "lastCompletedResubmission": {
+                  "applicationReferenceNumber": "PEPR12345S01",
+                  "decision": "Accepted",
+                  "regulatorComments": "Regulator comment"
+                }
+              }
+            ]
+            """;
+
+        var httpResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(body)
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get && req.RequestUri.ToString().Contains(queryString)),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpResponse);
+
+        // Act
+        var result = await _systemUnderTest.GetPackagingResubmissionApplicationDetails(queryString);
+
+        // Assert
+        result.Should().NotBeNull();
+
+        var details = result.First();
+        details.SubmissionId.Should().Be(submissionId);
+        details.ApplicationReferenceNumber.Should().Be("PEPR12345S01");
+        details.IsResubmissionCycleClosed.Should().BeTrue();
+        details.LastCompletedResubmission.Should().NotBeNull();
+        details.LastCompletedResubmission!.ApplicationReferenceNumber.Should().Be("PEPR12345S01");
+        details.LastCompletedResubmission.Decision.Should().Be("Accepted");
+        details.LastCompletedResubmission.RegulatorComments.Should().Be("Regulator comment");
+    }
+
     [TestMethod]
     public async Task GetPackagingResubmissionApplicationDetailsSubmissionDetails_Should_Return_Null_When_NoContent()
     {

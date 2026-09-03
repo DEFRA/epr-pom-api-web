@@ -56,6 +56,20 @@ public class PackagingResubmissionApplicationDetails
     /// </value>
     public CompletedResubmissionDetails? LastCompletedResubmission { get; set; }
 
+    /// <summary>
+    /// SUB-345: Gets or sets a value indicating whether the cycle every field above describes has been closed
+    /// by a regulator decision, with nothing having opened a later one.
+    /// </summary>
+    /// <remarks>
+    /// ApplicationReferenceNumber is reported on every path so the cycle keeps its identity, which leaves an
+    /// empty one meaning only "the very first cycle". Forwarded, this is what tells the frontend the number it
+    /// has belongs to a finished cycle and the next resubmission needs one of its own.
+    /// </remarks>
+    /// <value>
+    /// True when the reported cycle has been ruled on and nothing has replaced it; otherwise false.
+    /// </value>
+    public bool IsResubmissionCycleClosed { get; set; }
+
     public SynapseResponse SynapseResponse { get; set; } = new();
 
     public class LastSubmittedFileDetails

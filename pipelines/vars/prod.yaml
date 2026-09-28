@@ -1,6 +1,10 @@
 variables:
-  azureSubscription: 'AZR-RWD-PRD1'
-  docker.imageName: 'webapigateway'
-  acr.azureContainerRegistryName: 'prdrwdinfac1401'
-  acr.repositoryName: 'apiwebrepository'
-  serviceName: 'prdrwdwebwa1409'
+- group: ServiceConnection-PRD1
+- name: docker.imageName
+  value: 'webapigateway'
+- name: acr.azureContainerRegistryName
+  value: 'prdrwdinfac1401'
+- name: acr.repositoryName
+  value: 'apiwebrepository'
+- name: serviceName
+  value: 'prdrwdwebwa1409'

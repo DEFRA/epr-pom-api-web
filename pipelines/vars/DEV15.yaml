@@ -1,6 +1,12 @@
 variables:
-  azureSubscription: 'AZD-RWD-DEV15'
-  docker.imageName: 'webapigateway'
-  acr.azureContainerRegistryName: 'devrwdinfacf401'
-  acr.repositoryName: 'apiwebrepository'
-  serviceName: 'devrwdwebwaf409'
+- group: ServiceConnections
+- name: azureSubscription
+  value: $(ServiceConnectionDEV15)
+- name: docker.imageName
+  value: 'webapigateway'
+- name: acr.azureContainerRegistryName
+  value: 'devrwdinfacf401'
+- name: acr.repositoryName
+  value: 'apiwebrepository'
+- name: serviceName
+  value: 'devrwdwebwaf409'

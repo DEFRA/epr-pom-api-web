@@ -192,6 +192,57 @@ namespace WebApiGateway.UnitTests.Api.Clients
         }
 
         [TestMethod]
+        public async Task GetSearchPrns_ShouldSendAcceptableIntoYear_WhenSpecified()
+        {
+            // Arrange
+            var request = new PaginatedRequest { Page = 1, PageSize = 1, FilterBy = "awaiting-all", AcceptableIntoYear = 2027 };
+            HttpRequestMessage sent = null;
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((message, _) => sent = message)
+                .Returns(Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(new PaginatedResponse<PrnModel>()))
+                }));
+
+            // Act
+            await _systemUnderTest.GetSearchPrns(request);
+
+            // Assert
+            sent.RequestUri.Query.Should().Contain("AcceptableIntoYear=2027");
+            sent.RequestUri.Query.Should().Contain("FilterBy=awaiting-all");
+        }
+
+        [TestMethod]
+        public async Task GetSearchPrns_ShouldNotSendAcceptableIntoYear_WhenNotSpecified()
+        {
+            // Arrange
+            var request = new PaginatedRequest { Page = 1, PageSize = 10 };
+            HttpRequestMessage sent = null;
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((message, _) => sent = message)
+                .Returns(Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(new PaginatedResponse<PrnModel>()))
+                }));
+
+            // Act
+            await _systemUnderTest.GetSearchPrns(request);
+
+            // Assert
+            sent.RequestUri.Query.Should().NotContain("AcceptableIntoYear");
+        }
+
+        [TestMethod]
         public async Task GetSearchPrns_ShouldReturnEmptyResponse_WhenNoPrnsFound()
         {
             // Arrange
